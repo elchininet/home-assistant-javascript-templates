@@ -1,0 +1,33 @@
+import HomeAssistantJavaScriptTemplates from '../src';
+import { HASS } from './constants';
+
+describe('Templates with errors', () => {
+
+    const errorMessage = 'states.binary_sensor.koffiezetapparaat_verbonden.state.toFixed is not a function';
+
+    it('TypeError as a console log', () => {
+
+        const compiler = new HomeAssistantJavaScriptTemplates(HASS);
+        const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+
+        expect(
+            compiler.renderTemplate('states["binary_sensor.koffiezetapparaat_verbonden"].state.toFixed(16)')
+        ).toBe(undefined);
+
+        expect(consoleWarnMock).toHaveBeenCalledWith(new TypeError(errorMessage));
+
+        consoleWarnMock.mockRestore();
+
+    });
+
+    it('TypeError as an error', () => {
+
+        const compiler = new HomeAssistantJavaScriptTemplates(HASS, true);
+
+        expect(
+            () => compiler.renderTemplate('states["binary_sensor.koffiezetapparaat_verbonden"].state.toFixed(16)')
+        ).toThrow(errorMessage);
+
+    });
+
+});
