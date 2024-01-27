@@ -190,3 +190,25 @@ Method to return an array of device ids tied to a given area id or area name. If
 area_devices('woonkamer')
 area_devices('Woonkamer')
 ```
+
+## Example
+
+```javascript
+import HomeAssistantJavaScriptTemplates  from 'home-assistant-javascript-templates';
+
+const renderer = new HomeAssistantJavaScriptTemplates(
+    document.querySelector('home-assistant').hass
+);
+
+/**
+ * Get the device id of an entity
+ * With the device id get an attribute of the device
+ * Return the value of the attribute prefixed with "sn: "
+ * It will return something like "sn: 123456"
+ */
+renderer.renderTemplate(`
+    const deviceId = device_id("binary_sensor.koffiezetapparaat_aan");
+    const serialNumber = device_attr(deviceId, "serial_number");
+    return "sn:" + serialNumber;
+`);
+```
