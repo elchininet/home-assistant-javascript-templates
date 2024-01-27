@@ -1,0 +1,52 @@
+{
+  "name": "home-assistant-javascript-templates",
+  "version": "1.0.0",
+  "description": "A JavaScript utility to render Home Assistant JavaScript templates",
+  "keywords": [
+    "home-assistant",
+    "templates",
+    "js-templates",
+    "javascript-templates",
+    "library"
+  ],
+  "main": "dist/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "author": "ElChiniNet",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elchininet/home-assistant-javascript-templates.git"
+  },
+  "private": false,
+  "scripts": {
+    "build": "rollup --config rollup.config.js --bundleConfigAsCjs",
+    "test:ts": "tsc --noEmit",
+    "test:unit": "jest --verbose"
+  },
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.11.5",
+    "jest": "^29.7.0",
+    "rollup": "^4.9.6",
+    "rollup-plugin-ts": "^3.4.5",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.3.3"
+  }
+}
