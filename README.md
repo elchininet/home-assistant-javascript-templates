@@ -1,4 +1,4 @@
-# home-assistant-frontend-templates
+# home-assistant-javascript-templates
 
 A JavaScript utility to render Home Assistant JavaScript templates.
 
