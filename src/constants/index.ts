@@ -8,4 +8,4 @@ export enum ATTRIBUTES {
     NAME = 'name'
 }
 
-export const ERROR = 'Error';
+export const NONE = 'None';

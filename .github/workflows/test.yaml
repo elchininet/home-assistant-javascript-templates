@@ -29,10 +29,8 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: TypeScript Check
         run: yarn test:ts
-      - name: E2E Tests
-        run: yarn test:unit
-      - name: Create coverage
-        run: yarn coverage:report
+      - name: Tests
+        run: yarn test:unit --coverage
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:

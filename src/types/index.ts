@@ -32,6 +32,8 @@ export interface ProxiedStates {
     [entityId: string]: State[] | State | undefined;
 }
 
+export type None = 'None';
+
 export interface Scopped {
     hass: Hass;
     states: ProxiedStates;
