@@ -1,11 +1,15 @@
-import { Hass, Scopped } from '@types';
+import {
+    HomeAssistant,
+    Hass,
+    Scopped
+} from '@types';
 import { STRICT_MODE } from '@constants';
 import { createScoppedFunctions } from '@utilities';
 
 export default class HomeAssistantJavaScriptTemplates {
 
-    constructor(hass: Hass, throwErrors = false) {
-        this._scopped = createScoppedFunctions(hass);
+    constructor(ha: HomeAssistant, throwErrors = false) {
+        this._scopped = createScoppedFunctions(ha);
         this._errors = throwErrors;
     }
 
@@ -73,4 +77,4 @@ export default class HomeAssistantJavaScriptTemplates {
     }
 }
 
-export { Hass };
+export { HomeAssistant, Hass };
