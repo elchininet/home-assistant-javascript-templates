@@ -101,7 +101,7 @@ is_state('device_tracker.paulus', 'not_home')
 
 #### state_attr
 
-Method to return the value of the state attribute or `None` if it doesn’t exist.
+Method to return the value of the state attribute or `undefined` if it doesn’t exist.
 
 ```javascript
 state_attr('device_tracker.paulus', 'battery')
@@ -125,7 +125,7 @@ has_value('sensor.my_sensor')
 
 #### device_attr
 
-Method that returns the value of an attribute for the given device id or `None` if it doesn’t exist.
+Method that returns the value of an attribute for the given device id or `undefined` if it doesn’t exist.
 
 ```javascript
 device_attr('706ad0ebe27e105d7cd0b73386deefdd')
@@ -141,7 +141,7 @@ is_device_attr('706ad0ebe27e105d7cd0b73386deefdd', 'manufacturer', 'Synology')
 
 #### device_id
 
-Method to return the device id for a given entity id or `None` if the entity doesn‘t exist. 
+Method to return the device id for a given entity id or `undefined` if the entity doesn‘t exist. 
 
 ```javascript
 device_id('sensor.my_sensor')
@@ -157,7 +157,7 @@ areas()
 
 #### area_id
 
-Method to return the area id for a given device id, entity id, or area name. It returns `None` if the area doesn‘t exist.
+Method to return the area id for a given device id, entity id, or area name. It returns `undefined` if the area doesn‘t exist.
 
 ```javascript
 area_id('b8c1c9dd23cb82bbfa09b5657f41d04f')
@@ -167,7 +167,7 @@ area_id('Woonkamer')
 
 #### area_name
 
-Method to return the area name for a given device id, entity id, or area id. It returns `None` if the area doesn‘t exist.
+Method to return the area name for a given device id, entity id, or area id. It returns `undefined` if the area doesn‘t exist.
 
 ```javascript
 area_name('b8c1c9dd23cb82bbfa09b5657f41d04f')

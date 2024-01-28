@@ -8,5 +8,4 @@ export enum ATTRIBUTES {
     NAME = 'name'
 }
 
-export const NONE = 'None';
 export const STRICT_MODE = '"use strict";';

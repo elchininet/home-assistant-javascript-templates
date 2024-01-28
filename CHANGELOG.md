@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.0] - 2024-01-28
+
+- Rollback the `None` returns and return `undefined` in these cases.
+
 ## [1.1.0] - 2024-01-28
 
 - Added `user` to `Hass` interface
