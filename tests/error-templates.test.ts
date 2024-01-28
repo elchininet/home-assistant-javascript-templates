@@ -1,4 +1,5 @@
 import HomeAssistantJavaScriptTemplates from '../src';
+import { HomeAssistant } from '../src/types';
 import { HASS } from './constants';
 
 describe('Templates with errors', () => {
@@ -7,7 +8,7 @@ describe('Templates with errors', () => {
 
     it('Error as a console log', () => {
 
-        const compiler = new HomeAssistantJavaScriptTemplates(HASS);
+        const compiler = new HomeAssistantJavaScriptTemplates({ hass: HASS } as HomeAssistant);
         const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
 
         expect(
@@ -22,7 +23,7 @@ describe('Templates with errors', () => {
 
     it('Error as an error', () => {
 
-        const compiler = new HomeAssistantJavaScriptTemplates(HASS, true);
+        const compiler = new HomeAssistantJavaScriptTemplates({ hass: HASS } as HomeAssistant, true);
 
         expect(
             () => compiler.renderTemplate('states["binary_sensor.koffiezetapparaat_verbonden"].state.toFixed(16)')

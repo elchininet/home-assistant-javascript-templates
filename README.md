@@ -34,7 +34,7 @@ pnpm add home-assistant-javascript-templates
 const HomeAssistantJavaScriptTemplates = require('home-assistant-javascript-templates');
 
 const renderer = new HomeAssistantJavaScriptTemplates(
-    document.querySelector('home-assistant').hass
+    document.querySelector('home-assistant')
 );
 
 renderer.renderTemplate('... template string ...');
@@ -46,7 +46,7 @@ renderer.renderTemplate('... template string ...');
 import HomeAssistantJavaScriptTemplates  from 'home-assistant-javascript-templates';
 
 const renderer = new HomeAssistantJavaScriptTemplates(
-    document.querySelector('home-assistant').hass
+    document.querySelector('home-assistant')
 );
 
 renderer.renderTemplate('... template string ...');
@@ -61,12 +61,12 @@ The package exposes a class that needs to be instantiated and is this isntance t
 Main class of the library, it is the `default` export in the package.
 
 ```typescript
-new HomeAssistantJavaScriptTemplates(hass, throwErrors = false);
+new HomeAssistantJavaScriptTemplates(ha, throwErrors = false);
 ```
 
 | Parameter     | Optional      | Description                                        |
 | ------------- | ------------- | -------------------------------------------------- |
-| `hass`        | no            | A valid `hass` object                              |
+| `ha`          | no            | An HTML element that has the `hass` object as a property (e.g. the `home-assistant` custom element). |
 | `throwErrors` | yes           | Indicates if the library should throw if the template contains any error. If not it will log the errors as a warning in the console and return `undefined` instead. |
 
 ### renderTemplate method
@@ -77,7 +77,7 @@ This is the main method to render `JavaScript` templates, it needs a string as a
 
 #### hass
 
-The same `hass` object that was sent to the class
+The `hass` object
 
 #### states
 
@@ -228,7 +228,7 @@ user_is_owner
 import HomeAssistantJavaScriptTemplates  from 'home-assistant-javascript-templates';
 
 const renderer = new HomeAssistantJavaScriptTemplates(
-    document.querySelector('home-assistant').hass
+    document.querySelector('home-assistant')
 );
 
 /**
@@ -250,7 +250,7 @@ renderer.renderTemplate(`
 import HomeAssistantJavaScriptTemplates  from 'home-assistant-javascript-templates';
 
 const renderer = new HomeAssistantJavaScriptTemplates(
-    document.querySelector('home-assistant').hass
+    document.querySelector('home-assistant')
 );
 
 renderer.renderTemplate(`
