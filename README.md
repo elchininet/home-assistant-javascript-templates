@@ -43,7 +43,7 @@ renderer.renderTemplate('... template string ...');
 #### Usage with ES6 modules
 
 ```javascript
-import HomeAssistantJavaScriptTemplates  from 'home-assistant-javascript-templates';
+import HomeAssistantJavaScriptTemplates from 'home-assistant-javascript-templates';
 
 const renderer = new HomeAssistantJavaScriptTemplates(
     document.querySelector('home-assistant')
