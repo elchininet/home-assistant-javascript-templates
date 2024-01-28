@@ -2,14 +2,9 @@ import {
     Hass,
     State,
     ProxiedStates,
-    Scopped,
-    None
+    Scopped
 } from '@types';
-import {
-    STATE_VALUES,
-    ATTRIBUTES,
-    NONE
-} from '@constants';
+import { STATE_VALUES, ATTRIBUTES } from '@constants';
 
 const arrayFromEntries = <T = unknown>(entries: [string, T][]): T[] => {
     return entries.reduce((acc: T[], entry: [string, T]): T[] => {
@@ -47,8 +42,8 @@ export function createScoppedFunctions(hass: Hass): Scopped {
         is_state(entityId: string, value: string): boolean {
             return hass.states[entityId]?.state === value;
         },
-        state_attr(entityId: string, attr: string): unknown | None {
-            return hass.states[entityId]?.attributes?.[attr] || NONE;
+        state_attr(entityId: string, attr: string): unknown {
+            return hass.states[entityId]?.attributes?.[attr];
         },
         is_state_attr(entityId: string, attr: string, value: unknown): boolean {
             return this.state_attr(entityId, attr) === value;
@@ -64,14 +59,14 @@ export function createScoppedFunctions(hass: Hass): Scopped {
         },
 
         // ---------------------- Devices
-        device_attr(deviceId: string, attr: string): unknown | None {
-            return hass.devices[deviceId]?.[attr] || NONE;
+        device_attr(deviceId: string, attr: string): unknown {
+            return hass.devices[deviceId]?.[attr];
         },
         is_device_attr(deviceId: string, attr: string, value: unknown): boolean {
             return this.device_attr(deviceId, attr) === value;
         },
-        device_id(entityId: string): string | None {
-            return hass.entities[entityId]?.device_id || NONE;
+        device_id(entityId: string): string {
+            return hass.entities[entityId]?.device_id;
         },
         
         // ---------------------- Areas
@@ -80,24 +75,24 @@ export function createScoppedFunctions(hass: Hass): Scopped {
                 return area.area_id;
             });
         },
-        area_id(lookupValue: string): string | None {
+        area_id(lookupValue: string): string | undefined {
             if (lookupValue in hass.devices) {
                 return this.device_attr(lookupValue, ATTRIBUTES.AREA_ID);
             }
             const deviceId = this.device_id(lookupValue);
-            if (deviceId && deviceId !== NONE) {
+            if (deviceId) {
                 return this.device_attr(deviceId, ATTRIBUTES.AREA_ID);
             }
             const area = areasEntries.find(([, area]) => area.name === lookupValue);
-            return area?.[1]?.area_id || NONE;
+            return area?.[1]?.area_id;
         },
-        area_name(lookupValue: string): string | None {
+        area_name(lookupValue: string): string | undefined {
             let areaId: string;
             if (lookupValue in hass.devices) {
                 areaId = this.device_attr(lookupValue, ATTRIBUTES.AREA_ID);
             }
             const deviceId = this.device_id(lookupValue);
-            if (deviceId && deviceId !== NONE) {
+            if (deviceId) {
                 areaId = this.device_attr(deviceId, ATTRIBUTES.AREA_ID);
             }
             const area = areasEntries.find(([, area]) => {
@@ -106,7 +101,7 @@ export function createScoppedFunctions(hass: Hass): Scopped {
                     area.area_id === areaId
                 );
             });
-            return area?.[1]?.name || NONE;
+            return area?.[1]?.name;
         },
         area_entities(lookupValue: string): string[] {
             const areaFound = areasEntries.find(([, area]) => {

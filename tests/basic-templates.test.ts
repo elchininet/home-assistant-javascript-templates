@@ -1,5 +1,4 @@
 import HomeAssistantJavaScriptTemplates from '../src';
-import { NONE } from '../src/constants';
 import { HASS } from './constants';
 
 describe('Basic templates tests', () => {
@@ -89,7 +88,7 @@ describe('Basic templates tests', () => {
 
         expect(
             compiler.renderTemplate('state_attr("sensor.non_existent", "device_class")')
-        ).toBe(NONE);
+        ).toBe(undefined);
 
     });
 
@@ -141,11 +140,11 @@ describe('Basic templates tests', () => {
 
         expect(
             compiler.renderTemplate('device_attr("b8c1c9dd23cb82bbfa09b5657f41d04f", "attr")')
-        ).toBe(NONE);
+        ).toBe(undefined);
 
         expect(
             compiler.renderTemplate('device_attr("012345", "attr")')
-        ).toBe(NONE);
+        ).toBe(undefined);
 
     });
 
@@ -181,7 +180,7 @@ describe('Basic templates tests', () => {
 
         expect(
             compiler.renderTemplate('device_id("sensor.non_existent")')
-        ).toBe(NONE);
+        ).toBe(undefined);
 
     });
 
@@ -217,7 +216,7 @@ describe('Basic templates tests', () => {
 
         expect(
             compiler.renderTemplate('area_id("NonExistent")')
-        ).toBe(NONE);
+        ).toBe(undefined);
 
     });
 
@@ -237,7 +236,7 @@ describe('Basic templates tests', () => {
 
         expect(
             compiler.renderTemplate('area_name("non_existent")')
-        ).toBe(NONE);
+        ).toBe(undefined);
 
     });
 
