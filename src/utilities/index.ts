@@ -25,7 +25,12 @@ export function createScoppedFunctions(hass: Hass): Scopped {
         hass,
         // ---------------------- States
         states: new Proxy(
-            (entityId: string): string | undefined => hass.states[entityId]?.state, 
+            (entityId: string): string | undefined => {
+                if (entityId.includes('.')) {
+                    return hass.states[entityId]?.state
+                }
+                throw SyntaxError('[home-assistant-javascript-templates]: states method cannot be used with a domain, use it as an object instead.');
+            }, 
             {
                 get(__target, entityId: string): State[] | State | undefined {
                     if (entityId.includes('.')) {
