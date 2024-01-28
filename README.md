@@ -131,7 +131,7 @@ has_value('sensor.my_sensor')
 Method that returns the value of an attribute for the given device id or `undefined` if it doesn’t exist.
 
 ```javascript
-device_attr('706ad0ebe27e105d7cd0b73386deefdd')
+device_attr('706ad0ebe27e105d7cd0b73386deefdd', 'manufacturer')
 ```
 
 #### is_device_attr
