@@ -20,11 +20,18 @@ export interface Entity {
     device_id: string;
 }
 
+export interface User {
+    name: string;
+    is_admin: boolean;
+    is_owner: boolean;
+}
+
 export interface Hass {
     areas: Record<string, Area>;
     devices: Record<string, Device>;
     entities: Record<string, Entity>;
     states: Record<string, State>;
+    user: User;
 }
 
 export interface ProxiedStates {
@@ -49,4 +56,7 @@ export interface Scopped {
     area_name: (lookupValue: string) => string | undefined;
     area_entities: (lookupValue: string) => string[];
     area_devices: (lookupValue: string) => string[];
+    user_name: string;
+    user_is_admin: boolean;
+    user_is_owner: boolean;
 }

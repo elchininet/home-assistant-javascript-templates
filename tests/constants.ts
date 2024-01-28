@@ -151,5 +151,10 @@ export const HASS: Hass = {
             entity_id: 'camera.keukencamera',
             state: 'unavailable'
         }
+    },
+    user: {
+        is_admin: true,
+        is_owner: false,
+        name: 'ElChiniNet'
     }
 };

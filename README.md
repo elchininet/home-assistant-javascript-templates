@@ -2,7 +2,9 @@
 
 A JavaScript utility to render Home Assistant JavaScript templates.
 
-[![Deployment Status](https://github.com/elchininet/home-assistant-javascript-templates/actions/workflows/deploy.yaml/badge.svg)](https://github.com/elchininet/home-assistant-javascript-templates/actions/workflows/deploy.yaml) &nbsp; [![Coverage Status](https://coveralls.io/repos/github/elchininet/home-assistant-javascript-templates/badge.svg?branch=master)](https://coveralls.io/github/elchininet/home-assistant-javascript-templates?branch=master) &nbsp; [![npm version](https://badge.fury.io/js/home-assistant-javascript-templates.svg)](https://badge.fury.io/js/home-assistant-javascript-templates)
+[![Deployment Status](https://github.com/elchininet/home-assistant-javascript-templates/actions/workflows/deploy.yaml/badge.svg)](https://github.com/elchininet/home-assistant-javascript-templates/actions/workflows/deploy.yaml)
+[![Coverage Status](https://coveralls.io/repos/github/elchininet/home-assistant-javascript-templates/badge.svg?branch=master)](https://coveralls.io/github/elchininet/home-assistant-javascript-templates?branch=master)
+[![npm version](https://badge.fury.io/js/home-assistant-javascript-templates.svg)](https://badge.fury.io/js/home-assistant-javascript-templates)
 
 ## Install
 
@@ -191,7 +193,33 @@ area_devices('woonkamer')
 area_devices('Woonkamer')
 ```
 
-## Example
+#### user_name
+
+Property to return the name of the user logged in in Home Assistant. It returns a `string`.
+
+```javascript
+user_name
+```
+
+#### user_is_admin
+
+Property to return if the user logged in in Home Assistant is admin or not. It returns a `boolean`.
+
+```javascript
+user_is_admin
+```
+
+#### user_is_owner
+
+Property to return if the user logged in in Home Assistant is the owner. It returns a `boolean`.
+
+```javascript
+user_is_owner
+```
+
+## Examples
+
+#### Get a device attribute and return a formatted text with it
 
 ```javascript
 import HomeAssistantJavaScriptTemplates  from 'home-assistant-javascript-templates';
@@ -210,5 +238,21 @@ renderer.renderTemplate(`
     const deviceId = device_id("binary_sensor.koffiezetapparaat_aan");
     const serialNumber = device_attr(deviceId, "serial_number");
     return "sn:" + serialNumber;
+`);
+```
+
+#### Get all the available updates
+
+```javascript
+import HomeAssistantJavaScriptTemplates  from 'home-assistant-javascript-templates';
+
+const renderer = new HomeAssistantJavaScriptTemplates(
+    document.querySelector('home-assistant').hass
+);
+
+renderer.renderTemplate(`
+    const udatesEntities = states['update'];
+    const updatesEntitiesOn = udatesEntities?.filter((entity) => entity.state === 'on');
+    return updatesEntitiesOn?.length || 0;
 `);
 ```
