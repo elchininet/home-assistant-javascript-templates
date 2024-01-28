@@ -3,6 +3,7 @@
 ## [1.2.0] - 2024-01-28
 
 - Rollback the `None` returns and return `undefined` in these cases.
+- Throw an error if the `states` method is used with a domain
 
 ## [1.1.0] - 2024-01-28
 

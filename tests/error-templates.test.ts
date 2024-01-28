@@ -5,7 +5,7 @@ describe('Templates with errors', () => {
 
     const errorMessage = 'states.binary_sensor.koffiezetapparaat_verbonden.state.toFixed is not a function';
 
-    it('TypeError as a console log', () => {
+    it('Error as a console log', () => {
 
         const compiler = new HomeAssistantJavaScriptTemplates(HASS);
         const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
@@ -20,13 +20,17 @@ describe('Templates with errors', () => {
 
     });
 
-    it('TypeError as an error', () => {
+    it('Error as an error', () => {
 
         const compiler = new HomeAssistantJavaScriptTemplates(HASS, true);
 
         expect(
             () => compiler.renderTemplate('states["binary_sensor.koffiezetapparaat_verbonden"].state.toFixed(16)')
         ).toThrow(errorMessage);
+
+        expect(
+            () => compiler.renderTemplate('states("battery")')
+        ).toThrow('states method cannot be used with a domain, use it as an object instead');
 
     });
 

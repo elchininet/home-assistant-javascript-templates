@@ -54,9 +54,9 @@ describe('Basic templates tests', () => {
             ]
         );
 
-        // expect(
-        //     compiler.renderTemplate('states["battery"]')
-        // ).toBe(undefined);
+        expect(
+            compiler.renderTemplate('states["battery"]')
+        ).toMatchObject([]);
 
     });
 

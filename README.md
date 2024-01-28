@@ -67,7 +67,7 @@ new HomeAssistantJavaScriptTemplates(hass, throwErrors = false);
 | Parameter     | Optional      | Description                                        |
 | ------------- | ------------- | -------------------------------------------------- |
 | `hass`        | no            | A valid `hass` object                              |
-| `throwErrors` | yes           | Indicates if the library should throw if the template contains any error. If not it will log the errors as a warning in the console. |
+| `throwErrors` | yes           | Indicates if the library should throw if the template contains any error. If not it will log the errors as a warning in the console and return `undefined` instead. |
 
 ### renderTemplate method
 
@@ -81,14 +81,17 @@ The same `hass` object that was sent to the class
 
 #### states
 
-States could be used in two ways, as a function or as an object.
+`states` could be used in two ways, as a function or as an object. When using it as function it only allows an entity id as a parameter and it will return the state of that entity. When using it as an object, you can use also an entity id but in those cases it will return the entire state object, so you need to access its `state` property to get the state value. When using it as an object with a domain, it will return an array with all the states of that domain.
+
+>Note: If you try to use `states` as a function sending a domain it will throw an error.
 
 ```javascript
 // Using states as a function
-states('device_tracker.paulus')
+states('device_tracker.paulus') // returns the state of the entity id 'device_tracker.paulus'
 
 // Using states as an object
-states['device_tracker.paulus'].state
+states['device_tracker.paulus'].state // returns the state of the entity id 'device_tracker.paulus'
+states['device_tracker'] // returns an array with all the states of the 'device_tracker' domain
 ```
 
 #### is_state
