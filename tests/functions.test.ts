@@ -1,13 +1,12 @@
 import HomeAssistantJavaScriptTemplates from '../src';
-import { HomeAssistant } from '../src/types';
-import { HASS } from './constants';
+import { HOME_ASSISTANT_ELEMENT } from './constants';
 
 describe('Function tests', () => {
 
     let compiler: HomeAssistantJavaScriptTemplates;
     
     beforeEach(() => {
-        compiler = new HomeAssistantJavaScriptTemplates({ hass: HASS } as HomeAssistant);
+        compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
     });
 
     const methods = [

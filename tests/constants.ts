@@ -1,4 +1,4 @@
-import { Hass } from '../src/types';
+import { Hass, HomeAssistant } from '../src/types';
 
 export const HASS: Hass = {
     areas: {
@@ -158,3 +158,7 @@ export const HASS: Hass = {
         name: 'ElChiniNet'
     }
 };
+
+export const HOME_ASSISTANT_ELEMENT = {
+    hass: HASS
+} as HomeAssistant;
