@@ -65,3 +65,5 @@ export default class HomeAssistantJavaScriptTemplates {
 
     }
 }
+
+export { Hass };
