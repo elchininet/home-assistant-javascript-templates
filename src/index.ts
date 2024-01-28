@@ -1,4 +1,5 @@
 import { Hass, Scopped } from '@types';
+import { STRICT_MODE } from '@constants';
 import { createScoppedFunctions } from '@utilities';
 
 export default class HomeAssistantJavaScriptTemplates {
@@ -32,7 +33,10 @@ export default class HomeAssistantJavaScriptTemplates {
             'area_name',
             'area_entities',
             'area_devices',
-            functionBody
+            'user_name',
+            'user_is_admin',
+            'user_is_owner',
+            `${STRICT_MODE} ${functionBody}`
         );
 
         try {
@@ -51,7 +55,10 @@ export default class HomeAssistantJavaScriptTemplates {
                 this._scopped.area_id.bind(this._scopped),
                 this._scopped.area_name.bind(this._scopped),
                 this._scopped.area_entities.bind(this._scopped),
-                this._scopped.area_devices.bind(this._scopped)
+                this._scopped.area_devices.bind(this._scopped),
+                this._scopped.user_name,
+                this._scopped.user_is_admin,
+                this._scopped.user_is_owner
             );
 
         } catch (error) {

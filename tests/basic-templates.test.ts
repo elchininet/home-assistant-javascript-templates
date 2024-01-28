@@ -285,4 +285,20 @@ describe('Basic templates tests', () => {
 
     });
 
+    it('user_name, user_is_admin, user_is_owner', () => {
+
+        expect(
+            compiler.renderTemplate('user_name')
+        ).toBe('ElChiniNet');
+
+        expect(
+            compiler.renderTemplate('user_is_admin')
+        ).toBe(true);
+
+        expect(
+            compiler.renderTemplate('user_is_owner')
+        ).toBe(false);
+
+    });
+
 });

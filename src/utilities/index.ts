@@ -143,6 +143,9 @@ export function createScoppedFunctions(hass: Hass): Scopped {
                     });
             }
             return [];
-        }
+        },
+        user_name: hass.user.name,
+        user_is_admin: hass.user.is_admin,
+        user_is_owner: hass.user.is_owner
     };
 }
