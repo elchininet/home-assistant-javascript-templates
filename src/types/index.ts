@@ -34,6 +34,10 @@ export interface Hass {
     user: User;
 }
 
+export interface HomeAssistant extends HTMLElement {
+	hass: Hass;
+}
+
 export interface ProxiedStates {
     (entityId: string): string | undefined;
     [entityId: string]: State[] | State | undefined;
