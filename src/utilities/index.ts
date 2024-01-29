@@ -4,15 +4,23 @@ import {
     ProxiedStates,
     Scopped
 } from '@types';
-import { STATE_VALUES, ATTRIBUTES } from '@constants';
+import {
+    NAMESPACE,
+    DOMAIN_REGEXP,
+    STATE_VALUES,
+    ATTRIBUTES
+} from '@constants';
 
-const arrayFromEntries = <T = unknown>(entries: [string, T][]): T[] => {
-    return entries.reduce((acc: T[], entry: [string, T]): T[] => {
-        const [, value] = entry;
-        acc = [...acc, value]
+const objectFromEntries = <T = unknown>(entries: [string, T][]): Record<string, T> => {
+    return entries.reduce((acc: Record<string, T>, entry: [string, T]): Record<string, T> => {
+        const [entityId, state] = entry;
+        const entity = entityId.replace(DOMAIN_REGEXP, '$2');
+        acc[entity] = state;
         return acc;
-    }, [] as T[]);
+    }, {} as Record<string, T>);
 };
+
+const hasDot = (entityId: string): boolean => entityId.includes('.');
 
 export function createScoppedFunctions(ha: HomeAssistant): Scopped {
 
@@ -28,17 +36,17 @@ export function createScoppedFunctions(ha: HomeAssistant): Scopped {
         // ---------------------- States
         states: new Proxy(
             (entityId: string): string | undefined => {
-                if (entityId.includes('.')) {
+                if (hasDot(entityId)) {
                     return ha.hass.states[entityId]?.state
                 }
-                throw SyntaxError('[home-assistant-javascript-templates]: states method cannot be used with a domain, use it as an object instead.');
+                throw SyntaxError(`${NAMESPACE}: states method cannot be used with a domain, use it as an object instead.`);
             }, 
             {
-                get(__target, entityId: string): State[] | State | undefined {
-                    if (entityId.includes('.')) {
+                get(__target, entityId: string): Record<string, State> | State | undefined {
+                    if (hasDot(entityId)) {
                         return ha.hass.states[entityId];
                     }
-                    return arrayFromEntries(
+                    return objectFromEntries(
                         statesEntries().filter(([id]): boolean => {
                             return id.startsWith(entityId);
                         })
