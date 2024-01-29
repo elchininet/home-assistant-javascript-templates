@@ -14,16 +14,16 @@ describe('Complex templates tests', () => {
         expect(
             compiler.renderTemplate(`
                 const allStates = states["binary_sensor"];
-                const filter = allStates.filter((item) => {
-                    return item.state === 'off';
+                const filter = Object.entries(allStates).filter(([, stateObject]) => {
+                    return stateObject.state === 'off';
                 });
-                return "(" + filter[0].entity_id + ")";
+                return "(" + filter[0][1].entity_id + ")";
             `)
         ).toBe('(binary_sensor.internetverbinding)');
 
         expect(
             compiler.renderTemplate(`
-                const state = states("sensor.slaapkamer_luchtvochtigheid");
+                const state = states.sensor.slaapkamer_luchtvochtigheid;
                 if (+state > 50) {
                     return 'High';
                 }

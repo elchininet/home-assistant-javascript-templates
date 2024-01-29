@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.0.0] - 2024-01-29
+
+[BREAKING CHANGE]:
+    - `states` as an object will not return an array if a domain is used. In its place it will return an object with all the entities ids as keys.
+
 ## [2.0.0] - 2024-01-28
 
 [BREAKING CHANGE]:

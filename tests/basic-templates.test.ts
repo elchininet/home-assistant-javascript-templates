@@ -38,25 +38,29 @@ describe('Basic templates tests', () => {
         );
 
         expect(
+            compiler.renderTemplate('states.light.woonkamer_lamp')
+        ).toBeDefined();
+
+        expect(
+            compiler.renderTemplate('states.light.woonkamer_lamp')
+        ).toBe(
+            compiler.renderTemplate('states["light.woonkamer_lamp"]')
+        );
+
+        expect(
             compiler.renderTemplate('states("light.non_existent")')
         ).toBe(undefined);
 
         expect(
-            compiler.renderTemplate('states["sensor"]')
-        ).toHaveLength(2);
-
-        expect(
-            compiler.renderTemplate('states["sensor"]')
-        ).toMatchObject(
-            [
-                HASS.states['sensor.slaapkamer_temperatuur'],
-                HASS.states['sensor.slaapkamer_luchtvochtigheid']
-            ]
-        );
+            compiler.renderTemplate('states.sensor')
+        ).toMatchObject({
+            slaapkamer_temperatuur: HASS.states['sensor.slaapkamer_temperatuur'],
+            slaapkamer_luchtvochtigheid: HASS.states['sensor.slaapkamer_luchtvochtigheid']
+        });
 
         expect(
             compiler.renderTemplate('states["battery"]')
-        ).toMatchObject([]);
+        ).toMatchObject({});
 
     });
 

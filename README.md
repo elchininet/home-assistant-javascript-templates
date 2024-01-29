@@ -81,7 +81,7 @@ The `hass` object
 
 #### states
 
-`states` could be used in two ways, as a function or as an object. When using it as function it only allows an entity id as a parameter and it will return the state of that entity. When using it as an object, you can use also an entity id but in those cases it will return the entire state object, so you need to access its `state` property to get the state value. When using it as an object with a domain, it will return an array with all the states of that domain.
+`states` could be used in two ways, as a function or as an object. When using it as function it only allows an entity id (containing the domain) as a parameter and it will return the state of that entity. As an object it allows you to access a domain or the full entity id.
 
 >Note: If you try to use `states` as a function sending a domain it will throw an error.
 
@@ -91,8 +91,11 @@ states('device_tracker.paulus') // returns the state of the entity id 'device_tr
 
 // Using states as an object
 states['device_tracker.paulus'].state // returns the state of the entity id 'device_tracker.paulus'
-states['device_tracker'] // returns an array with all the states of the 'device_tracker' domain
+states.device_tracker.paulus.state // returns the state of the entity id 'device_tracker.paulus'
+states.device_tracker // returns an object constaining all the entities of the 'device_tracker' domain
 ```
+
+>Note: Avoid using `states['device_tracker.paulus'].state` or `states.device_tracker.paulus.state`, instead use `states('device_tracker.paulus')` which will return `undefined` if the device id doesn‘t exist or the entity isn’t ready yet (the former will throw an error). If you still want to use them it is advisable to use the [Optional chaining operator], e.g. `states['device_tracker.paulus']?.state` or `states.device_tracker?.paulus?.state`.
 
 #### is_state
 
@@ -254,8 +257,11 @@ const renderer = new HomeAssistantJavaScriptTemplates(
 );
 
 renderer.renderTemplate(`
-    const udatesEntities = states['update'];
-    const updatesEntitiesOn = udatesEntities?.filter((entity) => entity.state === 'on');
-    return updatesEntitiesOn?.length || 0;
+    const udatesEntities = states.update;
+    const updateEntitiesValues = Object.values(udatesEntities);
+    const updatesEntitiesOn = updateEntitiesValues.filter((entity) => entity.state === 'on');
+    return updatesEntitiesOn.length;
 `);
 ```
+
+[Optional chaining operator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
