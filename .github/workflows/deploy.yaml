@@ -48,12 +48,16 @@ jobs:
                   "labels": ["fix", "bug"]
                 },
                 {
-                  "title": "## 🧩 Dependencies",
-                  "labels": ["dependencies"]
+                  "title": "## 🔧 Refactorings",
+                  "labels": ["refactor"]
                 },
                 {
                   "title": "## ⚙️ Configuration",
                   "labels": ["configuration"]
+                },
+                {
+                  "title": "## 🧩 Dependencies",
+                  "labels": ["dependencies"]
                 },
                 {
                   "title": "## 🧪 Tests",
