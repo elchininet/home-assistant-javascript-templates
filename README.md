@@ -54,7 +54,7 @@ renderer.renderTemplate('... template string ...');
 
 ## API
 
-The package exposes a class that needs to be instantiated and is this isntance the one that you need to use in your code.
+The package exposes a class that needs to be instantiated and is this instance the one that you need to use in your code.
 
 ### HomeAssistantJavaScriptTemplates class
 
