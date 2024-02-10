@@ -1,5 +1,5 @@
 export const NAMESPACE = '[home-assistant-javascript-templates]';
-export const DOMAIN_REGEXP = /^([a-z]+)\.(\w+)$/;
+export const DOMAIN_REGEXP = /^([a-z_]+)\.(\w+)$/;
 
 export enum STATE_VALUES {
     UNKNOWN = 'unknown',

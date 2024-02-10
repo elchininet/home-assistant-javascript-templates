@@ -59,6 +59,14 @@ describe('Basic templates tests', () => {
         });
 
         expect(
+            compiler.renderTemplate('states.binary_sensor')
+        ).toMatchObject({
+            koffiezetapparaat_aan: HASS.states['binary_sensor.koffiezetapparaat_aan'],
+            koffiezetapparaat_verbonden: HASS.states['binary_sensor.koffiezetapparaat_verbonden'],
+            internetverbinding: HASS.states['binary_sensor.internetverbinding']
+        });
+
+        expect(
             compiler.renderTemplate('states["battery"]')
         ).toMatchObject({});
 

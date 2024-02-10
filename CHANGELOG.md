@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.0.1] - 2024-02-10
+
+- Fix a bug that was returning the wrong result with `states.any_entity_with_underscores`
+
 ## [3.0.0] - 2024-01-29
 
 [BREAKING CHANGE]:
