@@ -69,9 +69,56 @@ new HomeAssistantJavaScriptTemplates(ha, throwErrors = false);
 | `ha`          | no            | An HTML element that has the `hass` object as a property (e.g. the `home-assistant` custom element). |
 | `throwErrors` | yes           | Indicates if the library should throw if the template contains any error. If not it will log the errors as a warning in the console and return `undefined` instead. |
 
-### renderTemplate method
+### Properties
 
-This is the main method to render `JavaScript` templates, it needs a string as a parameter. Inside this string you can use several objects and methods.
+#### tracked
+
+```typescript
+interface Tracked {
+    entities: string[];
+    domains: string[];
+}
+
+get tracked(): Tracked
+```
+
+This property will return an object with two properties (`entities` and `domains`). Each of these properties will be an array containing the entities or ids that have been tracked when the templates have been rendered. If some domain or entity was not reached because it was inside a condition that never met, then it will not be included in the `tracked` property. Only those entities or domains that were called during the rendering by the code using [states](#states), [is_state](#is_state), [state_attr](#state_attr), [is_state_attr](#is_state_attr) or [has_value](#has_value) will be included.
+
+>Note: take into account that the domains will be only tracked if the `states` object is used accesing a domain. For example `states('device_tracker.paulus')` or `states['device_tracker.paulus']` will track the entity `device_tracker.paulus` but not the domain `device_tracker` but `states.device_tracker.paulus` will track both, the domain `device_tracker` and the entity `device_tracker.paulus`. The rest of the methods will track only entities.
+
+### Methods
+
+#### renderTemplate
+
+```typescript
+renderTemplate(template: string): any
+```
+
+This is the main method to render `JavaScript` templates, it needs a string as a parameter. Inside this string you can use [several objects and methods](#objects-and-methods-available-in-the-templates). It returns whatever the `JavaScript` code returns, because of that it is typed as `any`.
+
+#### cleanTrackedEntities
+
+```typescript
+cleanTrackedEntities(): void
+```
+
+This method will clean all the tracked entities until the moment, so after being called, the `tracked` property will return an empty array as `entities`.
+
+#### cleanTrackedDomains
+
+```typescript
+cleanTrackedDomains(): void
+```
+
+This method will clean all the tracked domains until the moment, so after being called, the `tracked` property will return an empty array as `domains`.
+
+#### cleanTracked
+
+```typescript
+cleanTracked(): void
+```
+
+This method will clean all the tracked entities and domains until the moment. It is the same as calling `cleanTrackedEntities` and `cleanTrackedDomains` consecutively.
 
 ### Objects and methods available in the templates
 

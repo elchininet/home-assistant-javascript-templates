@@ -1,7 +1,8 @@
 import {
     HomeAssistant,
     Hass,
-    Scopped
+    Scopped,
+    Tracked
 } from '@types';
 import { STRICT_MODE } from '@constants';
 import { createScoppedFunctions } from '@utilities';
@@ -16,7 +17,7 @@ export default class HomeAssistantJavaScriptTemplates {
     private _scopped: Scopped;
     private _errors: boolean;
 
-    public renderTemplate(template: string): string {
+    public renderTemplate(template: string): any {
 
         const functionBody = template.includes('return')
             ? template
@@ -75,6 +76,24 @@ export default class HomeAssistantJavaScriptTemplates {
         }
 
     }
+
+    public get tracked(): Tracked {
+        return this._scopped.tracked;
+    }
+
+    public cleanTrackedEntities(): void {
+        this._scopped.cleanTrackedEntities();
+    }
+
+    public cleanTrackedDomains(): void {
+        this._scopped.cleanTrackedDomains();
+    }
+
+    public cleanTracked(): void {
+        this._scopped.cleanTrackedEntities();
+        this._scopped.cleanTrackedDomains();
+    }
+
 }
 
 export { HomeAssistant, Hass };
