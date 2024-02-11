@@ -15,7 +15,7 @@ describe('Basic templates tests', () => {
         ).toBe(
             HASS
         );
-    }),
+    });
 
     it('states', () => {
 
@@ -52,14 +52,14 @@ describe('Basic templates tests', () => {
         ).toBe(undefined);
 
         expect(
-            compiler.renderTemplate('states.sensor')
+            { ...compiler.renderTemplate('states.sensor') }
         ).toMatchObject({
             slaapkamer_temperatuur: HASS.states['sensor.slaapkamer_temperatuur'],
             slaapkamer_luchtvochtigheid: HASS.states['sensor.slaapkamer_luchtvochtigheid']
         });
 
         expect(
-            compiler.renderTemplate('states.binary_sensor')
+            { ...compiler.renderTemplate('states.binary_sensor') }
         ).toMatchObject({
             koffiezetapparaat_aan: HASS.states['binary_sensor.koffiezetapparaat_aan'],
             koffiezetapparaat_verbonden: HASS.states['binary_sensor.koffiezetapparaat_verbonden'],
@@ -67,7 +67,7 @@ describe('Basic templates tests', () => {
         });
 
         expect(
-            compiler.renderTemplate('states["battery"]')
+            { ...compiler.renderTemplate('states["battery"]') }
         ).toMatchObject({});
 
     });
