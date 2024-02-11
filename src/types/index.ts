@@ -40,7 +40,12 @@ export interface HomeAssistant extends HTMLElement {
 
 export interface ProxiedStates {
     (entityId: string): string | undefined;
-    [entityId: string]: State[] | State | undefined;
+    [entityId: string]: Record<string, State> | State | undefined;
+}
+
+export interface Tracked {
+    entities: string[];
+    domains: string[];
 }
 
 export interface Scopped {
@@ -61,4 +66,7 @@ export interface Scopped {
     user_name: string;
     user_is_admin: boolean;
     user_is_owner: boolean;
+    tracked: Tracked;
+    cleanTrackedEntities: () => void;
+    cleanTrackedDomains: () => void;
 }
