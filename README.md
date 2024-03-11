@@ -3,6 +3,7 @@
 A JavaScript utility to render Home Assistant JavaScript templates.
 
 [![Deployment Status](https://github.com/elchininet/home-assistant-javascript-templates/actions/workflows/deploy.yaml/badge.svg)](https://github.com/elchininet/home-assistant-javascript-templates/actions/workflows/deploy.yaml)
+[![Tests](https://github.com/elchininet/home-assistant-javascript-templates/actions/workflows/test.yaml/badge.svg)](https://github.com/elchininet/home-assistant-javascript-templates/actions/workflows/test.yaml)
 [![Coverage Status](https://coveralls.io/repos/github/elchininet/home-assistant-javascript-templates/badge.svg?branch=master)](https://coveralls.io/github/elchininet/home-assistant-javascript-templates?branch=master)
 [![npm version](https://badge.fury.io/js/home-assistant-javascript-templates.svg)](https://badge.fury.io/js/home-assistant-javascript-templates)
 
