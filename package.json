@@ -38,9 +38,10 @@
     "build": "rollup --config rollup.config.js --bundleConfigAsCjs",
     "test:ts": "tsc --noEmit",
     "test:unit": "jest --verbose",
-    "test:all": "yarn test:ts && yarn test:unit",
-    "prepare": "yarn build",
-    "prepublishOnly": "yarn test:all",
+    "test:all": "pnpm test:ts && pnpm test:unit",
+    "preinstall": "npx -y only-allow pnpm",
+    "prepare": "pnpm build",
+    "prepublishOnly": "pnpm test:all",
     "version": "git add .",
     "postversion": "git push && git push --tags"
   },
@@ -52,6 +53,7 @@
     "rollup": "^4.13.0",
     "rollup-plugin-ts": "^3.4.5",
     "ts-jest": "^29.1.2",
+    "tslib": "^2.6.2",
     "typescript": "^5.4.3"
   }
 }
