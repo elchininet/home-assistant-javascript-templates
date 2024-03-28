@@ -19,32 +19,32 @@ export default class HomeAssistantJavaScriptTemplates {
 
     public renderTemplate(template: string): any {
 
-        const functionBody = template.includes('return')
-            ? template
-            : `return ${template}`;
-
-        const templateFunction = new Function(
-            'hass',
-            'states',
-            'is_state',
-            'state_attr',
-            'is_state_attr',
-            'has_value',
-            'device_attr',
-            'is_device_attr',
-            'device_id',
-            'areas',
-            'area_id',
-            'area_name',
-            'area_entities',
-            'area_devices',
-            'user_name',
-            'user_is_admin',
-            'user_is_owner',
-            `${STRICT_MODE} ${functionBody}`
-        );
-
         try {
+
+            const functionBody = template.includes('return')
+                ? template
+                : `return ${template}`;
+
+            const templateFunction = new Function(
+                'hass',
+                'states',
+                'is_state',
+                'state_attr',
+                'is_state_attr',
+                'has_value',
+                'device_attr',
+                'is_device_attr',
+                'device_id',
+                'areas',
+                'area_id',
+                'area_name',
+                'area_entities',
+                'area_devices',
+                'user_name',
+                'user_is_admin',
+                'user_is_owner',
+                `${STRICT_MODE} ${functionBody}`
+            );
 
             return templateFunction(
                 this._scopped.hass,
