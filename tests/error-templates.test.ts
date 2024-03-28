@@ -1,36 +1,78 @@
 import HomeAssistantJavaScriptTemplates from '../src';
 import { HOME_ASSISTANT_ELEMENT } from './constants';
+import { NAMESPACE } from '../src/constants';
 
 describe('Templates with errors', () => {
 
-    const errorMessage = 'states.binary_sensor.koffiezetapparaat_verbonden.state.toFixed is not a function';
+    const syntaxErrorCode = 'const a = ; return a';
+    const typeErrorCode1 = 'states["binary_sensor.koffiezetapparaat_verbonden"].state.toFixed(16)';
+    const typeErrorCode2 = 'states("battery")';
+    const syntaxErrorMessage = 'Unexpected token \';\'';
+    const typeErrorMessage1 = 'states.binary_sensor.koffiezetapparaat_verbonden.state.toFixed is not a function';
+    const typeErrorMessage2 = `${NAMESPACE}: states method cannot be used with a domain, use it as an object instead.`;
 
-    it('Error as a console log', () => {
+    describe('Error as a console warning', () => {
 
-        const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
-        const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+        let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>;
+        let compiler: HomeAssistantJavaScriptTemplates;
 
-        expect(
-            compiler.renderTemplate('states["binary_sensor.koffiezetapparaat_verbonden"].state.toFixed(16)')
-        ).toBe(undefined);
+        beforeEach(() => {
+            consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+            compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
+        });
 
-        expect(consoleWarnMock).toHaveBeenCalledWith(new TypeError(errorMessage));
+        afterEach(() => {
+            consoleWarnMock.mockRestore();
+        });
 
-        consoleWarnMock.mockRestore();
+        it('SyntaxError during instantiation', () => {
+            expect(
+                compiler.renderTemplate(syntaxErrorCode)
+            ).toBe(undefined);    
+            expect(consoleWarnMock).toHaveBeenCalledWith(new TypeError(syntaxErrorMessage));    
+        });
+
+        it('TypeError during the execution', () => {
+            expect(
+                compiler.renderTemplate(typeErrorCode1)
+            ).toBe(undefined);
+            expect(consoleWarnMock).toHaveBeenCalledWith(new TypeError(typeErrorMessage1));
+        });
+
+        it('SyntaxError during the execution', () => {
+            expect(
+                compiler.renderTemplate(typeErrorCode2)
+            ).toBe(undefined);
+            expect(consoleWarnMock).toHaveBeenCalledWith(new SyntaxError(typeErrorMessage2));
+        });
 
     });
 
-    it('Error as an error', () => {
+    describe('Error as an error', () => {
 
-        const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT, true);
+        let compiler: HomeAssistantJavaScriptTemplates;
 
-        expect(
-            () => compiler.renderTemplate('states["binary_sensor.koffiezetapparaat_verbonden"].state.toFixed(16)')
-        ).toThrow(errorMessage);
+        beforeEach(() => {
+            compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT, true);
+        });
 
-        expect(
-            () => compiler.renderTemplate('states("battery")')
-        ).toThrow('states method cannot be used with a domain, use it as an object instead');
+        it('SyntaxError during instantiation', () => {
+            expect(
+                () => compiler.renderTemplate(syntaxErrorCode)
+            ).toThrow(syntaxErrorMessage);
+        });
+
+        it('TypeError during the execution', () => {
+            expect(
+                () => compiler.renderTemplate(typeErrorCode1)
+            ).toThrow(typeErrorMessage1);
+        });
+
+        it('SyntaxError during the execution', () => {
+            expect(
+                () => compiler.renderTemplate(typeErrorCode2)
+            ).toThrow(typeErrorMessage2);
+        });
 
     });
 
