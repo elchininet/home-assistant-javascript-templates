@@ -39,7 +39,6 @@
     "test:ts": "tsc --noEmit",
     "test:unit": "jest --verbose",
     "test:all": "pnpm test:ts && pnpm test:unit",
-    "preinstall": "npx -y only-allow pnpm",
     "prepare": "pnpm build",
     "prepublishOnly": "pnpm test:all",
     "version": "git add .",
