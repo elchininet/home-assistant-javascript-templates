@@ -18,5 +18,8 @@ module.exports = {
     testPathIgnorePatterns: [
         '/node_modules/',
     ],
-    testEnvironment: 'node'
+    testEnvironment: 'jsdom',
+    testEnvironmentOptions: {
+        userAgent: 'Custom/Agent',
+    },
 };

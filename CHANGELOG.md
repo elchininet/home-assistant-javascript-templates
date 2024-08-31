@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.0.0] - 2024-08-31
+
+- New methods, objects and properties
+    * entities method
+    * entities object
+    * entity_attr method
+    * is_entity_attr method
+    * devices method
+    * devices object
+    * user_agent property
+- New parameter to track non-existent entities and domains
+- Fix a bug of device_id not tracking the entity id
+
 ## [3.1.0] - 2024-02-11
 
 - Create entities and domains tracker

@@ -62,13 +62,18 @@ The package exposes a class that needs to be instantiated and is this instance t
 Main class of the library, it is the `default` export in the package.
 
 ```typescript
-new HomeAssistantJavaScriptTemplates(ha, throwErrors = false);
+new HomeAssistantJavaScriptTemplates(
+    ha,
+    throwErrors = false,
+    trackNonExistent = false
+);
 ```
 
-| Parameter     | Optional      | Description                                        |
-| ------------- | ------------- | -------------------------------------------------- |
-| `ha`          | no            | An HTML element that has the `hass` object as a property (e.g. the `home-assistant` custom element). |
-| `throwErrors` | yes           | Indicates if the library should throw if the template contains any error. If not it will log the errors as a warning in the console and return `undefined` instead. |
+| Parameter          | Optional      | Description                                        |
+| ------------------ | ------------- | -------------------------------------------------- |
+| `ha`               | no            | An HTML element that has the `hass` object as a property (e.g. the `home-assistant` custom element). |
+| `throwErrors`      | yes           | Indicates if the library should throw if the template contains any error. If not it will log the errors as a warning in the console and return `undefined` instead. |
+| `trackNonExistent` | yes           | Indicates if the library should track those domains and entities that doesn't exist. |
 
 ### Properties
 
@@ -83,9 +88,12 @@ interface Tracked {
 get tracked(): Tracked
 ```
 
-This property will return an object with two properties (`entities` and `domains`). Each of these properties will be an array containing the entities or ids that have been tracked when the templates have been rendered. If some domain or entity was not reached because it was inside a condition that never met, then it will not be included in the `tracked` property. Only those entities or domains that were called during the rendering by the code using [states](#states), [is_state](#is_state), [state_attr](#state_attr), [is_state_attr](#is_state_attr) or [has_value](#has_value) will be included.
+This property will return an object with two properties (`entities` and `domains`). Each of these properties will be an array containing the entities or ids that have been tracked when the templates have been rendered. If some domain or entity was not reached because it was inside a condition that never met, then it will not be included in the `tracked` property. Only those entities or domains that were called during the rendering by the code using [states](#states), [is_state](#is_state), [state_attr](#state_attr), [is_state_attr](#is_state_attr), [has_value](#has_value) [entities](#entities), [entity_prop](#entity_prop), [is_entity_prop](#is_entity_prop) or [device_id](#device_id) will be included.
 
->Note: take into account that the domains will be only tracked if the `states` object is used accesing a domain. For example `states('device_tracker.paulus')` or `states['device_tracker.paulus']` will track the entity `device_tracker.paulus` but not the domain `device_tracker` but `states.device_tracker.paulus` will track both, the domain `device_tracker` and the entity `device_tracker.paulus`. The rest of the methods will track only entities.
+>Notes:
+> 1. Take into account that in the case of `states`, the domains will be tracked only if `states` is used as an object to acces a domain, for example `states('device_tracker.paulus')` or `states['device_tracker.paulus']` will track the entity `device_tracker.paulus` but not the domain `device_tracker` but `states.device_tracker.paulus` will track both, the domain `device_tracker` and the entity `device_tracker.paulus`.
+> 2. In the case of `entities`, both, the method and the object will track a domain if a domain is used, for example `entities('device_tracker.paulus')` or `entities['device_tracker.paulus']` will track the entity `device_tracker.paulus` but not the domain `device_tracker`. On the other hand, `entities('device_tracker')` will track the domain `device_tracker` and `entities.device_tracker.paulus` will track both, the domain `device_tracker` and the entity `device_tracker.paulus`.
+> 3. The rest of the methods will track only entities.
 
 ### Methods
 
@@ -129,7 +137,7 @@ The `hass` object
 
 #### states
 
-`states` could be used in two ways, as a function or as an object. When using it as function it only allows an entity id (containing the domain) as a parameter and it will return the state of that entity. As an object it allows you to access a domain or the full entity id.
+`states` could be used in two ways, as a function or as an object. When using it as function it only allows an entity id (containing the domain) as a parameter and it will return the state of that entity. As an object it allows you to access a domain or the full entity state object.
 
 >Note: If you try to use `states` as a function sending a domain it will throw an error.
 
@@ -140,7 +148,7 @@ states('device_tracker.paulus') // returns the state of the entity id 'device_tr
 // Using states as an object
 states['device_tracker.paulus'].state // returns the state of the entity id 'device_tracker.paulus'
 states.device_tracker.paulus.state // returns the state of the entity id 'device_tracker.paulus'
-states.device_tracker // returns an object constaining all the entities of the 'device_tracker' domain
+states.device_tracker // returns an object containing all the entities states of the 'device_tracker' domain
 ```
 
 >Note: Avoid using `states['device_tracker.paulus'].state` or `states.device_tracker.paulus.state`, instead use `states('device_tracker.paulus')` which will return `undefined` if the device id doesn‘t exist or the entity isn’t ready yet (the former will throw an error). If you still want to use them it is advisable to use the [Optional chaining operator], e.g. `states['device_tracker.paulus']?.state` or `states.device_tracker?.paulus?.state`.
@@ -175,6 +183,51 @@ Method to test if the given entity is not unknown or unavailable. It returns a `
 
 ```javascript
 has_value('sensor.my_sensor')
+```
+
+#### entities
+
+`entities` could be used in two ways, as a function or as an object.
+
+```javascript
+// Using entities as a function
+entities() // return all the entities
+entities('device_tracker') // returns an object containing all the entities of the 'device_tracker' domain
+entities('device_tracker.paulus') // returns the entity 'device_tracker.paulus'
+
+// Using entities as an object
+entities.device_tracker // returns an object containing all the entities of the 'device_tracker' domain
+entities['device_tracker.paulus'] // returns the entity 'device_tracker.paulus'
+entities.device_tracker.paulus // returns the entity 'device_tracker.paulus'
+```
+
+#### entity_prop
+
+Method that returns the value of a property of an entity or `undefined` if it doesn’t exist.
+
+```javascript
+entity_prop('device_tracker.paulus', 'platform')
+```
+
+#### is_entity_prop
+
+Method to test if the value of an entity property matches a value. It returns a `boolean`, if the entity id or the property don‘t exist it returns `false`.
+
+```javascript
+is_entity_prop('device_tracker.paulus', 'platform', 'hacs')
+```
+
+#### devices
+
+`devices` could be used in two ways, as a function or as an object.
+
+```javascript
+// Using devices as a function
+devices() // returns all the devices
+devices('706ad0ebe27e105d7cd0b73386deefdd') // returns the device that matches the device id
+
+// Using devices as an object
+devices['706ad0ebe27e105d7cd0b73386deefdd'] // returns the device that matches the device id
 ```
 
 #### device_attr
@@ -269,6 +322,14 @@ Property to return if the user logged in in Home Assistant is the owner. It retu
 
 ```javascript
 user_is_owner
+```
+
+#### user_agent
+
+Property to return the user agent of the browser in which Home Assistant is running.
+
+```javascript
+user_agent
 ```
 
 ## Examples

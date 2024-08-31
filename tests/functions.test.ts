@@ -15,6 +15,10 @@ describe('Function tests', () => {
         'state_attr',
         'is_state_attr',
         'has_value',
+        'entities',
+        'entity_prop',
+        'is_entity_prop',
+        'devices',
         'device_attr',
         'is_device_attr',
         'device_id',
@@ -26,7 +30,7 @@ describe('Function tests', () => {
     ];
 
     methods.forEach((method: string): void => {
-        it(method, () => {
+        it(`${method} should be a function`, () => {
             expect(
                 compiler.renderTemplate(method)
             ).toBeInstanceOf(Function);    

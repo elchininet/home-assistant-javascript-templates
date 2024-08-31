@@ -18,6 +18,7 @@ export interface State {
 export interface Entity {
     area_id: string | null;
     device_id: string;
+    [key: string]: unknown;
 }
 
 export interface User {
@@ -43,6 +44,16 @@ export interface ProxiedStates {
     [entityId: string]: Record<string, State> | State | undefined;
 }
 
+export interface ProxiedEntities {
+    (entityId?: string): Record<string, Entity> | Entity | undefined;
+    [entityId: string]: Record<string, Entity> | Entity | undefined;
+}
+
+export interface ProxiedDevices {
+    (deviceId?: string): Record<string, Device> | Device | undefined;
+    [deviceId: string]: Device | undefined;
+}
+
 export interface Tracked {
     entities: string[];
     domains: string[];
@@ -50,22 +61,33 @@ export interface Tracked {
 
 export interface Scopped {
     hass: Hass;
+    // states
     states: ProxiedStates;
     is_state: (entityId: string, value: string) => boolean;
     state_attr: (entityId: string, attr: string) => unknown | undefined;
     is_state_attr: (entityId: string, attr: string, value: unknown) => boolean;
     has_value: (entityId: string) => boolean;
+    // entities
+    entities: ProxiedEntities;
+    entity_prop: (entityId: string, attr: string) => unknown | undefined;
+    is_entity_prop: (entityId: string, attr: string, value: unknown) => boolean;
+    // devices
+    devices: ProxiedDevices;
     device_attr: (deviceId: string, attr: string) => unknown | undefined;
     is_device_attr: (deviceId: string, attr: string, value: unknown) => boolean;
     device_id: (entityId: string) => string | undefined;
+    // areas
     areas: () => string[];
     area_id: (lookupValue: string) => string | undefined;
     area_name: (lookupValue: string) => string | undefined;
     area_entities: (lookupValue: string) => string[];
     area_devices: (lookupValue: string) => string[];
+    // user
     user_name: string;
     user_is_admin: boolean;
     user_is_owner: boolean;
+    user_agent: string;
+    // utilities
     tracked: Tracked;
     cleanTrackedEntities: () => void;
     cleanTrackedDomains: () => void;
