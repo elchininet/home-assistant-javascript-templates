@@ -1,7 +1,7 @@
 import HomeAssistantJavaScriptTemplates from '../src';
-import { HOME_ASSISTANT_ELEMENT, HASS } from './constants';
+import { HOME_ASSISTANT_ELEMENT } from './constants';
 
-describe('cleanTracker false', () => {
+describe('tracked domains and entities', () => {
 
     let compiler: HomeAssistantJavaScriptTemplates;
     
@@ -359,7 +359,17 @@ describe('cleanTracker false', () => {
         );
     });
 
-    it('non-existent devices or domains', () => {
+});
+
+describe('non-existent devices and domains with trackNonExistent as false (default)', () => {
+
+    let compiler: HomeAssistantJavaScriptTemplates;
+    
+    beforeEach(() => {
+        compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
+    });
+
+    it('should not track any non-existent domains or entities', () => {
         compiler.renderTemplate('return states("binary_sensor.non_existent")');
         compiler.renderTemplate('return states.climate.thermostat');
         expect(compiler.tracked.entities).toHaveLength(0);
@@ -382,26 +392,90 @@ describe('cleanTracker false', () => {
         expect(compiler.tracked.domains).toHaveLength(0);
     });
 
-    it('cleaning trackers', () => {
+});
+
+describe('non-existent devices and domains with trackNonExistent as true (default)', () => {
+
+    let compiler: HomeAssistantJavaScriptTemplates;
+    
+    beforeEach(() => {
+        compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT, false, true);
+    });
+
+    it('should track all non-existent domains or entities', () => {
+        compiler.renderTemplate('return states("binary_sensor.non_existent")');
+        compiler.renderTemplate('return states.climate.thermostat');
+        expect(compiler.tracked.entities).toHaveLength(2);
+        expect(compiler.tracked.domains).toHaveLength(1);
+        
+        compiler.renderTemplate('return is_state("binary_sensor.my_sensor", "on")');
+        expect(compiler.tracked.entities).toHaveLength(3);
+        expect(compiler.tracked.domains).toHaveLength(1);
+
+        compiler.renderTemplate('return state_attr("camera.my_camera", "friendly_name")');
+        expect(compiler.tracked.entities).toHaveLength(4);
+        expect(compiler.tracked.domains).toHaveLength(1);
+
+        compiler.renderTemplate('return is_state_attr("sensor.my_sensor", "friendly_name", "My Sensor")');
+        expect(compiler.tracked.entities).toHaveLength(5);
+        expect(compiler.tracked.domains).toHaveLength(1);
+
+        compiler.renderTemplate('return has_value("domain.fake")');
+        expect(compiler.tracked.entities).toHaveLength(6);
+        expect(compiler.tracked.domains).toHaveLength(1);
+
+        compiler.renderTemplate('return entities("sensor")');
+        expect(compiler.tracked.entities).toHaveLength(6);
+        expect(compiler.tracked.domains).toHaveLength(2);
+
+        compiler.renderTemplate('return entities.binary_sensor.non_existent_2');
+        expect(compiler.tracked.entities).toHaveLength(7);
+        expect(compiler.tracked.domains).toHaveLength(3);
+
+        compiler.renderTemplate('return entity_prop("battery.my_phone", "attr")');
+        expect(compiler.tracked.entities).toHaveLength(8);
+        expect(compiler.tracked.domains).toHaveLength(3);
+
+        compiler.renderTemplate('return is_entity_prop("battery.your_phone", "attr", "value")');
+        expect(compiler.tracked.entities).toHaveLength(9);
+        expect(compiler.tracked.domains).toHaveLength(3);
+
+    });
+
+});
+
+describe('cleaning trackers', () => {
+
+    let compiler: HomeAssistantJavaScriptTemplates;
+    
+    beforeEach(() => {
+        compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
         compiler.renderTemplate('return states("binary_sensor.koffiezetapparaat_aan")');
         compiler.renderTemplate('return states.sensor.slaapkamer_temperatuur.state');
+    });
+
+    it('cleanTrackedDomains should clean only the domains', () => {
         expect(compiler.tracked.entities).toHaveLength(2);
         expect(compiler.tracked.domains).toHaveLength(1);
         compiler.cleanTrackedDomains();
         expect(compiler.tracked.entities).toHaveLength(2);
         expect(compiler.tracked.domains).toHaveLength(0);
+    });
+
+    it('cleanTrackedEntities should clean only the entities', () => {
+        expect(compiler.tracked.entities).toHaveLength(2);
+        expect(compiler.tracked.domains).toHaveLength(1);
         compiler.cleanTrackedEntities();
         expect(compiler.tracked.entities).toHaveLength(0);
-        expect(compiler.tracked.domains).toHaveLength(0);
+        expect(compiler.tracked.domains).toHaveLength(1);
+    });
 
-        compiler.renderTemplate('return states("binary_sensor.koffiezetapparaat_aan")');
-        compiler.renderTemplate('return states.sensor.slaapkamer_temperatuur.state');
+    it('cleanTracked should clean domain and entities', () => {
         expect(compiler.tracked.entities).toHaveLength(2);
         expect(compiler.tracked.domains).toHaveLength(1);
         compiler.cleanTracked();
         expect(compiler.tracked.entities).toHaveLength(0);
         expect(compiler.tracked.domains).toHaveLength(0);
-
     });
 
 });

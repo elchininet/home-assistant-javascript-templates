@@ -1,7 +1,11 @@
 import {
     HomeAssistant,
     State,
+    Entity,
+    Device,
     ProxiedStates,
+    ProxiedEntities,
+    ProxiedDevices,
     Scopped
 } from '@types';
 import {
@@ -22,7 +26,7 @@ const objectFromEntries = <T = unknown>(entries: [string, T][]): Record<string, 
 
 const hasDot = (entityId: string): boolean => entityId.includes('.');
 
-export function createScoppedFunctions(ha: HomeAssistant): Scopped {
+export function createScoppedFunctions(ha: HomeAssistant, trackNonExistent: boolean): Scopped {
 
     const areasEntries = () => Object.entries(ha.hass.areas);
     const statesEntries = () => Object.entries(ha.hass.states);
@@ -33,7 +37,7 @@ export function createScoppedFunctions(ha: HomeAssistant): Scopped {
     const domains = new Set<string>();
 
     const trackEntity = (entityId: string): void => {
-        if (ha.hass.states[entityId]) {
+        if (trackNonExistent || ha.hass.states[entityId]) {
             entities.add(entityId);
         }
     };
@@ -48,27 +52,27 @@ export function createScoppedFunctions(ha: HomeAssistant): Scopped {
         },
         // ---------------------- States
         states: new Proxy(
-            (entityId: string): string | undefined => {
+            ((entityId: string): string | undefined => {
                 if (hasDot(entityId)) {
                     trackEntity(entityId);
-                    return ha.hass.states[entityId]?.state
+                    return ha.hass.states[entityId]?.state;
                 }
                 throw SyntaxError(`${NAMESPACE}: states method cannot be used with a domain, use it as an object instead.`);
-            }, 
+            }) as ProxiedStates, 
             {
                 get(__target, entityId: string): Record<string, State> | State | undefined {
                     if (hasDot(entityId)) {
                         trackEntity(entityId);
                         return ha.hass.states[entityId];
                     }
-                    const filteredDomains = statesEntries().filter(([id]): boolean => {
+                    const filteredStatesByDomain = statesEntries().filter(([id]): boolean => {
                         return id.startsWith(entityId);
                     });
-                    if (filteredDomains.length) {
+                    if (trackNonExistent || filteredStatesByDomain.length) {
                         trackDomain(entityId);
                     }
                     return new Proxy(
-                        objectFromEntries(filteredDomains),
+                        objectFromEntries(filteredStatesByDomain),
                         {
                             get(__target, subEntityId: string): State | undefined {
                                 trackEntity(`${entityId}.${subEntityId}`);
@@ -78,7 +82,7 @@ export function createScoppedFunctions(ha: HomeAssistant): Scopped {
                     );
                 }
             }
-        ) as ProxiedStates,
+        ),
         is_state(entityId: string, value: string): boolean {
             trackEntity(entityId);
             return ha.hass.states[entityId]?.state === value;
@@ -100,7 +104,67 @@ export function createScoppedFunctions(ha: HomeAssistant): Scopped {
             );
         },
 
+        // ---------------------- Entities
+        entities: new Proxy(
+            ((entityId?: string): Record<string, Entity> | Entity | undefined => {
+                if (entityId === undefined) {
+                    return ha.hass.entities;
+                }
+                if (hasDot(entityId)) {
+                    trackEntity(entityId);
+                    return ha.hass.entities[entityId];
+                }
+                const filteredEntriesByDomain = entitiesEntries().filter(([id]): boolean => {
+                    return id.startsWith(entityId);
+                });
+                if (trackNonExistent || filteredEntriesByDomain.length) {
+                    trackDomain(entityId);
+                }
+                return new Proxy(
+                    objectFromEntries(filteredEntriesByDomain),
+                    {
+                        get(__target, subEntityId: string): Entity | undefined {
+                            trackEntity(`${entityId}.${subEntityId}`);
+                            return __target[subEntityId];
+                        }
+                    }
+                );
+            }) as ProxiedEntities,
+            {
+                get(__target, entityId: string): Record<string, Entity> | Entity | undefined {
+                    return __target(entityId);                    
+                }
+            }
+        ),
+        entity_prop(entityId: string, attr: string): unknown | undefined {
+            trackEntity(entityId);
+            return ha.hass.entities[entityId]?.[attr];
+        },
+        is_entity_prop(entityId: string, attr: string, value: unknown): boolean {
+            return this.entity_prop(entityId, attr) === value;
+        },
+
         // ---------------------- Devices
+        devices: new Proxy(
+            ((deviceId?: string): Record<string, Device> | Device | undefined => {
+                if (deviceId === undefined) {
+                    return ha.hass.devices;
+                }
+                if (hasDot(deviceId)) {
+                    throw SyntaxError(`${NAMESPACE}: devices method cannot be used with an entity id, you should use a device id instead.`);
+                }
+                return ha.hass.devices[deviceId];
+            }) as ProxiedDevices,
+            {
+                get(__target, deviceId: string): Record<string, Device> | Device | undefined {
+                    if (hasDot(deviceId)) {
+                        throw SyntaxError(`${NAMESPACE}: devices cannot be accesed using an entity id, you should use a device id instead.`);
+                    }
+                    return ha.hass.devices[deviceId];
+                }
+            }
+        ),
+
         device_attr(deviceId: string, attr: string): unknown {
             return ha.hass.devices[deviceId]?.[attr];
         },
@@ -108,6 +172,7 @@ export function createScoppedFunctions(ha: HomeAssistant): Scopped {
             return this.device_attr(deviceId, attr) === value;
         },
         device_id(entityId: string): string {
+            trackEntity(entityId);
             return ha.hass.entities[entityId]?.device_id;
         },
         
@@ -189,6 +254,9 @@ export function createScoppedFunctions(ha: HomeAssistant): Scopped {
         },
         get user_is_owner() {
             return ha.hass.user.is_owner
+        },
+        get user_agent() {
+            return window.navigator.userAgent;
         },
         tracked: {
             get entities(): string[] {

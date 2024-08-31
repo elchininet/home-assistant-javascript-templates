@@ -9,7 +9,7 @@ describe('Complex templates tests', () => {
         compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
     });
 
-    it('templates', () => {
+    it('should return the proper values', () => {
 
         expect(
             compiler.renderTemplate(`

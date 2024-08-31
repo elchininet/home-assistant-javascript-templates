@@ -9,8 +9,12 @@ import { createScoppedFunctions } from '@utilities';
 
 export default class HomeAssistantJavaScriptTemplates {
 
-    constructor(ha: HomeAssistant, throwErrors = false) {
-        this._scopped = createScoppedFunctions(ha);
+    constructor(
+        ha: HomeAssistant,
+        throwErrors = false,
+        trackNonExistent = false
+    ) {
+        this._scopped = createScoppedFunctions(ha, trackNonExistent);
         this._errors = throwErrors;
     }
 
@@ -32,6 +36,10 @@ export default class HomeAssistantJavaScriptTemplates {
                 'state_attr',
                 'is_state_attr',
                 'has_value',
+                'entities',
+                'entity_prop',
+                'is_entity_prop',
+                'devices',
                 'device_attr',
                 'is_device_attr',
                 'device_id',
@@ -43,6 +51,7 @@ export default class HomeAssistantJavaScriptTemplates {
                 'user_name',
                 'user_is_admin',
                 'user_is_owner',
+                'user_agent',
                 `${STRICT_MODE} ${functionBody}`
             );
 
@@ -53,6 +62,10 @@ export default class HomeAssistantJavaScriptTemplates {
                 this._scopped.state_attr.bind(this._scopped),
                 this._scopped.is_state_attr.bind(this._scopped),
                 this._scopped.has_value.bind(this._scopped),
+                this._scopped.entities,
+                this._scopped.entity_prop,
+                this._scopped.is_entity_prop.bind(this._scopped),
+                this._scopped.devices,
                 this._scopped.device_attr.bind(this._scopped),
                 this._scopped.is_device_attr.bind(this._scopped),
                 this._scopped.device_id.bind(this._scopped),
@@ -63,7 +76,8 @@ export default class HomeAssistantJavaScriptTemplates {
                 this._scopped.area_devices.bind(this._scopped),
                 this._scopped.user_name,
                 this._scopped.user_is_admin,
-                this._scopped.user_is_owner
+                this._scopped.user_is_owner,
+                this._scopped.user_agent
             );
 
         } catch (error) {
