@@ -1,12 +1,23 @@
-import HomeAssistantJavaScriptTemplates from '../src';
+import HomeAssistantJavaScriptTemplates, { HomeAssistantJavaScriptTemplatesRenderer } from '../src';
 import { HOME_ASSISTANT_ELEMENT, HASS } from './constants';
 
 describe('Basic templates tests', () => {
 
-    let compiler: HomeAssistantJavaScriptTemplates;
+    let compiler: HomeAssistantJavaScriptTemplatesRenderer;
+    let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>;
     
-    beforeEach(() => {
-        compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
+    beforeEach(async () => {
+        window.hassConnection = Promise.resolve({
+            conn: {
+                subscribeMessage: jest.fn()
+            }
+        });
+        consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+        compiler = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
+    });
+
+    afterEach(() => {
+        consoleWarnMock.mockRestore();
     });
 
     describe('hass object', () => {
@@ -25,9 +36,11 @@ describe('Basic templates tests', () => {
             expect(
                 compiler.renderTemplate('states["sensor.non_existent"]')
             ).toBe(undefined);
+            expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
             expect(
                 compiler.renderTemplate('states("light.non_existent")')
             ).toBe(undefined);
+            expect(consoleWarnMock).toHaveBeenCalledWith('Entity light.non_existent used in a JavaScript template doesn\'t exist');
         });
 
         it('states object should return the right states', () => {
@@ -80,6 +93,7 @@ describe('Basic templates tests', () => {
             expect(
                 { ...compiler.renderTemplate('states["battery"]') }
             ).toEqual({});
+            expect(consoleWarnMock).toHaveBeenCalledWith('Domain battery used in a JavaScript template doesn\'t exist');
         });
 
     });
@@ -102,6 +116,7 @@ describe('Basic templates tests', () => {
             expect(
                 compiler.renderTemplate('is_state("sensor.non_existent", "10")')
             ).toBe(false);
+            expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
 
     });
@@ -122,6 +137,7 @@ describe('Basic templates tests', () => {
             expect(
                 compiler.renderTemplate('state_attr("sensor.non_existent", "device_class")')
             ).toBe(undefined);
+            expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
 
     });
@@ -144,6 +160,7 @@ describe('Basic templates tests', () => {
             expect(
                 compiler.renderTemplate('is_state_attr("sensor.non_existent", "name", "fake")')
             ).toBe(false);
+            expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
 
     });
@@ -165,6 +182,7 @@ describe('Basic templates tests', () => {
         expect(
             compiler.renderTemplate('has_value("sensor.non_existent")')
         ).toBe(false);
+        expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
 
     });
 
@@ -201,12 +219,14 @@ describe('Basic templates tests', () => {
             expect(
                 { ...compiler.renderTemplate('entities("update")') }
             ).toEqual({});
+            expect(consoleWarnMock).toHaveBeenCalledWith('Domain update used in a JavaScript template doesn\'t exist');
         });
 
         it('entities method with a non-existent entity should return undefined', () => {
             expect(
                 compiler.renderTemplate('entities("sensor.non_existent")')
             ).toBe(undefined);
+            expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
 
         it('entities object should return the same domains as the entity method', () => {
@@ -229,12 +249,14 @@ describe('Basic templates tests', () => {
             expect(
                 { ...compiler.renderTemplate('entities.update') }
             ).toEqual({});
+            expect(consoleWarnMock).toHaveBeenCalledWith('Domain update used in a JavaScript template doesn\'t exist');
         });
 
         it('entities object should return undefined if the entity doesn\t exist', () => {
             expect(
                 compiler.renderTemplate('entities.sensor.non_existent')
             ).toBe(undefined);
+            expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
 
     });
@@ -257,6 +279,7 @@ describe('Basic templates tests', () => {
             expect(
                 compiler.renderTemplate('entity_prop("sensor.non_existent", "area_id")')
             ).toBe(undefined);
+            expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
 
     });
@@ -279,6 +302,7 @@ describe('Basic templates tests', () => {
             expect(
                 compiler.renderTemplate('is_entity_prop("sensor.non_existent", "area_id", "eetkamer")')
             ).toBe(false);
+            expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
 
     });
@@ -394,6 +418,7 @@ describe('Basic templates tests', () => {
             expect(
                 compiler.renderTemplate('device_id("sensor.non_existent")')
             ).toBe(undefined);
+            expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
 
     });

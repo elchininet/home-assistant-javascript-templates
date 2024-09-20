@@ -1,12 +1,17 @@
-import HomeAssistantJavaScriptTemplates from '../src';
+import HomeAssistantJavaScriptTemplates, { HomeAssistantJavaScriptTemplatesRenderer } from '../src';
 import { HOME_ASSISTANT_ELEMENT } from './constants';
 
 describe('Function tests', () => {
 
-    let compiler: HomeAssistantJavaScriptTemplates;
+    let compiler: HomeAssistantJavaScriptTemplatesRenderer;
     
-    beforeEach(() => {
-        compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
+    beforeEach(async () => {
+        window.hassConnection = Promise.resolve({
+            conn: {
+                subscribeMessage: jest.fn()
+            }
+        });
+        compiler = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
     });
 
     const methods = [

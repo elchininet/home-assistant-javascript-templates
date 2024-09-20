@@ -10,15 +10,17 @@ import {
 } from '@types';
 import {
     NAMESPACE,
-    DOMAIN_REGEXP,
+    ENTITY_REGEXP,
     STATE_VALUES,
-    ATTRIBUTES
+    ATTRIBUTES,
+    MAX_ATTEMPTS,
+    RETRY_DELAY
 } from '@constants';
 
 const objectFromEntries = <T = unknown>(entries: [string, T][]): Record<string, T> => {
     return entries.reduce((acc: Record<string, T>, entry: [string, T]): Record<string, T> => {
         const [entityId, state] = entry;
-        const entity = entityId.replace(DOMAIN_REGEXP, '$2');
+        const entity = entityId.replace(ENTITY_REGEXP, '$2');
         acc[entity] = state;
         return acc;
     }, {} as Record<string, T>);
@@ -26,7 +28,10 @@ const objectFromEntries = <T = unknown>(entries: [string, T][]): Record<string, 
 
 const hasDot = (entityId: string): boolean => entityId.includes('.');
 
-export function createScoppedFunctions(ha: HomeAssistant, trackNonExistent: boolean): Scopped {
+export function createScoppedFunctions(
+    ha: HomeAssistant,
+    throwWarnings: boolean,
+): Scopped {
 
     const areasEntries = () => Object.entries(ha.hass.areas);
     const statesEntries = () => Object.entries(ha.hass.states);
@@ -34,16 +39,21 @@ export function createScoppedFunctions(ha: HomeAssistant, trackNonExistent: bool
     const entitiesEntries = () => Object.entries(ha.hass.entities);
 
     const entities = new Set<string>();
-    const domains = new Set<string>();
 
-    const trackEntity = (entityId: string): void => {
-        if (trackNonExistent || ha.hass.states[entityId]) {
-            entities.add(entityId);
+    const warnNonExistent = (type: string, entityId: string): void => {
+        if(throwWarnings) {
+            console.warn(`${type} ${entityId} used in a JavaScript template doesn't exist`);
         }
     };
+    const warnNonExistentEntity = (entityId: string): void => warnNonExistent('Entity', entityId);
+    const warnNonExistentDomain = (domain: string): void => warnNonExistent('Domain', domain);
 
-    const trackDomain = (domain: string): void => {
-        domains.add(domain);
+    const trackEntity = (entityId: string): void => {
+        if (ha.hass.states[entityId]) {
+            entities.add(entityId);
+        } else {
+            warnNonExistentEntity(entityId);
+        }
     };
 
     return {
@@ -68,8 +78,8 @@ export function createScoppedFunctions(ha: HomeAssistant, trackNonExistent: bool
                     const filteredStatesByDomain = statesEntries().filter(([id]): boolean => {
                         return id.startsWith(entityId);
                     });
-                    if (trackNonExistent || filteredStatesByDomain.length) {
-                        trackDomain(entityId);
+                    if (!filteredStatesByDomain.length) {
+                        warnNonExistentDomain(entityId);
                     }
                     return new Proxy(
                         objectFromEntries(filteredStatesByDomain),
@@ -96,6 +106,7 @@ export function createScoppedFunctions(ha: HomeAssistant, trackNonExistent: bool
         },
         has_value(entityId: string): boolean {
             if (!this.states(entityId)) {
+                warnNonExistentEntity(entityId);
                 return false;
             }
             return !(
@@ -117,8 +128,8 @@ export function createScoppedFunctions(ha: HomeAssistant, trackNonExistent: bool
                 const filteredEntriesByDomain = entitiesEntries().filter(([id]): boolean => {
                     return id.startsWith(entityId);
                 });
-                if (trackNonExistent || filteredEntriesByDomain.length) {
-                    trackDomain(entityId);
+                if (!filteredEntriesByDomain.length) {
+                    warnNonExistentDomain(entityId);
                 }
                 return new Proxy(
                     objectFromEntries(filteredEntriesByDomain),
@@ -186,7 +197,7 @@ export function createScoppedFunctions(ha: HomeAssistant, trackNonExistent: bool
             if (lookupValue in ha.hass.devices) {
                 return this.device_attr(lookupValue, ATTRIBUTES.AREA_ID);
             }
-            const deviceId = this.device_id(lookupValue);
+            const deviceId = ha.hass.entities[lookupValue]?.device_id;
             if (deviceId) {
                 return this.device_attr(deviceId, ATTRIBUTES.AREA_ID);
             }
@@ -198,7 +209,7 @@ export function createScoppedFunctions(ha: HomeAssistant, trackNonExistent: bool
             if (lookupValue in ha.hass.devices) {
                 areaId = this.device_attr(lookupValue, ATTRIBUTES.AREA_ID);
             }
-            const deviceId = this.device_id(lookupValue);
+            const deviceId = ha.hass.entities[lookupValue]?.device_id;
             if (deviceId) {
                 areaId = this.device_attr(deviceId, ATTRIBUTES.AREA_ID);
             }
@@ -258,19 +269,34 @@ export function createScoppedFunctions(ha: HomeAssistant, trackNonExistent: bool
         get user_agent() {
             return window.navigator.userAgent;
         },
-        tracked: {
-            get entities(): string[] {
-                return Array.from(entities);
-            },
-            get domains(): string[] {
-                return Array.from(domains);
-            }
+        get tracked() {
+            return entities;
         },
-        cleanTrackedEntities(): void {
+        cleanTracked(): void {
             entities.clear();
-        },
-        cleanTrackedDomains(): void {
-            domains.clear();
         }
     };
 }
+
+export const getPromisableElement = <T>(
+    getElement: () => T,
+    check: (element: T) => boolean
+): Promise<T> => {
+    return new Promise<T>((resolve, reject) => {
+        let attempts = 0;
+        const select = () => {
+            const element: T = getElement();
+            if (check(element)) {
+                resolve(element);
+            } else {
+                attempts++;
+                if (attempts < MAX_ATTEMPTS) {
+                    setTimeout(select, RETRY_DELAY);
+                } else {
+                    reject();
+                }
+            }
+        };
+        select();
+    });
+};
