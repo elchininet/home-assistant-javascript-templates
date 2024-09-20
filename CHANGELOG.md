@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.0.0] - 2024-09-19
+
+- Complete refactor of the library
+    * The library now returns a promise and the result of the promise is the renderer
+    * Removed the `trackNonExistent` parameter
+    * The options of the library are provided now with an options object
+    * New `trackTemplate` method to execute rendering functions when entities change
+    * Removed `tracked` property
+    * Removed `cleanTrackedEntities` method
+    * Removed `cleanTrackedDomains` method
+    * Changed the function of the `cleanTracked` method
+
 ## [4.0.0] - 2024-08-31
 
 - New methods, objects and properties

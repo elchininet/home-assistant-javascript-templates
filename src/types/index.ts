@@ -1,3 +1,10 @@
+export interface Options {
+    throwErrors?: boolean;
+    throwWarnings?: boolean;
+}
+
+export type RenderingFunction = (result?: any) => void;
+
 export interface Area {
     area_id: string;
     name: string;
@@ -54,9 +61,32 @@ export interface ProxiedDevices {
     [deviceId: string]: Device | undefined;
 }
 
-export interface Tracked {
-    entities: string[];
-    domains: string[];
+export type SubscriberEvent = {
+    event_type: string;
+    data: {
+        entity_id: string;
+        old_state?: {
+            state: string;
+        };
+        new_state: {
+            state: string;
+        };
+    }
+};
+
+export interface HassConnection {
+    conn: {
+        subscribeMessage: <T>(
+            callback: (response: T) => void,
+            options: Record<string, unknown>
+        ) => void;
+    }
+}
+
+declare global {
+    interface Window {
+        hassConnection: Promise<HassConnection>;
+    }
 }
 
 export interface Scopped {
@@ -88,7 +118,6 @@ export interface Scopped {
     user_is_owner: boolean;
     user_agent: string;
     // utilities
-    tracked: Tracked;
-    cleanTrackedEntities: () => void;
-    cleanTrackedDomains: () => void;
+    tracked: Set<string>;
+    cleanTracked: () => void;
 }

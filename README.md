@@ -34,11 +34,17 @@ pnpm add home-assistant-javascript-templates
 ```javascript
 const HomeAssistantJavaScriptTemplates = require('home-assistant-javascript-templates');
 
-const renderer = new HomeAssistantJavaScriptTemplates(
+const haJsTemplates = new HomeAssistantJavaScriptTemplates(
     document.querySelector('home-assistant')
 );
 
-renderer.renderTemplate('... template string ...');
+haJsTemplates.getRenderer()
+    then((renderer) => {
+        renderer.renderTemplate('... template string ...');
+        renderer.trackTemplate('... template string ...', () => {
+            // execute this function every time that en entity used in the template changes
+        });
+    });
 ```
 
 #### Usage with ES6 modules
@@ -46,16 +52,22 @@ renderer.renderTemplate('... template string ...');
 ```javascript
 import HomeAssistantJavaScriptTemplates from 'home-assistant-javascript-templates';
 
-const renderer = new HomeAssistantJavaScriptTemplates(
+const haJsTemplates = new HomeAssistantJavaScriptTemplates(
     document.querySelector('home-assistant')
 );
 
-renderer.renderTemplate('... template string ...');
+haJsTemplates.getRenderer()
+    then((renderer) => {
+        renderer.renderTemplate('... template string ...');
+        renderer.trackTemplate('... template string ...', () => {
+            // execute this function every time that en entity used in the template changes
+        });
+    });
 ```
 
 ## API
 
-The package exposes a class that needs to be instantiated and is this instance the one that you need to use in your code.
+The package exposes a class that needs to be instantiated and the resolved promise that returns the `getRenderer` method of this instance is what you need to use in your code to render `JavaScript` templates.
 
 ### HomeAssistantJavaScriptTemplates class
 
@@ -64,36 +76,31 @@ Main class of the library, it is the `default` export in the package.
 ```typescript
 new HomeAssistantJavaScriptTemplates(
     ha,
-    throwErrors = false,
-    trackNonExistent = false
+    options
 );
 ```
 
 | Parameter          | Optional      | Description                                        |
 | ------------------ | ------------- | -------------------------------------------------- |
 | `ha`               | no            | An HTML element that has the `hass` object as a property (e.g. the `home-assistant` custom element). |
-| `throwErrors`      | yes           | Indicates if the library should throw if the template contains any error. If not it will log the errors as a warning in the console and return `undefined` instead. |
-| `trackNonExistent` | yes           | Indicates if the library should track those domains and entities that doesn't exist. |
+| `options`          | yes           | An object containing the configuration options. |
 
-### Properties
+#### Configuration options
 
-#### tracked
+| Parameter          | Optional      | Default | Description                                        |
+| ------------------ | ------------- | ------- | -------------------------------------------------- |
+| `throwErrors`      | yes           | false   | Indicates if the library should throw if the template contains any error. If not, it will log the errors as a warning in the console and return `undefined` instead. |
+| `throwWarnings`    | yes           | true    | Indicates if the library should throw warnings in the console, either when there is an error in the templates and `throwErrors` is configured in `false`, or when a non-existent entity or domain is used in the templates. |
 
-```typescript
-interface Tracked {
-    entities: string[];
-    domains: string[];
-}
+### Methods
 
-get tracked(): Tracked
-```
+#### getRenderer
 
-This property will return an object with two properties (`entities` and `domains`). Each of these properties will be an array containing the entities or ids that have been tracked when the templates have been rendered. If some domain or entity was not reached because it was inside a condition that never met, then it will not be included in the `tracked` property. Only those entities or domains that were called during the rendering by the code using [states](#states), [is_state](#is_state), [state_attr](#state_attr), [is_state_attr](#is_state_attr), [has_value](#has_value) [entities](#entities), [entity_prop](#entity_prop), [is_entity_prop](#is_entity_prop) or [device_id](#device_id) will be included.
+Returns a `Promise` than once it resolved returns an instance of the [HomeAssistantJavaScriptTemplatesRenderer](#homeassistantjavascripttemplatesrenderer-class) class.
 
->Notes:
-> 1. Take into account that in the case of `states`, the domains will be tracked only if `states` is used as an object to acces a domain, for example `states('device_tracker.paulus')` or `states['device_tracker.paulus']` will track the entity `device_tracker.paulus` but not the domain `device_tracker` but `states.device_tracker.paulus` will track both, the domain `device_tracker` and the entity `device_tracker.paulus`.
-> 2. In the case of `entities`, both, the method and the object will track a domain if a domain is used, for example `entities('device_tracker.paulus')` or `entities['device_tracker.paulus']` will track the entity `device_tracker.paulus` but not the domain `device_tracker`. On the other hand, `entities('device_tracker')` will track the domain `device_tracker` and `entities.device_tracker.paulus` will track both, the domain `device_tracker` and the entity `device_tracker.paulus`.
-> 3. The rest of the methods will track only entities.
+### HomeAssistantJavaScriptTemplatesRenderer class
+
+This class is only exported as a type in the package, you cannot import it directly. An instance of this class will be returned by the promise that is returned by the [getRenderer method](#getrenderer) of the [HomeAssistantJavaScriptTemplates class](#homeassistantjavascripttemplates-class).
 
 ### Methods
 
@@ -103,31 +110,28 @@ This property will return an object with two properties (`entities` and `domains
 renderTemplate(template: string): any
 ```
 
-This is the main method to render `JavaScript` templates, it needs a string as a parameter. Inside this string you can use [several objects and methods](#objects-and-methods-available-in-the-templates). It returns whatever the `JavaScript` code returns, because of that it is typed as `any`.
+This method renders a `JavaScript` template and return its result. It needs a string as a parameter. Inside this string you can use [several objects and methods](#objects-and-methods-available-in-the-templates). It returns whatever the `JavaScript` code returns, because of that it is typed as `any`.
 
-#### cleanTrackedEntities
-
-```typescript
-cleanTrackedEntities(): void
-```
-
-This method will clean all the tracked entities until the moment, so after being called, the `tracked` property will return an empty array as `entities`.
-
-#### cleanTrackedDomains
+#### trackTemplate
 
 ```typescript
-cleanTrackedDomains(): void
+trackTemplate(
+    template: string,
+    renderingFunction: (result?: any) => void
+): void
 ```
 
-This method will clean all the tracked domains until the moment, so after being called, the `tracked` property will return an empty array as `domains`.
+This method registers a template tracking. It executes the `renderingFunction` sent to the method with the result of the rendered `template` and will execute `renderingFunction` with an updated result of the rendered `template` every time that the entities used in the template update. You can use [several objects and methods](#objects-and-methods-available-in-the-templates) inside the `template` string.
+
+If some entity was not reached in the template code because it was inside a condition that never met, then it will not be tracked, so if its state changes it will not trigger the `renderingFunction`. Only those entities that were called during the rendering using [states](#states), [is_state](#is_state), [state_attr](#state_attr), [is_state_attr](#is_state_attr), [has_value](#has_value) [entities](#entities), [entity_prop](#entity_prop), [is_entity_prop](#is_entity_prop) or [device_id](#device_id) will be included.
 
 #### cleanTracked
 
 ```typescript
-cleanTracked(): void
+cleanTracked(entityId?: string): void
 ```
 
-This method will clean all the tracked entities and domains until the moment. It is the same as calling `cleanTrackedEntities` and `cleanTrackedDomains` consecutively.
+This method will clean the template tracking for a specific entity or will clean all the template trackings if no entity id is specified.
 
 ### Objects and methods available in the templates
 
@@ -339,7 +343,7 @@ user_agent
 ```javascript
 import HomeAssistantJavaScriptTemplates  from 'home-assistant-javascript-templates';
 
-const renderer = new HomeAssistantJavaScriptTemplates(
+const haJsTemplates = new HomeAssistantJavaScriptTemplates(
     document.querySelector('home-assistant')
 );
 
@@ -349,28 +353,43 @@ const renderer = new HomeAssistantJavaScriptTemplates(
  * Return the value of the attribute prefixed with "sn: "
  * It will return something like "sn: 123456"
  */
-renderer.renderTemplate(`
-    const deviceId = device_id("binary_sensor.koffiezetapparaat_aan");
-    const serialNumber = device_attr(deviceId, "serial_number");
-    return "sn:" + serialNumber;
-`);
+haJsTemplates.getRenderer()
+    .then((renderer) => {
+        const result = renderer.renderTemplate(`
+            const deviceId = device_id("binary_sensor.koffiezetapparaat_aan");
+            const serialNumber = device_attr(deviceId, "serial_number");
+            return "sn:" + serialNumber;
+        `);
+        console.log(result);
+    });
+
 ```
 
-#### Get all the available updates
+#### Get all the available updates and update an HTML element with the result with entity changes
 
 ```javascript
 import HomeAssistantJavaScriptTemplates  from 'home-assistant-javascript-templates';
 
-const renderer = new HomeAssistantJavaScriptTemplates(
+const haJsTemplates = new HomeAssistantJavaScriptTemplates(
     document.querySelector('home-assistant')
 );
 
-renderer.renderTemplate(`
-    const udatesEntities = states.update;
-    const updateEntitiesValues = Object.values(udatesEntities);
-    const updatesEntitiesOn = updateEntitiesValues.filter((entity) => entity.state === 'on');
-    return updatesEntitiesOn.length;
-`);
+haJsTemplates.getRenderer()
+    .then((renderer) => {
+        const element = document.querySelector('#my-element');
+        renderer.trackTemplate(
+            `
+            const udatesEntities = states.update;
+            const updateEntitiesValues = Object.values(udatesEntities);
+            const updatesEntitiesOn = updateEntitiesValues.filter((entity) => entity.state === 'on');
+            return updatesEntitiesOn.length;
+            `,
+            (result) => {
+                element.innerHTML = result;
+            }
+        );
+    });
+
 ```
 
 [Optional chaining operator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining

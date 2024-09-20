@@ -1,8 +1,16 @@
-import HomeAssistantJavaScriptTemplates from '../src';
+import HomeAssistantJavaScriptTemplates, { HomeAssistantJavaScriptTemplatesRenderer } from '../src';
 import { HOME_ASSISTANT_ELEMENT } from './constants';
 import { NAMESPACE } from '../src/constants';
 
 describe('Templates with errors', () => {
+
+    beforeEach(() => {
+        window.hassConnection = Promise.resolve({
+            conn: {
+                subscribeMessage: jest.fn()
+            }
+        });
+    });
 
     const syntaxErrorCode = 'const a = ; return a';
     const typeErrorCode1 = 'states["binary_sensor.koffiezetapparaat_verbonden"].state.toFixed(16)';
@@ -18,32 +26,32 @@ describe('Templates with errors', () => {
     describe('Error as a console warning', () => {
 
         let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>;
-        let compiler: HomeAssistantJavaScriptTemplates;
+        let compiler: HomeAssistantJavaScriptTemplatesRenderer;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
-            compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
+            compiler = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
         });
 
         afterEach(() => {
             consoleWarnMock.mockRestore();
         });
 
-        it('SyntaxError during instantiation', () => {
+        it('should return a SyntaxError during instantiation', () => {
             expect(
                 compiler.renderTemplate(syntaxErrorCode)
             ).toBe(undefined);    
             expect(consoleWarnMock).toHaveBeenCalledWith(new TypeError(syntaxErrorMessage));    
         });
 
-        it('TypeError during the execution', () => {
+        it('should return a TypeError during the execution', () => {
             expect(
                 compiler.renderTemplate(typeErrorCode1)
             ).toBe(undefined);
             expect(consoleWarnMock).toHaveBeenCalledWith(new TypeError(typeErrorMessage1));
         });
 
-        it('SyntaxError during the execution', () => {
+        it('should return a SyntaxError during the execution', () => {
             expect(
                 compiler.renderTemplate(typeErrorCode2)
             ).toBe(undefined);
@@ -60,27 +68,80 @@ describe('Templates with errors', () => {
 
     });
 
-    describe('Error as an error', () => {
+    describe('With warnings disabled', () => {
 
-        let compiler: HomeAssistantJavaScriptTemplates;
+        let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>;
+        let compiler: HomeAssistantJavaScriptTemplatesRenderer;
 
-        beforeEach(() => {
-            compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT, true);
+        beforeEach(async () => {
+            consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+            compiler = await new HomeAssistantJavaScriptTemplates(
+                HOME_ASSISTANT_ELEMENT,
+                {
+                    throwWarnings: false
+                }
+            ).getRenderer();
         });
 
-        it('SyntaxError during instantiation', () => {
+        afterEach(() => {
+            consoleWarnMock.mockRestore();
+        });
+
+        it('should return a SyntaxError during instantiation', () => {
+            expect(
+                compiler.renderTemplate(syntaxErrorCode)
+            ).toBe(undefined);    
+            expect(consoleWarnMock).not.toHaveBeenCalled();
+        });
+
+        it('should return a TypeError during the execution', () => {
+            expect(
+                compiler.renderTemplate(typeErrorCode1)
+            ).toBe(undefined);
+            expect(consoleWarnMock).not.toHaveBeenCalled();
+        });
+
+        it('should return a SyntaxError during the execution', () => {
+            expect(
+                compiler.renderTemplate(typeErrorCode2)
+            ).toBe(undefined);
+            expect(consoleWarnMock).not.toHaveBeenCalled();
+            expect(
+                compiler.renderTemplate(typeErrorCode3)
+            ).toBe(undefined);
+            expect(consoleWarnMock).not.toHaveBeenCalled();
+            expect(
+                compiler.renderTemplate(typeErrorCode4)
+            ).toBe(undefined);
+            expect(consoleWarnMock).not.toHaveBeenCalled();
+        });
+
+    });
+
+    describe('Error as an error', () => {
+
+        let compiler: HomeAssistantJavaScriptTemplatesRenderer;
+
+        beforeEach(async () => {
+            compiler = await new HomeAssistantJavaScriptTemplates(
+                HOME_ASSISTANT_ELEMENT,
+                { throwErrors: true }
+            ).getRenderer();
+        });
+
+        it('should return a SyntaxError during instantiation', () => {
             expect(
                 () => compiler.renderTemplate(syntaxErrorCode)
             ).toThrow(syntaxErrorMessage);
         });
 
-        it('TypeError during the execution', () => {
+        it('should return a TypeError during the execution', () => {
             expect(
                 () => compiler.renderTemplate(typeErrorCode1)
             ).toThrow(typeErrorMessage1);
         });
 
-        it('SyntaxError during the execution', () => {
+        it('should return a SyntaxError during the execution', () => {
             expect(
                 () => compiler.renderTemplate(typeErrorCode2)
             ).toThrow(typeErrorMessage2);

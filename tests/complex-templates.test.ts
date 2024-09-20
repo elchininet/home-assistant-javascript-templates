@@ -1,15 +1,16 @@
-import HomeAssistantJavaScriptTemplates from '../src';
+import HomeAssistantJavaScriptTemplates, { HomeAssistantJavaScriptTemplatesRenderer } from '../src';
 import { HOME_ASSISTANT_ELEMENT } from './constants';
 
 describe('Complex templates tests', () => {
 
-    let compiler: HomeAssistantJavaScriptTemplates;
-    
-    beforeEach(() => {
-        compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
-    });
+    it('should return the proper values', async () => {
 
-    it('should return the proper values', () => {
+        window.hassConnection = Promise.resolve({
+            conn: {
+                subscribeMessage: jest.fn()
+            }
+        });
+        const compiler = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
 
         expect(
             compiler.renderTemplate(`
