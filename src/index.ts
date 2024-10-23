@@ -28,7 +28,10 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         this._throwWarnings = throwWarnings;
         this._subscriptions = new Map<
             string,
-            Map<string, RenderingFunction>
+            Map<
+                string,
+                Set<RenderingFunction>
+            >
         >();
         this._scopped = createScoppedFunctions(ha, throwWarnings);
         this._watchForEntitiesChange();
@@ -38,7 +41,10 @@ class HomeAssistantJavaScriptTemplatesRenderer {
     private _throwWarnings: boolean;
     private _subscriptions: Map<
         string,
-        Map<string, RenderingFunction>
+        Map<
+            string,
+            Set<RenderingFunction>
+        >
     >;
     private _scopped: Scopped;
 
@@ -61,8 +67,10 @@ class HomeAssistantJavaScriptTemplatesRenderer {
             if (this._subscriptions.has(id)) {
                 this._subscriptions
                     .get(id)
-                    .forEach((renderingFunction: RenderingFunction, template: string): void => {
-                        this.trackTemplate(template, renderingFunction);
+                    .forEach((functions: Set<RenderingFunction>, template: string): void => {
+                        functions.forEach((renderingFunction: RenderingFunction) => {
+                            this.trackTemplate(template, renderingFunction);
+                        });
                     });
             }
 		}
@@ -72,16 +80,54 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         this._scopped.tracked.forEach((id: string): void => {
             if (this._subscriptions.has(id)) {
                 const renderingFunctionMap = this._subscriptions.get(id);
-                if (!renderingFunctionMap.has(template)) {
-                    renderingFunctionMap.set(template, renderingFunction);
+                if (renderingFunctionMap.has(template)) {
+                    const functions = renderingFunctionMap.get(template);
+                    if (!functions.has(renderingFunction)) {
+                        functions.add(renderingFunction);
+                    }
+                } else {
+                    renderingFunctionMap.set(
+                        template,
+                        new Set<RenderingFunction>(
+                            [renderingFunction]
+                        )
+                    );
                 }
             } else {
                 this._subscriptions.set(
                     id,
                     new Map([
-                        [template, renderingFunction]
+                        [
+                            template,
+                            new Set([
+                                renderingFunction
+                            ])
+                        ]
                     ])
                 );
+            }
+        });
+    }
+
+    private _untrackTemplate(template: string, renderingFunction: RenderingFunction): void {
+        this._subscriptions.forEach((
+            renderingFunctionMap: Map<
+                string,
+                Set<RenderingFunction>
+            >,
+            id: string
+        ): void => {
+            if (renderingFunctionMap.has(template)) {
+                const functions = renderingFunctionMap.get(template);
+                if (functions.has(renderingFunction)) {
+                    functions.delete(renderingFunction);
+                }
+                if (functions.size === 0) {
+                    renderingFunctionMap.delete(template);
+                    if (renderingFunctionMap.size === 0) {
+                        this._subscriptions.delete(id);
+                    }
+                }
             }
         });
     }
@@ -158,11 +204,12 @@ class HomeAssistantJavaScriptTemplatesRenderer {
 
     }
 
-    public trackTemplate(template: string, renderingFunction: RenderingFunction): void {
+    public trackTemplate(template: string, renderingFunction: RenderingFunction): () => void {
         this._scopped.cleanTracked();
         const result = this.renderTemplate(template);
         this._storeTracked(template, renderingFunction);                  
         renderingFunction(result);
+        return () => this._untrackTemplate(template, renderingFunction);
     }
 
     public cleanTracked(entityId?: string): void {

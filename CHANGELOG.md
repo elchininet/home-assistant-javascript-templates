@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.1.0] - 2024-10-24
+
+- Fix an issue about calling `trackTemplate` with the same template but with diferent `renderingFunctions` was registering only the first one.
+- The `trackTemplate` method now returns a function that will clean the tracking of that template/rendering function when called
+
 ## [5.0.0] - 2024-09-19
 
 - Complete refactor of the library
