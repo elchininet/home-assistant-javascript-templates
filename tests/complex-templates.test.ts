@@ -1,4 +1,4 @@
-import HomeAssistantJavaScriptTemplates, { HomeAssistantJavaScriptTemplatesRenderer } from '../src';
+import HomeAssistantJavaScriptTemplates from '../src';
 import { HOME_ASSISTANT_ELEMENT } from './constants';
 
 describe('Complex templates tests', () => {

@@ -118,12 +118,14 @@ This method renders a `JavaScript` template and return its result. It needs a st
 trackTemplate(
     template: string,
     renderingFunction: (result?: any) => void
-): void
+): () => void
 ```
 
 This method registers a template tracking. It executes the `renderingFunction` sent to the method with the result of the rendered `template` and will execute `renderingFunction` with an updated result of the rendered `template` every time that the entities used in the template update. You can use [several objects and methods](#objects-and-methods-available-in-the-templates) inside the `template` string.
 
-If some entity was not reached in the template code because it was inside a condition that never met, then it will not be tracked, so if its state changes it will not trigger the `renderingFunction`. Only those entities that were called during the rendering using [states](#states), [is_state](#is_state), [state_attr](#state_attr), [is_state_attr](#is_state_attr), [has_value](#has_value) [entities](#entities), [entity_prop](#entity_prop), [is_entity_prop](#is_entity_prop) or [device_id](#device_id) will be included.
+If some entity was not reached in the template code because it was inside a condition that never met, then it will not be tracked, so if its state changes it will not trigger the `renderingFunction` again. Only those entities that were called during the rendering using [states](#states), [is_state](#is_state), [state_attr](#state_attr), [is_state_attr](#is_state_attr), [has_value](#has_value) [entities](#entities), [entity_prop](#entity_prop), [is_entity_prop](#is_entity_prop) or [device_id](#device_id) will be included.
+
+This method will return a function. When this function is executed, the tracking of that template/rendering function is removed and subsecuent changes in the entities of the template will not call the `renderingFunction`.
 
 #### cleanTracked
 
