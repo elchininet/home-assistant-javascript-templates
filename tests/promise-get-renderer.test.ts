@@ -1,6 +1,6 @@
 import HomeAssistantJavaScriptTemplates from '../src';
 import { HOME_ASSISTANT_ELEMENT, HASS } from './constants';
-import { SUBSCRIBE_EVENTS, STATE_CHANGE_EVENT } from '../src/constants';
+import { EVENT } from '../src/constants';
 
 describe('promise instance', () => {
 
@@ -32,8 +32,8 @@ describe('promise instance', () => {
         expect(subscribeMessage).toHaveBeenCalledWith(
             expect.any(Function),
             {
-                type: SUBSCRIBE_EVENTS,
-                event_type: STATE_CHANGE_EVENT
+                type: EVENT.SUBSCRIBE_EVENTS,
+                event_type: EVENT.STATE_CHANGE_EVENT
             }
         );
     });

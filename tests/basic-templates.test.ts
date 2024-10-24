@@ -577,4 +577,17 @@ describe('Basic templates tests', () => {
         });
     });
 
+    describe('panel_url', () => {
+
+        it('panel_url should return the default location.pathname', () => {
+            expect(compiler.renderTemplate('panel_url')).toBe('/');
+        });
+
+        it('', () => {
+            location.assign('/path/test');
+            expect(compiler.renderTemplate('panel_url')).toBe('/path/test'); 
+        });
+
+    });
+
 });

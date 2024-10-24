@@ -9,8 +9,8 @@ import {
 } from '@types';
 import {
     STRICT_MODE,
-    SUBSCRIBE_EVENTS,
-    STATE_CHANGE_EVENT
+    CLIENT_SIDE_ENTITIES,
+    EVENT
 } from '@constants';
 import { createScoppedFunctions, getPromisableElement } from '@utilities';
 
@@ -34,6 +34,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
             >
         >();
         this._scopped = createScoppedFunctions(ha, throwWarnings);
+        this._watchForPanelUrlChange();
         this._watchForEntitiesChange();
     }
 
@@ -48,14 +49,41 @@ class HomeAssistantJavaScriptTemplatesRenderer {
     >;
     private _scopped: Scopped;
 
+    private _executeRenderingFunctions(id: string): void {
+        this._subscriptions
+            .get(id)
+            .forEach((functions: Set<RenderingFunction>, template: string): void => {
+                functions.forEach((renderingFunction: RenderingFunction) => {
+                    this.trackTemplate(template, renderingFunction);
+                });
+            });
+    }
+
+    private _watchForPanelUrlChange() {
+        window.addEventListener(EVENT.LOCATION_CHANGED, (event: CustomEvent): void => {
+            if (event.detail.replace) {
+                this._panelUrlWatchCallback();
+            }
+        });
+        window.addEventListener(EVENT.POPSTATE, () => {
+            this._panelUrlWatchCallback();
+        });
+    }
+
+    private _panelUrlWatchCallback() {
+        if (this._subscriptions.has(CLIENT_SIDE_ENTITIES.PANEL_URL)) {
+            this._executeRenderingFunctions(CLIENT_SIDE_ENTITIES.PANEL_URL);
+        }
+    }
+
     private _watchForEntitiesChange() {
 		window.hassConnection
             .then((hassConnection: HassConnection): void => {
                 hassConnection.conn.subscribeMessage<SubscriberEvent>(
                     (event) => this._entityWatchCallback(event),
                     {
-                        type: SUBSCRIBE_EVENTS,
-                        event_type: STATE_CHANGE_EVENT
+                        type: EVENT.SUBSCRIBE_EVENTS,
+                        event_type: EVENT.STATE_CHANGE_EVENT
                     }
                 );
             });
@@ -65,13 +93,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
 		if (this._subscriptions.size) {
 			const id = event.data.entity_id;
             if (this._subscriptions.has(id)) {
-                this._subscriptions
-                    .get(id)
-                    .forEach((functions: Set<RenderingFunction>, template: string): void => {
-                        functions.forEach((renderingFunction: RenderingFunction) => {
-                            this.trackTemplate(template, renderingFunction);
-                        });
-                    });
+                this._executeRenderingFunctions(id);
             }
 		}
 	}
@@ -162,6 +184,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 'user_name',
                 'user_is_admin',
                 'user_is_owner',
+                'panel_url',
                 'user_agent',
                 `${STRICT_MODE} ${functionBody}`
             );
@@ -188,6 +211,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 this._scopped.user_name,
                 this._scopped.user_is_admin,
                 this._scopped.user_is_owner,
+                this._scopped.panel_url,
                 this._scopped.user_agent
             );
 

@@ -14,7 +14,8 @@ import {
     STATE_VALUES,
     ATTRIBUTES,
     MAX_ATTEMPTS,
-    RETRY_DELAY
+    RETRY_DELAY,
+    CLIENT_SIDE_ENTITIES
 } from '@constants';
 
 const objectFromEntries = <T = unknown>(entries: [string, T][]): Record<string, T> => {
@@ -54,6 +55,10 @@ export function createScoppedFunctions(
         } else {
             warnNonExistentEntity(entityId);
         }
+    };
+
+    const trackClientSideEntity = (entity: CLIENT_SIDE_ENTITIES): void => {
+        entities.add(entity);
     };
 
     return {
@@ -268,6 +273,10 @@ export function createScoppedFunctions(
         },
         get user_agent() {
             return window.navigator.userAgent;
+        },
+        get panel_url() {
+            trackClientSideEntity(CLIENT_SIDE_ENTITIES.PANEL_URL);
+            return location.pathname;
         },
         get tracked() {
             return entities;

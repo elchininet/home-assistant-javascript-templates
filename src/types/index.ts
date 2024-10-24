@@ -117,6 +117,8 @@ export interface Scopped {
     user_is_admin: boolean;
     user_is_owner: boolean;
     user_agent: string;
+    // others
+    panel_url: string;
     // utilities
     tracked: Set<string>;
     cleanTracked: () => void;
