@@ -1,5 +1,6 @@
 import HomeAssistantJavaScriptTemplates, { HomeAssistantJavaScriptTemplatesRenderer } from '../src';
 import { SubscriberEvent, HomeAssistant } from '../src/types';
+import { EVENT } from '../src/constants';
 import { HASS } from './constants';
 
 const CUSTOM_EVENT = 'subscribe_events';
@@ -44,6 +45,60 @@ describe('promise instance', () => {
         const renderingFunction = jest.fn();
         renderer.trackTemplate('states["light.woonkamer_lamp"].state', renderingFunction);
         expect(renderingFunction).toHaveBeenCalledWith('off');
+    });
+
+    it('tracking a template with panel_url should call the rendering function when HA location-changed event is fired', () => {
+        const renderingFunction = jest.fn();
+        renderer.trackTemplate(
+            `
+                return panel_url === "/path/test"
+                    ? "yes"
+                    : "no"
+            `,
+            renderingFunction
+        );
+        expect(renderingFunction).toHaveBeenNthCalledWith(1, "no");
+        window.dispatchEvent(
+            new CustomEvent(
+                EVENT.LOCATION_CHANGED,
+                {
+                    detail: {
+                        replace: false
+                    }
+                }
+            )
+        );
+        expect(renderingFunction).toHaveBeenCalledTimes(1);
+        location.assign('/path/test');
+        window.dispatchEvent(
+            new CustomEvent(
+                EVENT.LOCATION_CHANGED,
+                {
+                    detail: {
+                        replace: true
+                    }
+                }
+            )
+        );
+        expect(renderingFunction).toHaveBeenNthCalledWith(2, "yes");
+    });
+
+    it('tracking a template with panel_url should call the rendering function when popstate event is fired', () => {
+        const renderingFunction = jest.fn();
+        renderer.trackTemplate(
+            `
+                return panel_url === "/path/test"
+                    ? "yes"
+                    : "no"
+            `,
+            renderingFunction
+        );
+        expect(renderingFunction).toHaveBeenNthCalledWith(1, "no");
+        window.dispatchEvent(new Event(EVENT.POPSTATE));
+        expect(renderingFunction).toHaveBeenNthCalledWith(2, "no");
+        location.assign('/path/test');
+        window.dispatchEvent(new Event(EVENT.POPSTATE));
+        expect(renderingFunction).toHaveBeenNthCalledWith(3, "yes");
     });
 
     it('tracking the same template with multiple fucntions should call all of them', async () => {

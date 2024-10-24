@@ -11,9 +11,18 @@ export enum ATTRIBUTES {
     NAME = 'name'
 }
 
+export enum CLIENT_SIDE_ENTITIES {
+    PANEL_URL = 'panel_url'
+}
+
+export enum EVENT {
+    LOCATION_CHANGED = 'location-changed',
+    POPSTATE = 'popstate',
+    SUBSCRIBE_EVENTS = 'subscribe_events',
+    STATE_CHANGE_EVENT = 'state_changed'
+}
+
 export const STRICT_MODE = '"use strict";';
 
 export const MAX_ATTEMPTS = 100;
 export const RETRY_DELAY = 50;
-export const SUBSCRIBE_EVENTS = 'subscribe_events';
-export const STATE_CHANGE_EVENT = 'state_changed';

@@ -22,4 +22,7 @@ module.exports = {
     testEnvironmentOptions: {
         userAgent: 'Custom/Agent',
     },
+    setupFilesAfterEnv: [
+        './jest-setup.js'
+    ]
 };

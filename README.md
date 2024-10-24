@@ -338,6 +338,14 @@ Property to return the user agent of the browser in which Home Assistant is runn
 user_agent
 ```
 
+#### panel_url
+
+Property to return the current Home Assistant panel URL (`window.location.pathname`).
+
+```javascript
+panel_url
+```
+
 ## Examples
 
 #### Get a device attribute and return a formatted text with it
@@ -379,7 +387,7 @@ const haJsTemplates = new HomeAssistantJavaScriptTemplates(
 haJsTemplates.getRenderer()
     .then((renderer) => {
         const element = document.querySelector('#my-element');
-        renderer.trackTemplate(
+        const untrack = renderer.trackTemplate(
             `
             const udatesEntities = states.update;
             const updateEntitiesValues = Object.values(udatesEntities);
@@ -390,6 +398,10 @@ haJsTemplates.getRenderer()
                 element.innerHTML = result;
             }
         );
+
+        // Later untrack the template
+        untrack();
+
     });
 
 ```

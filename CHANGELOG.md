@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.2.0] - 2024-10-24
+
+- New property available in the templates `panel_url` which will return the `window.location.pathname`
+
 ## [5.1.0] - 2024-10-24
 
 - Fix an issue about calling `trackTemplate` with the same template but with different `renderingFunctions` was registering only the first one.
