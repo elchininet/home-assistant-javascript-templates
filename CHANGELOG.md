@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.3.0] - 2024-10-25
+
+- New option to send custom variables to be rendered in the templates
+
 ## [5.2.1] - 2024-10-25
 
 - Fix `panel_url`, it should be updated also when the views change

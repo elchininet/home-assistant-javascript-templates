@@ -1,6 +1,7 @@
 export interface Options {
     throwErrors?: boolean;
     throwWarnings?: boolean;
+    variables?: Record<string, unknown>;
 }
 
 export type RenderingFunction = (result?: any) => void;

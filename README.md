@@ -91,6 +91,7 @@ new HomeAssistantJavaScriptTemplates(
 | ------------------ | ------------- | ------- | -------------------------------------------------- |
 | `throwErrors`      | yes           | false   | Indicates if the library should throw if the template contains any error. If not, it will log the errors as a warning in the console and return `undefined` instead. |
 | `throwWarnings`    | yes           | true    | Indicates if the library should throw warnings in the console, either when there is an error in the templates and `throwErrors` is configured in `false`, or when a non-existent entity or domain is used in the templates. |
+| `variables`        | yes           | `{}`    | An object holding custom variables to be used inside the templates. The values could be any type |
 
 ### Methods
 
@@ -381,7 +382,12 @@ haJsTemplates.getRenderer()
 import HomeAssistantJavaScriptTemplates  from 'home-assistant-javascript-templates';
 
 const haJsTemplates = new HomeAssistantJavaScriptTemplates(
-    document.querySelector('home-assistant')
+    document.querySelector('home-assistant'),
+    {
+        variables: {
+            PREFIX: 'Updates:'
+        }
+    }
 );
 
 haJsTemplates.getRenderer()
@@ -392,7 +398,7 @@ haJsTemplates.getRenderer()
             const udatesEntities = states.update;
             const updateEntitiesValues = Object.values(udatesEntities);
             const updatesEntitiesOn = updateEntitiesValues.filter((entity) => entity.state === 'on');
-            return updatesEntitiesOn.length;
+            return `${PREFIX} ${updatesEntitiesOn.length}`;
             `,
             (result) => {
                 element.innerHTML = result;
