@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.3.1] - 2024-10-25
+
+- Fix templates with spaces at the beginning
+
 ## [5.3.0] - 2024-10-25
 
 - New option to send custom variables to be rendered in the templates

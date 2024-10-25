@@ -40,6 +40,13 @@ describe('Complex templates tests', () => {
             `)
         ).toBe('sn: 123456789');
 
+        expect(
+            compiler.renderTemplate(`
+
+                states("binary_sensor.koffiezetapparaat_aan")
+            `)
+        ).toBe('on');
+
     });
 
 });

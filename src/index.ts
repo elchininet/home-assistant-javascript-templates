@@ -161,9 +161,11 @@ class HomeAssistantJavaScriptTemplatesRenderer {
 
         try {
 
-            const functionBody = template.includes('return')
-                ? template
-                : `return ${template}`;
+            const trimmedTemplate = template.trim();
+
+            const functionBody = trimmedTemplate.includes('return')
+                ? trimmedTemplate
+                : `return ${trimmedTemplate}`;
 
             const templateFunction = new Function(
                 'hass',
