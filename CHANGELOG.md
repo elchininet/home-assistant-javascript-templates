@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.2.1] - 2024-10-25
+
+- Fix `panel_url`, it should be updated also when the views change
+
 ## [5.2.0] - 2024-10-24
 
 - New property available in the templates `panel_url` which will return the `window.location.pathname`
