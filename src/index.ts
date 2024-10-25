@@ -22,10 +22,14 @@ class HomeAssistantJavaScriptTemplatesRenderer {
     ) {
         const {
             throwErrors = false,
-            throwWarnings = true
+            throwWarnings = true,
+            variables = {}
         } = options;
         this._throwErrors = throwErrors;
         this._throwWarnings = throwWarnings;
+        this._variables = new Map(
+            Object.entries(variables)
+        );
         this._subscriptions = new Map<
             string,
             Map<
@@ -40,6 +44,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
 
     private _throwErrors: boolean;
     private _throwWarnings: boolean;
+    private _variables: Map<string, unknown>;
     private _subscriptions: Map<
         string,
         Map<
@@ -184,6 +189,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 'user_is_owner',
                 'panel_url',
                 'user_agent',
+                ...Array.from(this._variables.keys()),
                 `${STRICT_MODE} ${functionBody}`
             );
 
@@ -210,7 +216,8 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 this._scopped.user_is_admin,
                 this._scopped.user_is_owner,
                 this._scopped.panel_url,
-                this._scopped.user_agent
+                this._scopped.user_agent,
+                ...Array.from(this._variables.values()),
             );
 
         } catch (error) {
