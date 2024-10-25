@@ -61,9 +61,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
 
     private _watchForPanelUrlChange() {
         window.addEventListener(EVENT.LOCATION_CHANGED, (event: CustomEvent): void => {
-            if (event.detail.replace) {
-                this._panelUrlWatchCallback();
-            }
+            this._panelUrlWatchCallback();
         });
         window.addEventListener(EVENT.POPSTATE, () => {
             this._panelUrlWatchCallback();

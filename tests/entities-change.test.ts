@@ -58,27 +58,9 @@ describe('promise instance', () => {
             renderingFunction
         );
         expect(renderingFunction).toHaveBeenNthCalledWith(1, "no");
-        window.dispatchEvent(
-            new CustomEvent(
-                EVENT.LOCATION_CHANGED,
-                {
-                    detail: {
-                        replace: false
-                    }
-                }
-            )
-        );
-        expect(renderingFunction).toHaveBeenCalledTimes(1);
         location.assign('/path/test');
         window.dispatchEvent(
-            new CustomEvent(
-                EVENT.LOCATION_CHANGED,
-                {
-                    detail: {
-                        replace: true
-                    }
-                }
-            )
+            new CustomEvent(EVENT.LOCATION_CHANGED)
         );
         expect(renderingFunction).toHaveBeenNthCalledWith(2, "yes");
     });
