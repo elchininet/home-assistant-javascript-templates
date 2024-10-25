@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.3.2] - 2024-10-26
+
+- Refactor variables retrieval
+
 ## [5.3.1] - 2024-10-25
 
 - Fix templates with spaces at the beginning

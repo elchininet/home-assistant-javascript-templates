@@ -27,9 +27,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         } = options;
         this._throwErrors = throwErrors;
         this._throwWarnings = throwWarnings;
-        this._variables = new Map(
-            Object.entries(variables)
-        );
+        this._variables = variables;
         this._subscriptions = new Map<
             string,
             Map<
@@ -44,7 +42,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
 
     private _throwErrors: boolean;
     private _throwWarnings: boolean;
-    private _variables: Map<string, unknown>;
+    private _variables: Record<string, unknown>;
     private _subscriptions: Map<
         string,
         Map<
@@ -161,6 +159,9 @@ class HomeAssistantJavaScriptTemplatesRenderer {
 
         try {
 
+            const variables = new Map(
+                Object.entries(this._variables)
+            );
             const trimmedTemplate = template.trim();
 
             const functionBody = trimmedTemplate.includes('return')
@@ -191,7 +192,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 'user_is_owner',
                 'panel_url',
                 'user_agent',
-                ...Array.from(this._variables.keys()),
+                ...Array.from(variables.keys()),
                 `${STRICT_MODE} ${functionBody}`
             );
 
@@ -219,7 +220,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 this._scopped.user_is_owner,
                 this._scopped.panel_url,
                 this._scopped.user_agent,
-                ...Array.from(this._variables.values()),
+                ...Array.from(variables.values()),
             );
 
         } catch (error) {
