@@ -77,4 +77,18 @@ describe('Custom variables', () => {
         ).toBe('STRING_DOUBLE');
     });
 
+    it('retrieving the variables properties should return the same object sent in the HomeAssistantJavaScriptTemplates instance', () => {
+        expect(compiler.variables).toEqual(variables);
+    });
+
+    it('setting variables should override the global variables', () => {
+        const overrideVariables = {
+            ONLY_ONE: 'OVERRIDE'
+        };
+        compiler.variables = overrideVariables;
+        expect(compiler.variables).not.toMatchObject(variables);
+        expect(compiler.variables).toEqual(overrideVariables);
+        expect(compiler.renderTemplate('ONLY_ONE')).toBe('OVERRIDE');
+    });
+
 });

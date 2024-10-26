@@ -252,6 +252,14 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         }   
     }
 
+    public get variables(): Record<string, unknown> {
+        return this._variables;
+    }
+
+    public set variables(value: Record<string, unknown>) {
+        this._variables = value;
+    }
+
 }
 
 export default class HomeAssistantJavaScriptTemplates {

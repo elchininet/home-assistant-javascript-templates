@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.4.0] - 2024-10-26
+
+- Create a variable property in the `HomeAssistantJavaScriptTemplatesRenderer` class
+
 ## [5.3.2] - 2024-10-26
 
 - Refactor variables retrieval
