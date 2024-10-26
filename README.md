@@ -103,6 +103,12 @@ Returns a `Promise` than once it resolved returns an instance of the [HomeAssist
 
 This class is only exported as a type in the package, you cannot import it directly. An instance of this class will be returned by the promise that is returned by the [getRenderer method](#getrenderer) of the [HomeAssistantJavaScriptTemplates class](#homeassistantjavascripttemplates-class).
 
+### Properties
+
+#### variables
+
+This property gets and sets the global variables that will be available in the templates.
+
 ### Methods
 
 #### renderTemplate
