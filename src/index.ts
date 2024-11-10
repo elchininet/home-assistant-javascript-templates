@@ -1,3 +1,4 @@
+import { getPromisableResult } from 'get-promisable-result';
 import {
     HomeAssistant,
     Hass,
@@ -12,7 +13,7 @@ import {
     CLIENT_SIDE_ENTITIES,
     EVENT
 } from '@constants';
-import { createScoppedFunctions, getPromisableElement } from '@utilities';
+import { createScoppedFunctions } from '@utilities';
 
 class HomeAssistantJavaScriptTemplatesRenderer {
 
@@ -267,7 +268,7 @@ export default class HomeAssistantJavaScriptTemplates {
         ha: HomeAssistant,
         options: Options = {}
     ) {
-        this._renderer = getPromisableElement(
+        this._renderer = getPromisableResult(
             () => ha.hass,
             (hass: Hass): boolean => !!(
                 hass &&
@@ -276,12 +277,14 @@ export default class HomeAssistantJavaScriptTemplates {
                 hass.entities &&
                 hass.states &&
                 hass.user
-            )
+            ),
+            {
+                retries: 100,
+                delay: 50,
+                rejectMessage: 'The provided element doesn\'t contain a proper or initialised hass object'
+            }
         )
             .then(() => new HomeAssistantJavaScriptTemplatesRenderer(ha, options))
-            .catch(() => {
-                throw new Error('The provided element doesn\'t contain a proper or initialised hass object');
-            });;
     }
 
     private _renderer: Promise<HomeAssistantJavaScriptTemplatesRenderer>;

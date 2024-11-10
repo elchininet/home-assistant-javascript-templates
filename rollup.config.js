@@ -11,6 +11,7 @@ export default [
                 }
             })
         ],
+        external: ['get-promisable-result'],
         input: 'src/index.ts',
         output: [
             {

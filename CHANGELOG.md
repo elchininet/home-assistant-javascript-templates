@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.4.1] - 2024-11-10
+
+- Remove `getPromisableElement` utility and replace it by the `getPromisableResult` from `get-promisable-result` package
+
 ## [5.4.0] - 2024-10-26
 
 - Create a variable property in the `HomeAssistantJavaScriptTemplatesRenderer` class

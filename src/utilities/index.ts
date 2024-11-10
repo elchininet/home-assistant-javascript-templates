@@ -13,8 +13,6 @@ import {
     ENTITY_REGEXP,
     STATE_VALUES,
     ATTRIBUTES,
-    MAX_ATTEMPTS,
-    RETRY_DELAY,
     CLIENT_SIDE_ENTITIES
 } from '@constants';
 
@@ -286,26 +284,3 @@ export function createScoppedFunctions(
         }
     };
 }
-
-export const getPromisableElement = <T>(
-    getElement: () => T,
-    check: (element: T) => boolean
-): Promise<T> => {
-    return new Promise<T>((resolve, reject) => {
-        let attempts = 0;
-        const select = () => {
-            const element: T = getElement();
-            if (check(element)) {
-                resolve(element);
-            } else {
-                attempts++;
-                if (attempts < MAX_ATTEMPTS) {
-                    setTimeout(select, RETRY_DELAY);
-                } else {
-                    reject();
-                }
-            }
-        };
-        select();
-    });
-};
