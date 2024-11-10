@@ -92,6 +92,7 @@ new HomeAssistantJavaScriptTemplates(
 | `throwErrors`      | yes           | false   | Indicates if the library should throw if the template contains any error. If not, it will log the errors as a warning in the console and return `undefined` instead. |
 | `throwWarnings`    | yes           | true    | Indicates if the library should throw warnings in the console, either when there is an error in the templates and `throwErrors` is configured in `false`, or when a non-existent entity or domain is used in the templates. |
 | `variables`        | yes           | `{}`    | An object holding custom variables to be used inside the templates. The values could be any type |
+| `autoReturn`       | yes           | true    | Indicates if the library should add a `return` statement at the beginning of a template code if no `return` statements are contained in the code|
 
 ### Methods
 
