@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.4.2] - 2024-11-10
+
+- Set the `get-promisable-result` package as a dependency
+
 ## [5.4.1] - 2024-11-10
 
 - Remove `getPromisableElement` utility and replace it by the `getPromisableResult` from `get-promisable-result` package
