@@ -23,6 +23,3 @@ export enum EVENT {
 }
 
 export const STRICT_MODE = '"use strict";';
-
-export const MAX_ATTEMPTS = 100;
-export const RETRY_DELAY = 50;
