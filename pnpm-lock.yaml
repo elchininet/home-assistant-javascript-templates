@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      get-promisable-result:
+        specifier: ^1.0.0
+        version: 1.0.1
     devDependencies:
       '@rollup/plugin-terser':
         specifier: ^0.4.4
@@ -17,9 +21,6 @@ importers:
       '@types/node':
         specifier: ^22.8.7
         version: 22.8.7
-      get-promisable-result:
-        specifier: ^1.0.1
-        version: 1.0.1
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.8.7)
