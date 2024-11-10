@@ -2,7 +2,7 @@
 
 ## [5.5.0] - 2024-11-10
 
-- Add a new option `autoReturn` to manage the feature of adding `return statements at the beginning of the templates`
+- Add a new option `autoReturn` to manage the feature of adding `return` statements at the beginning of the templates
 
 ## [5.4.2] - 2024-11-10
 
