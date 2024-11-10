@@ -24,11 +24,13 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         const {
             throwErrors = false,
             throwWarnings = true,
-            variables = {}
+            variables = {},
+            autoReturn = true
         } = options;
         this._throwErrors = throwErrors;
         this._throwWarnings = throwWarnings;
         this._variables = variables;
+        this._autoReturn = autoReturn;
         this._subscriptions = new Map<
             string,
             Map<
@@ -44,6 +46,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
     private _throwErrors: boolean;
     private _throwWarnings: boolean;
     private _variables: Record<string, unknown>;
+    private _autoReturn: boolean;
     private _subscriptions: Map<
         string,
         Map<
@@ -165,7 +168,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
             );
             const trimmedTemplate = template.trim();
 
-            const functionBody = trimmedTemplate.includes('return')
+            const functionBody = trimmedTemplate.includes('return') || !this._autoReturn
                 ? trimmedTemplate
                 : `return ${trimmedTemplate}`;
 
