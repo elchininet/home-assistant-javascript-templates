@@ -9,22 +9,24 @@ A JavaScript utility to render Home Assistant JavaScript templates.
 
 ## Install
 
+The package needs the [get-promisable-result](https://github.com/elchininet/get-promisable-result) package as a peer dependency.
+
 #### npm
 
 ```bash
-npm install home-assistant-javascript-templates
+npm install get-promisable-result home-assistant-javascript-templates
 ```
 
 #### yarn
 
 ```bash
-yarn add home-assistant-javascript-templates
+yarn add get-promisable-result home-assistant-javascript-templates
 ```
 
 #### PNPM
 
 ```bash
-pnpm add home-assistant-javascript-templates
+pnpm add get-promisable-result home-assistant-javascript-templates
 ```
 
 ## Basic Usage
