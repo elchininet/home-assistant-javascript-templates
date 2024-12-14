@@ -272,15 +272,25 @@ export function createScoppedFunctions(
         get user_agent() {
             return window.navigator.userAgent;
         },
-        get panel_url() {
-            trackClientSideEntity(CLIENT_SIDE_ENTITIES.PANEL_URL);
-            return location.pathname;
-        },
         get tracked() {
             return entities;
         },
         cleanTracked(): void {
             entities.clear();
-        }
+        },
+        clientSideProxy: new Proxy(
+            {},
+            {
+                get(__target, property: string) {
+                    if (property === CLIENT_SIDE_ENTITIES.PANEL_URL) {
+                        trackClientSideEntity(CLIENT_SIDE_ENTITIES.PANEL_URL);
+                        return location.pathname;
+                    }
+                    if(throwWarnings) {
+                        console.warn(`clientSideProxy should only be used to access these variables: ${Object.values(CLIENT_SIDE_ENTITIES).join(', ')}`);
+                    }
+                }
+            }
+        )
     };
 }

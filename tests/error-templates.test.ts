@@ -155,4 +155,23 @@ describe('Templates with errors', () => {
 
     });
 
+    describe('trying to access other clientSide variables', () => {
+
+        let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>;
+        let compiler: HomeAssistantJavaScriptTemplatesRenderer;
+
+        beforeEach(async () => {
+            consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+            compiler = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
+        });
+
+        it('accesing a variable inside clientSide', () => {
+            expect(
+                compiler.renderTemplate('return clientSide.non_existent')
+            ).toBe(undefined);
+            expect(consoleWarnMock).toHaveBeenCalledWith('clientSideProxy should only be used to access these variables: panel_url');
+        });
+
+    });
+
 });

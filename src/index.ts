@@ -38,6 +38,11 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 Set<RenderingFunction>
             >
         >();
+        this._clientSideEntitiesRegExp = new RegExp(
+            `(^|[ \\?(+:\\{\\[><])(${Object.values(CLIENT_SIDE_ENTITIES).join('|')})($|[ \\?)+:\\}\\]><.])`,
+            'gm'
+        );
+
         this._scopped = createScoppedFunctions(ha, throwWarnings);
         this._watchForPanelUrlChange();
         this._watchForEntitiesChange();
@@ -47,6 +52,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
     private _throwWarnings: boolean;
     private _variables: Record<string, unknown>;
     private _autoReturn: boolean;
+    private _clientSideEntitiesRegExp: RegExp;
     private _subscriptions: Map<
         string,
         Map<
@@ -166,8 +172,13 @@ class HomeAssistantJavaScriptTemplatesRenderer {
             const variables = new Map(
                 Object.entries(this._variables)
             );
-            const trimmedTemplate = template.trim();
-
+            const trimmedTemplate = template
+                .trim()
+                .replace(
+                    this._clientSideEntitiesRegExp,
+                    '$1clientSide.$2$3'
+                );
+            
             const functionBody = trimmedTemplate.includes('return') || !this._autoReturn
                 ? trimmedTemplate
                 : `return ${trimmedTemplate}`;
@@ -194,8 +205,8 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 'user_name',
                 'user_is_admin',
                 'user_is_owner',
-                'panel_url',
                 'user_agent',
+                'clientSide',
                 ...Array.from(variables.keys()),
                 `${STRICT_MODE} ${functionBody}`
             );
@@ -222,8 +233,8 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 this._scopped.user_name,
                 this._scopped.user_is_admin,
                 this._scopped.user_is_owner,
-                this._scopped.panel_url,
                 this._scopped.user_agent,
+                this._scopped.clientSideProxy,
                 ...Array.from(variables.values()),
             );
 

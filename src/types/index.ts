@@ -120,7 +120,7 @@ export interface Scopped {
     user_is_owner: boolean;
     user_agent: string;
     // others
-    panel_url: string;
+    clientSideProxy: Record<string, unknown>;
     // utilities
     tracked: Set<string>;
     cleanTracked: () => void;
