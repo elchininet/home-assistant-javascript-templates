@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.5.1] - 2024-12-14
+
+- Fix a bug about panel_url registering all the entity_ids of all registered templates
+
 ## [5.5.0] - 2024-11-10
 
 - Add a new option `autoReturn` to manage the feature of adding `return` statements at the beginning of the templates
