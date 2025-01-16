@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.6.0] - 2025-01-16
+
+- Add two new functions to the templates to work with reactive variables (`ref` and `unref`)
+
 ## [5.5.1] - 2024-12-14
 
 - Fix a bug about panel_url registering all the entity_ids of all registered templates

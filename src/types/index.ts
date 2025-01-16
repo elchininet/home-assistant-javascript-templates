@@ -91,6 +91,10 @@ declare global {
     }
 }
 
+export type Ref = {
+    value: unknown;
+};
+
 export interface Scopped {
     hass: Hass;
     // states
@@ -123,5 +127,7 @@ export interface Scopped {
     clientSideProxy: Record<string, unknown>;
     // utilities
     tracked: Set<string>;
+    ref(entityWatchCallback: (event: SubscriberEvent) => void, name: string, value?: unknown): Ref;
+    unref(cleanTracked: (refId: string) => void, name: string): void;
     cleanTracked: () => void;
 }

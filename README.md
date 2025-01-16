@@ -153,7 +153,8 @@ The `hass` object
 
 `states` could be used in two ways, as a function or as an object. When using it as function it only allows an entity id (containing the domain) as a parameter and it will return the state of that entity. As an object it allows you to access a domain or the full entity state object.
 
->Note: If you try to use `states` as a function sending a domain it will throw an error.
+>[!IMPORTANT]
+>If you try to use `states` as a function sending a domain it will throw an error.
 
 ```javascript
 // Using states as a function
@@ -165,7 +166,8 @@ states.device_tracker.paulus.state // returns the state of the entity id 'device
 states.device_tracker // returns an object containing all the entities states of the 'device_tracker' domain
 ```
 
->Note: Avoid using `states['device_tracker.paulus'].state` or `states.device_tracker.paulus.state`, instead use `states('device_tracker.paulus')` which will return `undefined` if the device id doesn‘t exist or the entity isn’t ready yet (the former will throw an error). If you still want to use them it is advisable to use the [Optional chaining operator], e.g. `states['device_tracker.paulus']?.state` or `states.device_tracker?.paulus?.state`.
+>[!TIP]
+>Avoid using `states['device_tracker.paulus'].state` or `states.device_tracker.paulus.state`, instead use `states('device_tracker.paulus')` which will return `undefined` if the device id doesn‘t exist or the entity isn’t ready yet (the former will throw an error). If you still want to use them it is advisable to use the [Optional chaining operator], e.g. `states['device_tracker.paulus']?.state` or `states.device_tracker?.paulus?.state`.
 
 #### is_state
 
@@ -353,6 +355,30 @@ Property to return the current Home Assistant panel URL (`window.location.pathna
 ```javascript
 panel_url
 ```
+
+#### ref and unref
+
+`ref` and `unref` method allows to work with reactive variables. Reactive variables are variables that can be accessed globally from any template and changing their values in any template will trigger a re-render in the tracked templates using them.
+
+```javascript
+// create a ref to a variable named name
+const name = ref('name');
+
+// Changing the value of the ref name
+// This will re-evaluate any template in which ref('name') has been used
+name.value = 'ElChiniNet';
+
+// Accesing the value of the ref name
+const myName = name.value;
+
+// Remove the ref name
+// This will stop any re-evaluation of this reactive variable in any template
+unref('name');
+```
+
+>[!IMPORTANT]
+>1. A `ref` has only one property, and it is `value`. Trying to access or assign another property than value will throw an error.
+>2. `unref` should be called if a `ref` has been created previously or if it has not been already _unrefed_. Trying to call `unref` in a non-existent `ref` will throw an error.
 
 ## Examples
 
