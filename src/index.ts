@@ -43,7 +43,11 @@ class HomeAssistantJavaScriptTemplatesRenderer {
             'gm'
         );
 
-        this._scopped = createScoppedFunctions(ha, throwWarnings);
+        this._scopped = createScoppedFunctions(
+            ha,
+            throwErrors,
+            throwWarnings
+        );
         this._watchForPanelUrlChange();
         this._watchForEntitiesChange();
     }
@@ -207,6 +211,8 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 'user_is_owner',
                 'user_agent',
                 'clientSide',
+                'ref',
+                'unref',
                 ...Array.from(variables.keys()),
                 `${STRICT_MODE} ${functionBody}`
             );
@@ -235,6 +241,14 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 this._scopped.user_is_owner,
                 this._scopped.user_agent,
                 this._scopped.clientSideProxy,
+                this._scopped.ref.bind(
+                    this._scopped,
+                    this._entityWatchCallback.bind(this)
+                ),
+                this._scopped.unref.bind(
+                    this._scopped,
+                    this.cleanTracked.bind(this)
+                ),
                 ...Array.from(variables.values()),
             );
 

@@ -6,14 +6,16 @@ import {
     ProxiedStates,
     ProxiedEntities,
     ProxiedDevices,
-    Scopped
+    Scopped,
+    Ref
 } from '@types';
 import {
     NAMESPACE,
     ENTITY_REGEXP,
     STATE_VALUES,
     ATTRIBUTES,
-    CLIENT_SIDE_ENTITIES
+    CLIENT_SIDE_ENTITIES,
+    EVENT
 } from '@constants';
 
 const objectFromEntries = <T = unknown>(entries: [string, T][]): Record<string, T> => {
@@ -29,7 +31,8 @@ const hasDot = (entityId: string): boolean => entityId.includes('.');
 
 export function createScoppedFunctions(
     ha: HomeAssistant,
-    throwWarnings: boolean,
+    throwErrors: boolean,
+    throwWarnings: boolean
 ): Scopped {
 
     const areasEntries = () => Object.entries(ha.hass.areas);
@@ -38,6 +41,10 @@ export function createScoppedFunctions(
     const entitiesEntries = () => Object.entries(ha.hass.entities);
 
     const entities = new Set<string>();
+    const refs = new Map<string, Ref>();
+    const refProp = 'ref';
+    const refValue = 'value';
+    const getRefId = (name: string): string => `${refProp}.${name}`;
 
     const warnNonExistent = (type: string, entityId: string): void => {
         if(throwWarnings) {
@@ -47,6 +54,15 @@ export function createScoppedFunctions(
     const warnNonExistentEntity = (entityId: string): void => warnNonExistent('Entity', entityId);
     const warnNonExistentDomain = (domain: string): void => warnNonExistent('Domain', domain);
 
+    const refError = (errorMessage: string): void => {
+        const error = new SyntaxError(errorMessage);
+        if (throwErrors) {
+            throw error;
+        } else if (throwWarnings) {
+            console.warn(error);
+        }
+    };
+
     const trackEntity = (entityId: string): void => {
         if (ha.hass.states[entityId]) {
             entities.add(entityId);
@@ -55,7 +71,7 @@ export function createScoppedFunctions(
         }
     };
 
-    const trackClientSideEntity = (entity: CLIENT_SIDE_ENTITIES): void => {
+    const trackClientSideEntity = (entity: string): void => {
         entities.add(entity);
     };
 
@@ -277,6 +293,66 @@ export function createScoppedFunctions(
         },
         cleanTracked(): void {
             entities.clear();
+        },
+        ref(entityWatchCallback, name: string): Ref {
+
+            const entityId = getRefId(name);
+            
+            if (refs.has(name)) {
+                return refs.get(name);
+            }
+
+            const ref = new Proxy(
+                {
+                    value: undefined
+                },
+                {
+                    get(target, property: string): unknown {
+                        if (property === refValue) {
+                            trackClientSideEntity(entityId);
+                            return target.value;
+                        } else {
+                            refError(`${property} is not a valid ${refProp} property. A ${refProp} only exposes a ${refValue} property`);
+                        }
+                    },
+                    set(target, property: string, value: unknown): boolean {
+                        if (property === refValue) {
+                            const oldValue = target.value;
+                            target.value = value;
+                            entityWatchCallback({
+                                event_type: EVENT.STATE_CHANGE_EVENT,
+                                data: {
+                                    entity_id: entityId,
+                                    old_state: {
+                                        state: JSON.stringify(oldValue)
+                                    },
+                                    new_state: {
+                                        state: JSON.stringify(value)
+                                    }
+                                }
+                            });
+                            return true;
+                        } else {
+                            refError(`property ${property} cannot be set in a ${refProp}`);
+                            return false;
+                        }
+                    }
+                }
+            );
+
+            refs.set(name, ref);
+
+            return ref;
+
+        },
+        unref(cleanTracked, name: string) {
+            const entityId = getRefId(name);
+            if (refs.has(name)) {
+                refs.delete(name);
+                cleanTracked(entityId);
+            } else {
+                refError(`${name} is not a ref or it has been unrefed already`);
+            }
         },
         clientSideProxy: new Proxy(
             {},
