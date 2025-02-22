@@ -100,7 +100,7 @@ describe('ref and unref without errors', () => {
                 const myRef = ref('custom');
                 return myRef.customProp;
             `);
-            expect(consoleWarnMock).toHaveBeenCalledWith(new SyntaxError('customProp is not a valid ref property. A ref only exposes a value property'));
+            expect(consoleWarnMock).toHaveBeenCalledWith(new SyntaxError('customProp is not a valid ref property. A ref only exposes a "value" property'));
         });
 
         it('refs should not allow to assign other properties but value', () => {
@@ -109,7 +109,32 @@ describe('ref and unref without errors', () => {
                 myRef.customProp = 'changed';
                 return true;
             `);
-            expect(consoleWarnMock).toHaveBeenCalledWith(new SyntaxError('property customProp cannot be set in a ref'));
+            expect(consoleWarnMock).toHaveBeenCalledWith(new SyntaxError('property "customProp" cannot be set in a ref'));
+        });
+
+        it('refs without a value should be serialized as undefined', () => {
+            expect(
+                compiler.renderTemplate(`
+                    const myRef = ref('custom');
+                    return JSON.stringify(myRef);
+                `)
+            ).toBe(undefined);
+        });
+
+        it('refs with a value should be serialized correctly', () => {
+            const customValue = JSON.stringify({
+                propObject: {a: 'A'},
+                propArray: [1, 2, 3],
+                propBoolean: true,
+                propNumber: 100
+            });
+            expect(
+                compiler.renderTemplate(`
+                    const myRef = ref('custom');
+                    myRef.value = ${customValue};
+                    return JSON.stringify(myRef);
+                `)
+            ).toBe(customValue);
         });
 
     });
@@ -295,7 +320,7 @@ describe('ref and unref with errors', () => {
                     const myRef = ref('custom');
                     return myRef.customProp;
                 `)
-            ).toThrow('customProp is not a valid ref property. A ref only exposes a value property');
+            ).toThrow('customProp is not a valid ref property. A ref only exposes a "value" property');
         });
 
         it('refs should not allow to assign other properties but value', () => {
@@ -305,7 +330,16 @@ describe('ref and unref with errors', () => {
                     myRef.customProp = 'changed';
                     return true;
                 `)
-            ).toThrow('property customProp cannot be set in a ref');
+            ).toThrow('property "customProp" cannot be set in a ref');
+        });
+
+        it('refs should be serializable without errors', () => {
+            expect(
+                () => compiler.renderTemplate(`
+                    const myRef = ref('custom');
+                    return JSON.stringify(myRef);
+                `)
+            ).not.toThrow();
         });
 
     });
