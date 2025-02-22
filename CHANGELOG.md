@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.6.1] - 2025-02-22
+
+- Make it possible to serialize refs without errors
+
 ## [5.6.0] - 2025-01-16
 
 - Add two new functions to the templates to work with reactive variables (`ref` and `unref`)

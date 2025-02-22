@@ -44,6 +44,7 @@ export function createScoppedFunctions(
     const refs = new Map<string, Ref>();
     const refProp = 'ref';
     const refValue = 'value';
+    const refToJson = 'toJSON';
     const getRefId = (name: string): string => `${refProp}.${name}`;
 
     const warnNonExistent = (type: string, entityId: string): void => {
@@ -304,21 +305,27 @@ export function createScoppedFunctions(
 
             const ref = new Proxy(
                 {
-                    value: undefined
+                    [refValue]: undefined,
+                    [refToJson]() {
+                        return this[refValue];
+                    }
                 },
                 {
-                    get(target, property: string): unknown {
-                        if (property === refValue) {
+                    get(target, property: string, receiver?: unknown): unknown {
+                        if (
+                            property === refValue ||
+                            property === refToJson
+                        ) {
                             trackClientSideEntity(entityId);
-                            return target.value;
+                            return Reflect.get(target, property, receiver);
                         } else {
-                            refError(`${property} is not a valid ${refProp} property. A ${refProp} only exposes a ${refValue} property`);
+                            refError(`${property} is not a valid ${refProp} property. A ${refProp} only exposes a "${refValue}" property`);
                         }
                     },
                     set(target, property: string, value: unknown): boolean {
                         if (property === refValue) {
-                            const oldValue = target.value;
-                            target.value = value;
+                            const oldValue = target[refValue];
+                            target[refValue] = value;
                             entityWatchCallback({
                                 event_type: EVENT.STATE_CHANGE_EVENT,
                                 data: {
@@ -333,7 +340,7 @@ export function createScoppedFunctions(
                             });
                             return true;
                         } else {
-                            refError(`property ${property} cannot be set in a ${refProp}`);
+                            refError(`property "${property}" cannot be set in a ${refProp}`);
                             return false;
                         }
                     }
