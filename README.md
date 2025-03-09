@@ -115,10 +115,15 @@ This property gets and sets the global variables that will be available in the t
 #### renderTemplate
 
 ```typescript
-renderTemplate(template: string): any
+renderTemplate(
+    template: string,
+    extraVariables?: Record<string, unknown>
+): any
 ```
 
 This method renders a `JavaScript` template and return its result. It needs a string as a parameter. Inside this string you can use [several objects and methods](#objects-and-methods-available-in-the-templates). It returns whatever the `JavaScript` code returns, because of that it is typed as `any`.
+
+This method accepts an optional second parameter with extra variables. These variables will be appended to [the global variables](#variables).
 
 #### trackTemplate
 

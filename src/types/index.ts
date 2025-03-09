@@ -1,7 +1,9 @@
+export type Vars = Record<string, unknown>;
+
 export interface Options {
     throwErrors?: boolean;
     throwWarnings?: boolean;
-    variables?: Record<string, unknown>;
+    variables?: Vars;
     autoReturn?: boolean;
 }
 
@@ -19,7 +21,7 @@ export interface Device {
 }
 
 export interface State {
-    attributes: Record<string, unknown>;
+    attributes: Vars;
     entity_id: string;
     state: string;
 }
@@ -80,7 +82,7 @@ export interface HassConnection {
     conn: {
         subscribeMessage: <T>(
             callback: (response: T) => void,
-            options: Record<string, unknown>
+            options: Vars
         ) => void;
     }
 }
@@ -124,7 +126,7 @@ export interface Scopped {
     user_is_owner: boolean;
     user_agent: string;
     // others
-    clientSideProxy: Record<string, unknown>;
+    clientSideProxy: Vars;
     // utilities
     tracked: Set<string>;
     ref(entityWatchCallback: (event: SubscriberEvent) => void, name: string, value?: unknown): Ref;

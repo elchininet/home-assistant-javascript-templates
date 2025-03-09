@@ -6,7 +6,8 @@ import {
     Scopped,
     RenderingFunction,
     HassConnection,
-    SubscriberEvent
+    SubscriberEvent,
+    Vars
 } from '@types';
 import {
     STRICT_MODE,
@@ -54,7 +55,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
 
     private _throwErrors: boolean;
     private _throwWarnings: boolean;
-    private _variables: Record<string, unknown>;
+    private _variables: Vars;
     private _autoReturn: boolean;
     private _clientSideEntitiesRegExp: RegExp;
     private _subscriptions: Map<
@@ -169,12 +170,18 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         });
     }
 
-    public renderTemplate(template: string): any {
+    public renderTemplate(
+        template: string,
+        extraVariables: Vars = {}
+    ): any {
 
         try {
 
             const variables = new Map(
-                Object.entries(this._variables)
+                Object.entries({
+                    ...this._variables,
+                    ...extraVariables
+                })
             );
             const trimmedTemplate = template
                 .trim()
@@ -265,7 +272,10 @@ class HomeAssistantJavaScriptTemplatesRenderer {
 
     }
 
-    public trackTemplate(template: string, renderingFunction: RenderingFunction): () => void {
+    public trackTemplate(
+        template: string,
+        renderingFunction: RenderingFunction
+    ): () => void {
         this._scopped.cleanTracked();
         const result = this.renderTemplate(template);
         this._storeTracked(template, renderingFunction);                  
@@ -281,11 +291,11 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         }   
     }
 
-    public get variables(): Record<string, unknown> {
+    public get variables(): Vars {
         return this._variables;
     }
 
-    public set variables(value: Record<string, unknown>) {
+    public set variables(value: Vars) {
         this._variables = value;
     }
 

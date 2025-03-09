@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.7.0] - 2025-03-09
+
+- Add a new parameter to the `renderTemplate` method to send extra variables
+
 ## [5.6.1] - 2025-02-22
 
 - Make it possible to serialize refs without errors
