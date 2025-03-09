@@ -27,18 +27,42 @@ describe('Custom variables', () => {
         compiler = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT, { variables }).getRenderer();
     });
 
-    it('strig variable should be retrieved cocrrectly', () => {
+    it('strig variable should be retrieved correctly', () => {
+        const renderingFunction = jest.fn();
         expect(
             compiler.renderTemplate('return MY_STRING + "_modified"')
         ).toBe(
             `${variables.MY_STRING}_modified`
         );
+        compiler.trackTemplate(
+            `
+                if (is_state("light.woonkamer_lamp", "off")) {
+                    return MY_STRING + "_modified";
+                }
+                return 'NONE';
+            `,
+            renderingFunction
+        );
+        expect(renderingFunction).toHaveBeenCalledWith(
+            `${variables.MY_STRING}_modified`
+        );
     });
 
     it('number variable should be retrieved cocrrectly', () => {
+        const renderingFunction = jest.fn();
         expect(
             compiler.renderTemplate('return MY_NUMBER / 2')
         ).toBe(50);
+        compiler.trackTemplate(
+            `
+                if (is_state("light.woonkamer_lamp", "off")) {
+                    return MY_NUMBER / 2;
+                }
+                return 0;
+            `,
+            renderingFunction
+        );
+        expect(renderingFunction).toHaveBeenCalledWith(50);
     });
 
     it('regular expression variable should be retrieved cocrrectly', () => {
@@ -89,6 +113,17 @@ describe('Custom variables', () => {
         expect(compiler.variables).not.toMatchObject(variables);
         expect(compiler.variables).toEqual(overrideVariables);
         expect(compiler.renderTemplate('ONLY_ONE')).toBe('OVERRIDE');
+    });
+
+    it('variables sent in the methods should be available in the templates', () => {
+        const extraVariables = {
+            EXTRA_VAR: 'CUSTOM_EXTRA_VALUE'
+        };
+        const result = compiler.renderTemplate(
+            'return MY_STRING + "/" + EXTRA_VAR',
+            extraVariables
+        );
+        expect(result).toBe('CUSTOM_VALUE/CUSTOM_EXTRA_VALUE');
     });
 
 });
