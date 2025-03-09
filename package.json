@@ -1,6 +1,6 @@
 {
   "name": "home-assistant-javascript-templates",
-  "version": "5.6.1",
+  "version": "5.7.0",
   "description": "A JavaScript utility to render Home Assistant JavaScript templates",
   "keywords": [
     "home-assistant",
