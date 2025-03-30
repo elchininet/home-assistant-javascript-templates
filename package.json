@@ -59,6 +59,11 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "get-promisable-result": "^1.0.0"
+    "get-promisable-result": "^1.0.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "@babel/helpers@<7.26.10": ">=7.26.10"
+    }
   }
 }
