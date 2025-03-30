@@ -78,12 +78,14 @@ export type SubscriberEvent = {
     }
 };
 
+export type CancelSubscription = () => Promise<void>;
+
 export interface HassConnection {
     conn: {
         subscribeMessage: <T>(
             callback: (response: T) => void,
             options: Vars
-        ) => void;
+        ) => Promise<CancelSubscription>;
     }
 }
 
