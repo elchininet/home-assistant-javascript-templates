@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.7.1] - 2025-03-30
+
+- Add proper type to the `subscribeMessage` method of `home-assistant-js-websocket`. It should return a promise that is resolved to a function that will cancel the subscription once called
+
 ## [5.7.0] - 2025-03-09
 
 - Add a new parameter to the `renderTemplate` method to send extra variables
