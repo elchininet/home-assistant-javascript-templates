@@ -1,5 +1,5 @@
 import HomeAssistantJavaScriptTemplates, { HomeAssistantJavaScriptTemplatesRenderer } from '../src';
-import { HOME_ASSISTANT_ELEMENT, HASS } from './constants';
+import { HOME_ASSISTANT_ELEMENT } from './constants';
 
 describe('ref and unref without errors', () => {
 
@@ -12,8 +12,8 @@ describe('ref and unref without errors', () => {
                 subscribeMessage: jest.fn()
             }
         });
-        consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
         compiler = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
+        consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
     });
 
     afterEach(() => {
@@ -354,6 +354,75 @@ describe('ref and unref with errors', () => {
                     return true;
                 `)
             ).toThrow('custom is not a ref or it has been unrefed already');
+
+        });
+
+    });
+
+});
+
+describe('ref and unref without errors and with warnings disabled', () => {
+
+    let compiler: HomeAssistantJavaScriptTemplatesRenderer;
+    let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>;
+    
+    beforeEach(async () => {
+        window.hassConnection = Promise.resolve({
+            conn: {
+                subscribeMessage: jest.fn()
+            }
+        });
+        compiler = await new HomeAssistantJavaScriptTemplates(
+            HOME_ASSISTANT_ELEMENT,
+            {
+                throwWarnings: false
+            }
+        ).getRenderer();
+        consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+    });
+
+    afterEach(() => {
+        consoleWarnMock.mockRestore();
+    });
+
+    describe('renderTemplate with refs', () => {
+
+        it('refs should not allow to access other properties but value', () => {
+            compiler.renderTemplate(`
+                const myRef = ref('custom');
+                return myRef.customProp;
+            `);
+            expect(consoleWarnMock).not.toHaveBeenCalled();
+        });
+
+        it('refs should not allow to assign other properties but value', () => {
+            compiler.renderTemplate(`
+                const myRef = ref('custom');
+                myRef.customProp = 'changed';
+                return true;
+            `);
+            expect(consoleWarnMock).not.toHaveBeenCalled();
+        });
+
+        it('refs should be serializable without errors', () => {
+            compiler.renderTemplate(`
+                const myRef = ref('custom');
+                return JSON.stringify(myRef);
+            `);
+            expect(consoleWarnMock).not.toHaveBeenCalled();
+        });
+
+    });
+
+    describe('renderTemplate with unrefs', () => {
+
+        it('trying to unref a non defined ref should not be allowed', () => {
+
+            compiler.renderTemplate(`
+                unref('custom');
+                return true;
+            `);
+            expect(consoleWarnMock).not.toHaveBeenCalled();
 
         });
 

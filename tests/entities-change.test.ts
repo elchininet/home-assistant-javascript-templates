@@ -216,6 +216,94 @@ describe('promise instance', () => {
         expect(renderingFunction2).toHaveBeenCalledTimes(2);
     });
 
+    it('calling the untrack function that trackTemplate returns multiple times should not generate any errors even if the templates were already cleaned', () => {
+        const template1 = `
+            if (is_state('light.woonkamer_lamp', 'on')) {
+                return 'yes';
+            }
+            return 'no';
+        `.trim();
+        const template2 = `is_state('light.woonkamer_lamp', 'on')`;
+        const renderingFunction1 = jest.fn();
+        const renderingFunction1_2 = jest.fn();
+        const renderingFunction2 = jest.fn();
+        const renderingFunction2_2 = jest.fn();
+        const untrack1 = renderer.trackTemplate(template1, renderingFunction1);
+        const untrack1_2 = renderer.trackTemplate(template1, renderingFunction1_2);
+        const untrack2 = renderer.trackTemplate(template2, renderingFunction2);
+        const untrack2_2 = renderer.trackTemplate(template2, renderingFunction2_2);
+        expect(renderingFunction1).toHaveBeenNthCalledWith(1, 'no');
+        expect(renderingFunction1_2).toHaveBeenNthCalledWith(1, 'no');
+        expect(renderingFunction2).toHaveBeenNthCalledWith(1, false);
+        expect(renderingFunction2_2).toHaveBeenNthCalledWith(1, false);
+        untrack1();
+        hassClone.states['light.woonkamer_lamp'].state = 'on';
+        window.dispatchEvent(
+            getSubscribeCustomEvent('light.woonkamer_lamp')
+        );
+        expect(renderingFunction1).toHaveBeenCalledTimes(1);
+        expect(renderingFunction1_2).toHaveBeenNthCalledWith(2, 'yes');
+        expect(renderingFunction2).toHaveBeenNthCalledWith(2, true);
+        expect(renderingFunction2_2).toHaveBeenNthCalledWith(2, true);
+        expect(
+            () => untrack1()
+        ).not.toThrow();
+        untrack2();
+        hassClone.states['light.woonkamer_lamp'].state = 'off';
+        window.dispatchEvent(
+            getSubscribeCustomEvent('light.woonkamer_lamp')
+        );
+        expect(renderingFunction1).toHaveBeenCalledTimes(1);
+        expect(renderingFunction1_2).toHaveBeenNthCalledWith(3, 'no');
+        expect(renderingFunction2).toHaveBeenCalledTimes(2);
+        expect(renderingFunction2_2).toHaveBeenNthCalledWith(3, false);
+        expect(
+            () => untrack1()
+        ).not.toThrow();
+        expect(
+            () => untrack2()
+        ).not.toThrow();
+        untrack1_2();
+        hassClone.states['light.woonkamer_lamp'].state = 'on';
+        window.dispatchEvent(
+            getSubscribeCustomEvent('light.woonkamer_lamp')
+        );
+        expect(renderingFunction1).toHaveBeenCalledTimes(1);
+        expect(renderingFunction1_2).toHaveBeenCalledTimes(3);
+        expect(renderingFunction2).toHaveBeenCalledTimes(2);
+        expect(renderingFunction2_2).toHaveBeenNthCalledWith(4, true);
+        expect(
+            () => untrack1()
+        ).not.toThrow();
+        expect(
+            () => untrack2()
+        ).not.toThrow();
+        expect(
+            () => untrack1_2()
+        ).not.toThrow();
+        untrack2_2();
+        expect(renderingFunction1).toHaveBeenCalledTimes(1);
+        expect(renderingFunction1_2).toHaveBeenCalledTimes(3);
+        expect(renderingFunction2).toHaveBeenCalledTimes(2);
+        expect(renderingFunction2_2).toHaveBeenCalledTimes(4);
+        expect(
+            () => untrack1()
+        ).not.toThrow();
+        expect(
+            () => untrack2()
+        ).not.toThrow();
+        expect(
+            () => untrack1_2()
+        ).not.toThrow();
+        expect(
+            () => untrack2_2()
+        ).not.toThrow();
+        expect(renderingFunction1).toHaveBeenCalledTimes(1);
+        expect(renderingFunction1_2).toHaveBeenCalledTimes(3);
+        expect(renderingFunction2).toHaveBeenCalledTimes(2);
+        expect(renderingFunction2_2).toHaveBeenCalledTimes(4);
+    });
+
     it('after executing cleanTracked the rendering functions should not be called anymore', async () => {
         const renderingFunction1 = jest.fn();
         const renderingFunction2 = jest.fn();

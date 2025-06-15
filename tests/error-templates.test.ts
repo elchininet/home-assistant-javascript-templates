@@ -155,6 +155,37 @@ describe('Templates with errors', () => {
 
     });
 
+    describe('Using non-existing entity ids', () => {
+
+        let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>;
+
+        beforeEach(async () => {
+            consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+        });
+
+        afterEach(() => {
+            consoleWarnMock.mockRestore();
+        });
+
+        it('Should throw a warning if a non-existing entity id is used', async () => {
+            const compiler = await new HomeAssistantJavaScriptTemplates(
+                HOME_ASSISTANT_ELEMENT
+            ).getRenderer();
+            compiler.renderTemplate('is_state("light.non_existing", "on")');
+            expect(consoleWarnMock).toHaveBeenCalledWith('Entity light.non_existing used in a JavaScript template doesn\'t exist');
+        });
+
+        it('Should not throw a warning if a non-existing entity id is used', async () => {
+            const compiler = await new HomeAssistantJavaScriptTemplates(
+                HOME_ASSISTANT_ELEMENT,
+                { throwWarnings: false }
+            ).getRenderer();
+            compiler.renderTemplate('is_state("light.non_existing", "on")');
+            expect(consoleWarnMock).not.toHaveBeenCalled();
+        });
+        
+    });
+
     describe('trying to access other clientSide variables', () => {
 
         let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>;
@@ -165,11 +196,41 @@ describe('Templates with errors', () => {
             compiler = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
         });
 
+        afterEach(() => {
+            consoleWarnMock.mockRestore();
+        });
+
         it('accesing a variable inside clientSide', () => {
             expect(
                 compiler.renderTemplate('return clientSide.non_existent')
             ).toBe(undefined);
             expect(consoleWarnMock).toHaveBeenCalledWith('clientSideProxy should only be used to access these variables: panel_url');
+        });
+
+    });
+
+    describe('trying to access other clientSide variables with warnings disabled', () => {
+
+        let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>;
+        let compiler: HomeAssistantJavaScriptTemplatesRenderer;
+
+        beforeEach(async () => {
+            consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+            compiler = await new HomeAssistantJavaScriptTemplates(
+                HOME_ASSISTANT_ELEMENT,
+                { throwWarnings: false }
+            ).getRenderer();
+        });
+
+        afterEach(() => {
+            consoleWarnMock.mockRestore();
+        });
+
+        it('accesing a variable inside clientSide', () => {
+            expect(
+                compiler.renderTemplate('return clientSide.non_existent')
+            ).toBe(undefined);
+            expect(consoleWarnMock).not.toHaveBeenCalled();
         });
 
     });
