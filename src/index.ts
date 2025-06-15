@@ -157,9 +157,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         ): void => {
             if (renderingFunctionMap.has(template)) {
                 const functions = renderingFunctionMap.get(template);
-                if (functions.has(renderingFunction)) {
-                    functions.delete(renderingFunction);
-                }
+                functions.delete(renderingFunction);
                 if (functions.size === 0) {
                     renderingFunctionMap.delete(template);
                     if (renderingFunctionMap.size === 0) {
