@@ -156,23 +156,29 @@ The `hass` object
 
 #### states
 
-`states` could be used in two ways, as a function or as an object. When using it as function it only allows an entity id (containing the domain) as a parameter and it will return the state of that entity. As an object it allows you to access a domain or the full entity state object.
+`states` could be used in two ways, as a function or as an object. When using it as function it allows an entity id (containing the domain) and an optional options object as parameters and it will return the state of that entity. As an object it allows you to access a domain or the full entity state object.
 
 >[!IMPORTANT]
 >If you try to use `states` as a function sending a domain it will throw an error.
 
 ```javascript
-// Using states as a function
-states('device_tracker.paulus') // returns the state of the entity id 'device_tracker.paulus'
+// Using states as a function (for a state with value 17.456 and unit ºC)
+states('sensor.slaapkamer_temperatuur') // 17.456
+states('sensor.slaapkamer_temperatuur', { with_unit: true }) // 17.456 ºC
+states('sensor.slaapkamer_temperatuur', { with_unit: true, rounded: true }) // 17.5 ºC
+states('sensor.slaapkamer_temperatuur', { rounded: true }) // 17.5
+states('sensor.slaapkamer_temperatuur', { rounded: 2 }) // 17.46
 
-// Using states as an object
-states['device_tracker.paulus'].state // returns the state of the entity id 'device_tracker.paulus'
-states.device_tracker.paulus.state // returns the state of the entity id 'device_tracker.paulus'
-states.device_tracker // returns an object containing all the entities states of the 'device_tracker' domain
+// Using states as an object (for a state with value 17.456 and unit ºC)
+states['sensor.slaapkamer_temperatuur'].state // 17.456
+states['sensor.slaapkamer_temperatuur'].state_with_unit // 17.5 ºC
+states.sensor.slaapkamer_temperatuur.state // 17.456
+states.sensor.slaapkamer_temperatuur.state_with_unit // 17.5 ºC
+states.sensor // returns an object containing all the entities states of the 'sensor' domain
 ```
 
 >[!TIP]
->Avoid using `states['device_tracker.paulus'].state` or `states.device_tracker.paulus.state`, instead use `states('device_tracker.paulus')` which will return `undefined` if the device id doesn‘t exist or the entity isn’t ready yet (the former will throw an error). If you still want to use them it is advisable to use the [Optional chaining operator], e.g. `states['device_tracker.paulus']?.state` or `states.device_tracker?.paulus?.state`.
+>Avoid using `states['sensor.slaapkamer_temperatuur'].state` or `states.sensor.slaapkamer_temperatuur.state`. Use `states('sensor.slaapkamer_temperatuur')` instead, which will return `undefined` if the device id doesn‘t exist or the entity isn’t ready yet (the former will throw an error). If you still want to use them it is advisable to use the [Optional chaining operator], e.g. `states['sensor.slaapkamer_temperatuur']?.state` or `states.sensor?.slaapkamer_temperatuur?.state`.
 
 #### is_state
 

@@ -43,6 +43,102 @@ describe('Basic templates tests', () => {
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity light.non_existent used in a JavaScript template doesn\'t exist');
         });
 
+        describe('with_units', () => {
+
+            it('states method with with_unit as false should not return the units', () => {
+                expect(
+                    compiler.renderTemplate('states("sensor.slaapkamer_temperatuur", { with_unit: false })')
+                ).toBe('17.456');
+            });
+
+            it('states method with with_unit as true should return the units', () => {
+                expect(
+                    compiler.renderTemplate('states("sensor.slaapkamer_temperatuur", { with_unit: true })')
+                ).toBe('17.456 ºC');
+            });
+
+            it('if there are no units states method with with_unit as true should return the state value without any units', () => {
+                expect(
+                    compiler.renderTemplate('states("light.woonkamer_lamp", { with_unit: true })')
+                ).toBe('off');
+            });
+
+        });
+
+        describe('rounded', () => {
+
+            it('states method with rounded in true should round the number to 1 decimal', () => {
+                expect(
+                    compiler.renderTemplate('states("sensor.slaapkamer_temperatuur", { rounded: true })')
+                ).toBe('17.5');
+            });
+
+            it('states method with rounded in false should not round the number', () => {
+                expect(
+                    compiler.renderTemplate('states("sensor.slaapkamer_temperatuur", { rounded: false })')
+                ).toBe('17.456');
+            });
+
+            it('states method with rounded as a number should round the number to the number of decimals', () => {
+                expect(
+                    compiler.renderTemplate('states("sensor.slaapkamer_temperatuur", { rounded: 2 })')
+                ).toBe('17.46');
+            });
+
+            it('states method with rounded as 0 should round the number without decimals', () => {
+                expect(
+                    compiler.renderTemplate('states("sensor.slaapkamer_temperatuur", { rounded: 0 })')
+                ).toBe('17');
+            });
+
+            it('if the states value is not a number states method with rounded in true should not do anything', () => {
+                expect(
+                    compiler.renderTemplate('states("light.woonkamer_lamp", { rounded: true })')
+                ).toBe('off');
+            });
+
+            it('if the states value is not a number states method with rounded in false should not do anything', () => {
+                expect(
+                    compiler.renderTemplate('states("light.woonkamer_lamp", { rounded: false })')
+                ).toBe('off');
+            });
+
+            it('if the states value is not a number states method with rounded as a number should not do anything', () => {
+                expect(
+                    compiler.renderTemplate('states("light.woonkamer_lamp", { rounded: 2 })')
+                ).toBe('off');
+            });
+
+        });
+
+        describe('state_with_unit', () => {
+
+            it('if states object is queried with an entity id with state_with_unit should return a formatted number with units', () => {
+                expect(
+                    compiler.renderTemplate('states["sensor.slaapkamer_temperatuur"].state_with_unit')
+                ).toBe('17.5 ºC');
+            });
+
+            it('if states object is queried with an entity id that is not a number with state_with_unit should return the regular state', () => {
+                expect(
+                    compiler.renderTemplate('states["light.woonkamer_lamp"].state_with_unit')
+                ).toBe('off');
+            });
+
+            it('if states object is queried with a domain and an id with state_with_unit should return a formatted number with units', () => {
+                expect(
+                    compiler.renderTemplate('states.sensor.slaapkamer_temperatuur.state_with_unit')
+                ).toBe('17.5 ºC');
+            });
+
+            it('if states object is queried with a domain and an id that is not a number with state_with_unit should return the regular state', () => {
+                expect(
+                    compiler.renderTemplate('states.light.woonkamer_lamp.state_with_unit')
+                ).toBe('off');
+            });
+
+        });
+
         it('states object should return the right states', () => {
             expect(
                 compiler.renderTemplate('states["light.woonkamer_lamp"].state')
@@ -67,7 +163,7 @@ describe('Basic templates tests', () => {
     
             expect(
                 compiler.renderTemplate('states.light.woonkamer_lamp')
-            ).toBe(
+            ).toEqual(
                 compiler.renderTemplate('states["light.woonkamer_lamp"]')
             );
         });
@@ -583,7 +679,7 @@ describe('Basic templates tests', () => {
             expect(compiler.renderTemplate('panel_url')).toBe('/');
         });
 
-        it('', () => {
+        it('panel_url should return the current location', () => {
             location.assign('/path/test');
             expect(compiler.renderTemplate('panel_url')).toBe('/path/test'); 
         });

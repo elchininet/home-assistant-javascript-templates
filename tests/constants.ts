@@ -102,7 +102,7 @@ export const HASS: Hass = {
                 unit_of_measurement: 'ºC'
             },
             entity_id: 'sensor.slaapkamer_temperatuur',
-            state: '17.4'
+            state: '17.456'
         },
         'binary_sensor.koffiezetapparaat_verbonden': {
             attributes: {
@@ -156,7 +156,8 @@ export const HASS: Hass = {
         is_admin: true,
         is_owner: false,
         name: 'ElChiniNet'
-    }
+    },
+    language: 'en'
 };
 
 export const HOME_ASSISTANT_ELEMENT = {
