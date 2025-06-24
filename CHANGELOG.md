@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.8.0] - 2025-06-24
+
+- Improve the `states` function with an optional object with options (`with_unit` and `rounded`)
+- Improve the `states` object with an optional property to return a rounded number with units using the `state_with_unit` property
+
 ## [5.7.1] - 2025-03-30
 
 - Add proper type to the `subscribeMessage` method of `home-assistant-js-websocket`. It should return a promise that is resolved to a function that will cancel the subscription once called

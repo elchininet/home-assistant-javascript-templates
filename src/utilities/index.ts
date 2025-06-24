@@ -4,6 +4,7 @@ import {
     Entity,
     Device,
     ProxiedStates,
+    ProxiedStatesOptions,
     ProxiedEntities,
     ProxiedDevices,
     Scopped,
@@ -76,16 +77,63 @@ export function createScoppedFunctions(
         entities.add(entity);
     };
 
+    const formatState = (
+        state: State | undefined,
+        options: ProxiedStatesOptions
+    ): string | undefined => {
+        const {
+            with_unit = false,
+            rounded = false
+        } = options;
+        if (state) {
+            const stateStringValue = state.state;
+            const stateUnitValue = state.attributes.unit_of_measurement;
+            const decimals = Number(rounded);
+            const stateValue = rounded !== false && !isNaN(Number(stateStringValue))
+                ? new Intl.NumberFormat(
+                    ha.hass.language,
+                    {
+                        minimumFractionDigits: decimals,
+                        maximumFractionDigits: decimals
+                    }
+                ).format(Number(stateStringValue))
+                : stateStringValue;
+            
+            return with_unit && stateUnitValue
+                ? `${stateValue} ${stateUnitValue}`
+                : stateValue;
+        }
+        return undefined;
+    };
+
+    const buildProxyState = (state: State): State => new Proxy(
+        state,
+        {
+            get(__target, prop: 'state_with_unit' | keyof State) {
+                if (prop === 'state_with_unit') {
+                    return formatState(
+                        __target,
+                        {
+                            rounded: true,
+                            with_unit: true
+                        }
+                    );
+                }
+                return __target[prop];
+            }
+        }
+    );;
+
     return {
         get hass() {
             return ha.hass;
         },
         // ---------------------- States
         states: new Proxy(
-            ((entityId: string): string | undefined => {
+            ((entityId: string, options: ProxiedStatesOptions = {}): string | undefined => {
                 if (hasDot(entityId)) {
                     trackEntity(entityId);
-                    return ha.hass.states[entityId]?.state;
+                    return formatState(ha.hass.states[entityId], options);             
                 }
                 throw SyntaxError(`${NAMESPACE}: states method cannot be used with a domain, use it as an object instead.`);
             }) as ProxiedStates, 
@@ -93,7 +141,7 @@ export function createScoppedFunctions(
                 get(__target, entityId: string): Record<string, State> | State | undefined {
                     if (hasDot(entityId)) {
                         trackEntity(entityId);
-                        return ha.hass.states[entityId];
+                        return buildProxyState(ha.hass.states[entityId]);
                     }
                     const filteredStatesByDomain = statesEntries().filter(([id]): boolean => {
                         return id.startsWith(entityId);
@@ -106,7 +154,7 @@ export function createScoppedFunctions(
                         {
                             get(__target, subEntityId: string): State | undefined {
                                 trackEntity(`${entityId}.${subEntityId}`);
-                                return __target[subEntityId];
+                                return buildProxyState(__target[subEntityId]);
                             }
                         }
                     );

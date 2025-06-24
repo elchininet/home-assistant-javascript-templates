@@ -44,14 +44,20 @@ export interface Hass {
     entities: Record<string, Entity>;
     states: Record<string, State>;
     user: User;
+    language: string;
 }
 
 export interface HomeAssistant extends HTMLElement {
 	hass: Hass;
 }
 
+export interface ProxiedStatesOptions {
+    with_unit?: boolean;
+    rounded?: boolean | number;
+}
+
 export interface ProxiedStates {
-    (entityId: string): string | undefined;
+    (entityId: string, options?: ProxiedStatesOptions): string | undefined;
     [entityId: string]: Record<string, State> | State | undefined;
 }
 

@@ -151,11 +151,11 @@ describe('promise instance', () => {
         window.dispatchEvent(
             getSubscribeCustomEvent('light.woonkamer_lamp')
         );
-        expect(renderingFunction).toHaveBeenNthCalledWith(2, '17.4');
+        expect(renderingFunction).toHaveBeenNthCalledWith(2, '17.456');
         window.dispatchEvent(
             getSubscribeCustomEvent('sensor.slaapkamer_temperatuur')
         );
-        expect(renderingFunction).toHaveBeenNthCalledWith(3, '17.4');
+        expect(renderingFunction).toHaveBeenNthCalledWith(3, '17.456');
     });
 
     it('tracking a multiple templates with the same entity id should call all the renderingFunctions', async () => {
