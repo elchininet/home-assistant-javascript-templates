@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.9.0] - 2025-07-13
+
+- Add a new method `state_translated` to return the translated state value of an entity
+- Improve the `is_state` function to accept also an array as a value to compare
+
 ## [5.8.0] - 2025-06-24
 
 - Improve the `states` function with an optional object with options (`with_unit` and `rounded`)
