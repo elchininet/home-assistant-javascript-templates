@@ -157,7 +157,8 @@ export const HASS: Hass = {
         is_owner: false,
         name: 'ElChiniNet'
     },
-    language: 'en'
+    language: 'en',
+    formatEntityState: jest.fn()
 };
 
 export const HOME_ASSISTANT_ELEMENT = {

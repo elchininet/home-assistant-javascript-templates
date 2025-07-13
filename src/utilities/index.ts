@@ -161,8 +161,20 @@ export function createScoppedFunctions(
                 }
             }
         ),
-        is_state(entityId: string, value: string): boolean {
+        state_translated(entityId: string): string | undefined {
             trackEntity(entityId);
+            if (ha.hass.states[entityId]) {
+                return ha.hass.formatEntityState(ha.hass.states[entityId]);
+            }
+            return undefined;
+        },
+        is_state(entityId: string, value: string | string[]): boolean {
+            trackEntity(entityId);
+            if (Array.isArray(value)) {
+                return value.some((valueItem: string): boolean => {
+                    return ha.hass.states[entityId]?.state === valueItem;
+                });
+            }
             return ha.hass.states[entityId]?.state === value;
         },
         state_attr(entityId: string, attr: string): unknown {

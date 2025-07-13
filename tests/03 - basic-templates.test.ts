@@ -17,6 +17,7 @@ describe('Basic templates tests', () => {
     });
 
     afterEach(() => {
+        jest.resetAllMocks();
         consoleWarnMock.mockRestore();
     });
 
@@ -194,25 +195,71 @@ describe('Basic templates tests', () => {
 
     });
 
+    describe('state_translated', () => {
+
+        describe.each(
+            Object.keys(HASS.states)
+        )('for entity id %s', (entityId: string) => {
+            it('should send the proper state to the formatEntityState function', () => {
+                compiler.renderTemplate(`state_translated("${entityId}")`);
+                expect(HASS.formatEntityState).toHaveBeenNthCalledWith(1, HASS.states[entityId]);
+            });
+        });
+
+        it('should return undefined if the entity id doesn\'t exist', () => {
+            const result = compiler.renderTemplate('state_translated("sensor.non_existent")');
+            expect(HASS.formatEntityState).not.toHaveBeenCalled();
+            expect(result).toBeUndefined();
+        });
+
+    });
+
     describe('is_state', () => {
 
-        it('is_state should return true if the value coincides', () => {
-            expect(
-                compiler.renderTemplate('is_state("sensor.slaapkamer_luchtvochtigheid", "45")')
-            ).toBe(true);
+        describe('value as string', () => {
+
+            it('is_state should return true if the value coincides', () => {
+                expect(
+                    compiler.renderTemplate('is_state("sensor.slaapkamer_luchtvochtigheid", "45")')
+                ).toBe(true);
+            });
+
+            it('is_state should return false if the value doesn\'t coincide', () => {
+                expect(
+                    compiler.renderTemplate('is_state("sensor.slaapkamer_temperatuur", "10")')
+                ).toBe(false);
+            });
+
+            it('is_state should return false if the entity id doesn\'t exist', () => {
+                expect(
+                    compiler.renderTemplate('is_state("sensor.non_existent", "45")')
+                ).toBe(false);
+                expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
+            });
+
         });
 
-        it('is_state should return false if the value doesn\'t coincide', () => {
-            expect(
-                compiler.renderTemplate('is_state("sensor.slaapkamer_temperatuur", "10")')
-            ).toBe(false);
-        });
+        describe('value as array', () => {
 
-        it('is_state should return false if the entity id doesn\'t exist', () => {
-            expect(
-                compiler.renderTemplate('is_state("sensor.non_existent", "10")')
-            ).toBe(false);
-            expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
+            it('is_state should return true if the value is contained inside the array', () => {
+                expect(
+                    compiler.renderTemplate('is_state("sensor.slaapkamer_luchtvochtigheid", ["15", "45", "56"])')
+                ).toBe(true);
+            });
+
+            it('is_state should return false if the value isn\'t contained inside the array', () => {
+                expect(
+                    compiler.renderTemplate('is_state("sensor.slaapkamer_temperatuur", ["5", "10", "28", "100"])')
+                ).toBe(false);
+            });
+
+            it('is_state should return false if the entity id doesn\'t exist', () => {
+                expect(
+                    compiler.renderTemplate('is_state("sensor.non_existent", ["17", "45", "2"])')
+                ).toBe(false);
+                expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
+            });
+
         });
 
     });

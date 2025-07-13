@@ -195,6 +195,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
             const templateFunction = new Function(
                 'hass',
                 'states',
+                'state_translated',
                 'is_state',
                 'state_attr',
                 'is_state_attr',
@@ -225,6 +226,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
             return templateFunction(
                 this._scopped.hass,
                 this._scopped.states,
+                this._scopped.state_translated.bind(this._scopped),
                 this._scopped.is_state.bind(this._scopped),
                 this._scopped.state_attr.bind(this._scopped),
                 this._scopped.is_state_attr.bind(this._scopped),

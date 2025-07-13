@@ -45,6 +45,7 @@ export interface Hass {
     states: Record<string, State>;
     user: User;
     language: string;
+    formatEntityState: (state: State) => string | undefined;
 }
 
 export interface HomeAssistant extends HTMLElement {
@@ -109,7 +110,8 @@ export interface Scopped {
     hass: Hass;
     // states
     states: ProxiedStates;
-    is_state: (entityId: string, value: string) => boolean;
+    state_translated: (entityId: string) => string;
+    is_state: (entityId: string, value: string | string[]) => boolean;
     state_attr: (entityId: string, attr: string) => unknown | undefined;
     is_state_attr: (entityId: string, attr: string, value: unknown) => boolean;
     has_value: (entityId: string) => boolean;

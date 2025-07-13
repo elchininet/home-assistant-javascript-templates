@@ -180,12 +180,22 @@ states.sensor // returns an object containing all the entities states of the 'se
 >[!TIP]
 >Avoid using `states['sensor.slaapkamer_temperatuur'].state` or `states.sensor.slaapkamer_temperatuur.state`. Use `states('sensor.slaapkamer_temperatuur')` instead, which will return `undefined` if the device id doesn‘t exist or the entity isn’t ready yet (the former will throw an error). If you still want to use them it is advisable to use the [Optional chaining operator], e.g. `states['sensor.slaapkamer_temperatuur']?.state` or `states.sensor?.slaapkamer_temperatuur?.state`.
 
-#### is_state
+#### state_translated
 
-Method to check if the state of an entity is equal to a certain value. It returns a `boolean`. If the entity id doesn‘t exist it returns `false`.
+Method to return a translated state of an entity using a language that is currently configured in the general settings. If the entity id doesn‘t exist it returns `undefined`.
 
 ```javascript
-is_state('device_tracker.paulus', 'not_home')
+states('device_tracker.paulus'); // not_home
+state_translated('device_tracker.paulus') // Away
+```
+
+#### is_state
+
+Method to check if the state of an entity is equal to a certain value or it is contained inside a list of values. It returns a `boolean`. If the entity id doesn‘t exist it returns `false`.
+
+```javascript
+is_state('device_tracker.paulus', 'not_home') // check for a single value
+is_state('device_tracker.paulus', ['not_home', 'work']) // check for a list of values
 ```
 
 #### state_attr
