@@ -83,6 +83,25 @@ describe('promise instance', () => {
         expect(renderingFunction).toHaveBeenNthCalledWith(3, "yes");
     });
 
+    it('tracking a template with lang should call the rendering function when the event translations-updated is triggered', () => {
+        const renderingFunction = jest.fn();
+        renderer.trackTemplate(
+            `
+                return lang === "es"
+                    ? "sí"
+                    : "yes"
+            `,
+            renderingFunction
+        );
+        expect(renderingFunction).toHaveBeenNthCalledWith(1, "yes");
+        window.dispatchEvent(new Event(EVENT.TRANSLATIONS_UPDATED));
+        expect(renderingFunction).toHaveBeenNthCalledWith(2, "yes");
+        hassClone.language = 'es';
+        window.dispatchEvent(new Event(EVENT.TRANSLATIONS_UPDATED));
+        expect(renderingFunction).toHaveBeenNthCalledWith(3, "sí");
+        
+    });
+
     it('tracking the same template with multiple fucntions should call all of them', async () => {
         const renderingFunction1 = jest.fn();
         const renderingFunction2 = jest.fn();

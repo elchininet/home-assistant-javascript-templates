@@ -204,7 +204,7 @@ describe('Templates with errors', () => {
             expect(
                 compiler.renderTemplate('return clientSide.non_existent')
             ).toBe(undefined);
-            expect(consoleWarnMock).toHaveBeenCalledWith('clientSideProxy should only be used to access these variables: panel_url');
+            expect(consoleWarnMock).toHaveBeenCalledWith('clientSideProxy should only be used to access these variables: panel_url, lang');
         });
 
     });

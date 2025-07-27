@@ -425,9 +425,14 @@ export function createScoppedFunctions(
             {},
             {
                 get(__target, property: string) {
-                    if (property === CLIENT_SIDE_ENTITIES.PANEL_URL) {
-                        trackClientSideEntity(CLIENT_SIDE_ENTITIES.PANEL_URL);
-                        return location.pathname;
+                    if (Object.values<string>(CLIENT_SIDE_ENTITIES).includes(property)) {
+                        trackClientSideEntity(property);
+                    }
+                    switch (property) {
+                        case CLIENT_SIDE_ENTITIES.PANEL_URL:
+                            return location.pathname;
+                        case CLIENT_SIDE_ENTITIES.LANG:
+                            return ha.hass.language;
                     }
                     if(throwWarnings) {
                         console.warn(`clientSideProxy should only be used to access these variables: ${Object.values(CLIENT_SIDE_ENTITIES).join(', ')}`);

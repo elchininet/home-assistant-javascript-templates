@@ -733,4 +733,12 @@ describe('Basic templates tests', () => {
 
     });
 
+    describe('lang', () => {
+
+        it('lang should return the language in the hass object', () => {
+            expect(compiler.renderTemplate('lang')).toBe('en');
+        });
+
+    });
+
 });

@@ -40,7 +40,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
             >
         >();
         this._clientSideEntitiesRegExp = new RegExp(
-            `(^|[ \\?(+:\\{\\[><])(${Object.values(CLIENT_SIDE_ENTITIES).join('|')})($|[ \\?)+:\\}\\]><.])`,
+            `(^|[ \\?(+:\\{\\[><,])(${Object.values(CLIENT_SIDE_ENTITIES).join('|')})($|[ \\?)+:\\}\\]><.,])`,
             'gm'
         );
 
@@ -51,6 +51,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         );
         this._watchForPanelUrlChange();
         this._watchForEntitiesChange();
+        this._watchForLanguageChange();
     }
 
     private _throwErrors: boolean;
@@ -78,7 +79,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
     }
 
     private _watchForPanelUrlChange() {
-        window.addEventListener(EVENT.LOCATION_CHANGED, (event: CustomEvent): void => {
+        window.addEventListener(EVENT.LOCATION_CHANGED, (): void => {
             this._panelUrlWatchCallback();
         });
         window.addEventListener(EVENT.POPSTATE, () => {
@@ -104,6 +105,14 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 );
             });
 	}
+
+    private _watchForLanguageChange() {
+        window.addEventListener(EVENT.TRANSLATIONS_UPDATED, () => {
+            if (this._subscriptions.has(CLIENT_SIDE_ENTITIES.LANG)) {
+                this._executeRenderingFunctions(CLIENT_SIDE_ENTITIES.LANG);
+            }
+        });
+    }
 
 	private _entityWatchCallback(event: SubscriberEvent) {        
 		if (this._subscriptions.size) {

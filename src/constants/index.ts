@@ -12,11 +12,13 @@ export enum ATTRIBUTES {
 }
 
 export enum CLIENT_SIDE_ENTITIES {
-    PANEL_URL = 'panel_url'
+    PANEL_URL = 'panel_url',
+    LANG = 'lang'
 }
 
 export enum EVENT {
     LOCATION_CHANGED = 'location-changed',
+    TRANSLATIONS_UPDATED = 'translations-updated',
     POPSTATE = 'popstate',
     SUBSCRIBE_EVENTS = 'subscribe_events',
     STATE_CHANGE_EVENT = 'state_changed'
