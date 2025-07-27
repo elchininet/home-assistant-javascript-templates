@@ -382,7 +382,7 @@ panel_url
 Property to return the language that the logged user has configured in their profile.
 
 ```javascript
-panel_url
+lang
 ```
 
 #### ref and unref
