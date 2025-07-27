@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.10.0] - 2025-07-27
+
+- Fix a bug that was impeding to use the variable `panel_url` with commas before of after it (e.g `console.log("test",panel_url)`)
+- New property available in the templates `lang` which will return the language that has been configured by the logged user
+
 ## [5.9.0] - 2025-07-13
 
 - Add a new method `state_translated` to return the translated state value of an entity

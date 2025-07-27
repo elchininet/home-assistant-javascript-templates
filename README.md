@@ -377,6 +377,14 @@ Property to return the current Home Assistant panel URL (`window.location.pathna
 panel_url
 ```
 
+#### lang
+
+Property to return the language that the logged user has configured in their profile.
+
+```javascript
+panel_url
+```
+
 #### ref and unref
 
 `ref` and `unref` method allows to work with reactive variables. Reactive variables are variables that can be accessed globally from any template and changing their values in any template will trigger a re-render in the tracked templates using them.
