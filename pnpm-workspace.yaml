@@ -1,2 +1,0 @@
-patchedDependencies:
-  jsdom: patches/jsdom.patch
