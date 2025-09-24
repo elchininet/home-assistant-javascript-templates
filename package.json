@@ -60,10 +60,5 @@
   },
   "dependencies": {
     "get-promisable-result": "^1.0.1"
-  },
-  "pnpm": {
-    "patchedDependencies": {
-      "jsdom": "patches/jsdom.patch"
-    }
   }
 }
