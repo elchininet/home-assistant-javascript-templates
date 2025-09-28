@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  jsdom:
+    hash: dc6f2601e97346e56a984ec48c0fe20ba3472340aab70c7ac6f9782c3bdb8d59
+    path: patches/jsdom.patch
+
 importers:
 
   .:
@@ -2240,7 +2245,7 @@ snapshots:
 
   '@jest/diff-sequences@30.0.1': {}
 
-  '@jest/environment-jsdom-abstract@30.1.2(jsdom@26.1.0)':
+  '@jest/environment-jsdom-abstract@30.1.2(jsdom@26.1.0(patch_hash=dc6f2601e97346e56a984ec48c0fe20ba3472340aab70c7ac6f9782c3bdb8d59))':
     dependencies:
       '@jest/environment': 30.1.2
       '@jest/fake-timers': 30.1.2
@@ -2249,7 +2254,7 @@ snapshots:
       '@types/node': 24.5.2
       jest-mock: 30.0.5
       jest-util: 30.0.5
-      jsdom: 26.1.0
+      jsdom: 26.1.0(patch_hash=dc6f2601e97346e56a984ec48c0fe20ba3472340aab70c7ac6f9782c3bdb8d59)
 
   '@jest/environment@30.1.2':
     dependencies:
@@ -3256,10 +3261,10 @@ snapshots:
   jest-environment-jsdom@30.1.2:
     dependencies:
       '@jest/environment': 30.1.2
-      '@jest/environment-jsdom-abstract': 30.1.2(jsdom@26.1.0)
+      '@jest/environment-jsdom-abstract': 30.1.2(jsdom@26.1.0(patch_hash=dc6f2601e97346e56a984ec48c0fe20ba3472340aab70c7ac6f9782c3bdb8d59))
       '@types/jsdom': 21.1.7
       '@types/node': 24.5.2
-      jsdom: 26.1.0
+      jsdom: 26.1.0(patch_hash=dc6f2601e97346e56a984ec48c0fe20ba3472340aab70c7ac6f9782c3bdb8d59)
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -3522,7 +3527,7 @@ snapshots:
       argparse: 1.0.10
       esprima: 4.0.1
 
-  jsdom@26.1.0:
+  jsdom@26.1.0(patch_hash=dc6f2601e97346e56a984ec48c0fe20ba3472340aab70c7ac6f9782c3bdb8d59):
     dependencies:
       cssstyle: 4.6.0
       data-urls: 5.0.0
