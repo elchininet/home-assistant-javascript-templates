@@ -256,15 +256,32 @@ export function createScoppedFunctions(
             }
         ),
 
-        device_attr(deviceId: string, attr: string): unknown {
-            return ha.hass.devices[deviceId]?.[attr];
+        device_attr(entityIdOrDeviceId: string, attr: string): unknown {
+            if (hasDot(entityIdOrDeviceId)) {
+                trackEntity(entityIdOrDeviceId);
+                const id = ha.hass.entities[entityIdOrDeviceId]?.device_id;
+                return ha.hass.devices[id]?.[attr];
+            }
+            return ha.hass.devices[entityIdOrDeviceId]?.[attr];
         },
-        is_device_attr(deviceId: string, attr: string, value: unknown): boolean {
-            return this.device_attr(deviceId, attr) === value;
+        is_device_attr(entityIdOrDeviceId: string, attr: string, value: unknown): boolean {
+            return this.device_attr(entityIdOrDeviceId, attr) === value;
         },
-        device_id(entityId: string): string {
-            trackEntity(entityId);
-            return ha.hass.entities[entityId]?.device_id;
+        device_id(entityIdOrDeviceName: string): string | undefined {
+            if (hasDot(entityIdOrDeviceName)) {
+                trackEntity(entityIdOrDeviceName);
+                return ha.hass.entities[entityIdOrDeviceName]?.device_id;
+            }
+            const device = devicesEntries().find((entry): boolean => entry[1].name === entityIdOrDeviceName);
+            return device?.[0];
+        },
+        device_name(entityIdOrDeviceId: string): string | undefined {
+            if (hasDot(entityIdOrDeviceId)) {
+                trackEntity(entityIdOrDeviceId);
+                const id = ha.hass.entities[entityIdOrDeviceId]?.device_id;
+                return ha.hass.devices[id]?.name;
+            }
+            return ha.hass.devices[entityIdOrDeviceId]?.name;
         },
         
         // ---------------------- Areas

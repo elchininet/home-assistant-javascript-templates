@@ -16,6 +16,7 @@ export interface Area {
 
 export interface Device {
     id: string;
+    name: string | null;
     area_id: string | null;
     [key: string]: unknown;
 }
@@ -131,9 +132,10 @@ export interface Scopped {
     is_entity_prop: (entityId: string, attr: string, value: unknown) => boolean;
     // devices
     devices: ProxiedDevices;
-    device_attr: (deviceId: string, attr: string) => unknown | undefined;
-    is_device_attr: (deviceId: string, attr: string, value: unknown) => boolean;
-    device_id: (entityId: string) => string | undefined;
+    device_attr: (entityIdOrDeviceId: string, attr: string) => unknown | undefined;
+    is_device_attr: (entityIdOrDeviceId: string, attr: string, value: unknown) => boolean;
+    device_id: (entityIdOrDeviceName: string) => string | undefined;
+    device_name: (entityIdOrDeviceId: string) => string | undefined;
     // areas
     areas: () => string[];
     area_id: (lookupValue: string) => string | undefined;

@@ -18,33 +18,40 @@ export const HASS: Hass = {
     devices: {
         '706ad0ebe27e105d7cd0b73386deefdd': {
             id: '706ad0ebe27e105d7cd0b73386deefdd',
+            name: 'Mijn Koffiezetapparaat',
             area_id: 'eetkamer',
             manufacturer: 'Synology',
             serial_number: '123456789'
         },
         '4d584585f0eb89172ce1a71c8b0e74ae': {
             id: '4d584585f0eb89172ce1a71c8b0e74ae',
+            name: 'Woonkamer Lamp',
             area_id: 'woonkamer',
             model: 'HHCCJCY01'
         },
         '0c1c9c65040cbf3563c76dc376d072f3': {
             id: '0c1c9c65040cbf3563c76dc376d072f3',
+            name: null,
             area_id: 'slaapkamer'
         },
         'b8c1c9dd23cb82bbfa09b5657f41d04f': {
             id: 'b8c1c9dd23cb82bbfa09b5657f41d04f',
+            name: null,
             area_id: 'eetkamer'
         },
         'dea1c4475b8dc901b7b33c7eac09896d': {
             id: 'dea1c4475b8dc901b7b33c7eac09896d',
+            name: null,
             area_id: 'slaapkamer'
         },
         'a121a9414241f03ce6b3108b2716f9be': {
             id: 'a121a9414241f03ce6b3108b2716f9be',
+            name: null,
             area_id: null
         },
         '720a719fe7db1460b0e4cc9ffbb1488d': {
             id: '720a719fe7db1460b0e4cc9ffbb1488d',
+            name: 'Eetkamer lampje',
             area_id: 'eetkamer'
         }
     },
