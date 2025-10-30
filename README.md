@@ -274,26 +274,38 @@ devices['706ad0ebe27e105d7cd0b73386deefdd'] // returns the device that matches t
 
 #### device_attr
 
-Method that returns the value of an attribute for the given device id or `undefined` if it doesn’t exist.
+Method that returns the value of an attribute for the given entity or device id. It returns `undefined` if the entity or the device doesn’t exist.
 
 ```javascript
+device_attr('sensor.my_sensor', 'manufacturer')
 device_attr('706ad0ebe27e105d7cd0b73386deefdd', 'manufacturer')
 ```
 
 #### is_device_attr
 
-Method to test if the value of a device attribute matches a value. It returns a `boolean`, if the device id doen‘t exist it returns `false`.
+Method to test if the value of a device attribute matches a value for a given entity or device id. It returns a `boolean`, if the entity or device doesn‘t exist it returns `false`.
 
 ```javascript
+is_device_attr('sensor.my_sensor', 'manufacturer', 'Synology')
 is_device_attr('706ad0ebe27e105d7cd0b73386deefdd', 'manufacturer', 'Synology')
 ```
 
 #### device_id
 
-Method to return the device id for a given entity id or `undefined` if the entity doesn‘t exist. 
+Method to return the device id for a given entity id or device name. It returns `undefined` if the entity or name doesn‘t exist. 
 
 ```javascript
 device_id('sensor.my_sensor')
+device_id('My lamp')
+```
+
+#### device_name
+
+Method to return the device name for a given device id or entity id. It returns `undefined` if the entity or device doesn‘t exist. 
+
+```javascript
+device_name('sensor.my_sensor')
+device_name('706ad0ebe27e105d7cd0b73386deefdd')
 ```
 
 #### areas

@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.12.0] - 2025-10-31
+
+- Add a new method to return the device name from an entity id or a device id (`device_name`)
+- Add support to send an entity id to the `device_attr` method
+- Add support to send an entity id to the `is_device_attr` method
+- Add support to send a device name to the `device_id` method
+
 ## [5.11.0] - 2025-10-30
 
 - Add a new parameter to the `trackTemplate` method to send extra variables

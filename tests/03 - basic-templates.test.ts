@@ -490,78 +490,214 @@ describe('Basic templates tests', () => {
 
     describe('device_attr', () => {
 
-        it('device_attr should return the proper value', () => {
-            expect(
-                compiler.renderTemplate('device_attr("706ad0ebe27e105d7cd0b73386deefdd", "manufacturer")')
-            ).toBe('Synology');
-            expect(
-                compiler.renderTemplate('device_attr("4d584585f0eb89172ce1a71c8b0e74ae", "model")')
-            ).toBe('HHCCJCY01');
+        describe('using an entity id', () => {
+
+            it('device_attr should return the proper value', () => {
+                expect(
+                    compiler.renderTemplate('device_attr("binary_sensor.koffiezetapparaat_aan", "manufacturer")')
+                ).toBe('Synology');
+                expect(
+                    compiler.renderTemplate('device_attr("light.woonkamer_lamp", "model")')
+                ).toBe('HHCCJCY01');
+            });
+
+            it('device_attr should return undefined if the attribute doesn\'t exist', () => {
+                expect(
+                    compiler.renderTemplate('device_attr("binary_sensor.koffiezetapparaat_verbonden", "attr")')
+                ).toBe(undefined);
+            });
+
+            it('device_attr should return undefined if the entity doesn\'t exist', () => {
+                expect(
+                    compiler.renderTemplate('device_attr("sensor.non_existent", "attr")')
+                ).toBe(undefined);
+                expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
+            });
+
         });
 
-        it('device_attr should return undefined if the attribute doesn\'t exist', () => {
-            expect(
-                compiler.renderTemplate('device_attr("b8c1c9dd23cb82bbfa09b5657f41d04f", "attr")')
-            ).toBe(undefined);
-        });
+        describe('using a device id', () => {
 
-        it('device_attr should return undefined if the device doesn\'t exist', () => {
-            expect(
-                compiler.renderTemplate('device_attr("012345", "attr")')
-            ).toBe(undefined);
+            it('device_attr should return the proper value', () => {
+                expect(
+                    compiler.renderTemplate('device_attr("706ad0ebe27e105d7cd0b73386deefdd", "manufacturer")')
+                ).toBe('Synology');
+                expect(
+                    compiler.renderTemplate('device_attr("4d584585f0eb89172ce1a71c8b0e74ae", "model")')
+                ).toBe('HHCCJCY01');
+            });
+
+            it('device_attr should return undefined if the attribute doesn\'t exist', () => {
+                expect(
+                    compiler.renderTemplate('device_attr("b8c1c9dd23cb82bbfa09b5657f41d04f", "attr")')
+                ).toBe(undefined);
+            });
+
+            it('device_attr should return undefined if the device doesn\'t exist', () => {
+                expect(
+                    compiler.renderTemplate('device_attr("012345", "attr")')
+                ).toBe(undefined);
+            });
+
         });
 
     });
 
     describe('is_device_attr', () => {
 
-        it('is_device_attr should return true if the attribute has the proper value', () => {
-            expect(
-                compiler.renderTemplate('is_device_attr("706ad0ebe27e105d7cd0b73386deefdd", "manufacturer", "Synology")')
-            ).toBe(true);
-    
-            expect(
-                compiler.renderTemplate('is_device_attr("4d584585f0eb89172ce1a71c8b0e74ae", "model", "HHCCJCY01")')
-            ).toBe(true);
+        describe('using an entity id', () => {
+
+            it('is_device_attr should return true if the attribute has the proper value', () => {
+                expect(
+                    compiler.renderTemplate('is_device_attr("binary_sensor.koffiezetapparaat_aan", "manufacturer", "Synology")')
+                ).toBe(true);
+        
+                expect(
+                    compiler.renderTemplate('is_device_attr("light.woonkamer_lamp", "model", "HHCCJCY01")')
+                ).toBe(true);
+            });
+
+            it('is_device_attr should return false if the attribute doesn\'t have the proper value', () => {
+                expect(
+                    compiler.renderTemplate('is_device_attr("sensor.slaapkamer_temperatuur", "area_id", "woonkamer")')
+                ).toBe(false);
+            });
+
+            it('is_device_attr should return false if the attribute doesn\'t exist', () => {
+                expect(
+                    compiler.renderTemplate('is_device_attr("binary_sensor.koffiezetapparaat_verbonden", "attr", "value")')
+                ).toBe(false);
+            });
+
+            it('is_device_attr should return false if the entity doesn\'t exist', () => {
+                expect(
+                    compiler.renderTemplate('is_device_attr("sensor.non_existent", "attr", "value")')
+                ).toBe(false);
+                expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
+            }); 
+
         });
 
-        it('is_device_attr should return false if the attribute doesn\'t have the proper value', () => {
-            expect(
-                compiler.renderTemplate('is_device_attr("dea1c4475b8dc901b7b33c7eac09896d", "area_id", "woonkamer")')
-            ).toBe(false);
-        });
+        describe('using a device id', () => {
 
-        it('is_device_attr should return false if the attribute doesn\'t exist', () => {
-            expect(
-                compiler.renderTemplate('is_device_attr("b8c1c9dd23cb82bbfa09b5657f41d04f", "attr", "value")')
-            ).toBe(false);
-        });
+            it('is_device_attr should return true if the attribute has the proper value', () => {
+                expect(
+                    compiler.renderTemplate('is_device_attr("706ad0ebe27e105d7cd0b73386deefdd", "manufacturer", "Synology")')
+                ).toBe(true);
+        
+                expect(
+                    compiler.renderTemplate('is_device_attr("4d584585f0eb89172ce1a71c8b0e74ae", "model", "HHCCJCY01")')
+                ).toBe(true);
+            });
 
-        it('is_device_attr should return false if the device doesn\'t exist', () => {
-            expect(
-                compiler.renderTemplate('is_device_attr("012345", "attr", "value")')
-            ).toBe(false);
-        });       
+            it('is_device_attr should return false if the attribute doesn\'t have the proper value', () => {
+                expect(
+                    compiler.renderTemplate('is_device_attr("dea1c4475b8dc901b7b33c7eac09896d", "area_id", "woonkamer")')
+                ).toBe(false);
+            });
+
+            it('is_device_attr should return false if the attribute doesn\'t exist', () => {
+                expect(
+                    compiler.renderTemplate('is_device_attr("b8c1c9dd23cb82bbfa09b5657f41d04f", "attr", "value")')
+                ).toBe(false);
+            });
+
+            it('is_device_attr should return false if the device doesn\'t exist', () => {
+                expect(
+                    compiler.renderTemplate('is_device_attr("012345", "attr", "value")')
+                ).toBe(false);
+            }); 
+
+        });
 
     });
 
     describe('device_id', () => {
 
-        it('device_id should return the proper device id', () => {
-            expect(
-                compiler.renderTemplate('device_id("light.woonkamer_lamp")')
-            ).toBe('4d584585f0eb89172ce1a71c8b0e74ae');
-    
-            expect(
-                compiler.renderTemplate('device_id("binary_sensor.internetverbinding")')
-            ).toBe('a121a9414241f03ce6b3108b2716f9be');
+        describe('using an entity id', () => {
+
+            it('device_id should return the proper device id', () => {
+                expect(
+                    compiler.renderTemplate('device_id("light.woonkamer_lamp")')
+                ).toBe('4d584585f0eb89172ce1a71c8b0e74ae');
+        
+                expect(
+                    compiler.renderTemplate('device_id("binary_sensor.internetverbinding")')
+                ).toBe('a121a9414241f03ce6b3108b2716f9be');
+            });
+
+            it('device_id should return undefined if the entity id doesn\'t exist', () => {
+                expect(
+                    compiler.renderTemplate('device_id("sensor.non_existent")')
+                ).toBe(undefined);
+                expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
+            });
+
         });
 
-        it('device_id should return undefined if the device doesn\'t exist', () => {
-            expect(
-                compiler.renderTemplate('device_id("sensor.non_existent")')
-            ).toBe(undefined);
-            expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
+        describe('using a device name', () => {
+
+            it('device_id should return the proper device id', () => {
+                expect(
+                    compiler.renderTemplate('device_id("Woonkamer Lamp")')
+                ).toBe('4d584585f0eb89172ce1a71c8b0e74ae');
+        
+                expect(
+                    compiler.renderTemplate('device_id("Eetkamer lampje")')
+                ).toBe('720a719fe7db1460b0e4cc9ffbb1488d');
+            });
+
+            it('device_id should return undefined if the device name doesn\'t exist', () => {
+                expect(
+                    compiler.renderTemplate('device_id("My camera")')
+                ).toBe(undefined);
+            });
+
+        });
+
+    });
+
+    describe('device_name', () => {
+
+        describe('using an entity id', () => {
+
+            it('device_name should return the proper device name', () => {
+                expect(
+                    compiler.renderTemplate('device_name("binary_sensor.koffiezetapparaat_aan")')
+                ).toBe('Mijn Koffiezetapparaat');
+        
+                expect(
+                    compiler.renderTemplate('device_name("light.eetkamer_lampje")')
+                ).toBe('Eetkamer lampje');
+            });
+
+            it('device_name should return undefined if the entity id doesn\'t exist', () => {
+                expect(
+                    compiler.renderTemplate('device_name("sensor.non_existent")')
+                ).toBe(undefined);
+                expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
+            });
+
+        });
+
+        describe('using a device id', () => {
+
+            it('device_name using a device id should return the proper device name', () => {
+                expect(
+                    compiler.renderTemplate('device_name("4d584585f0eb89172ce1a71c8b0e74ae")')
+                ).toBe('Woonkamer Lamp');
+        
+                expect(
+                    compiler.renderTemplate('device_name("720a719fe7db1460b0e4cc9ffbb1488d")')
+                ).toBe('Eetkamer lampje');
+            });
+
+            it('device_name should return undefined if the device id doesn\'t exist', () => {
+                expect(
+                    compiler.renderTemplate('device_name("4d58451c8b0e74ae85f0eb89172ce1a7")')
+                ).toBe(undefined);
+            });
+
         });
 
     });
