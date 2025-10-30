@@ -91,7 +91,7 @@ new HomeAssistantJavaScriptTemplates(
 | ------------------ | ------------- | ------- | -------------------------------------------------- |
 | `throwErrors`      | yes           | false   | Indicates if the library should throw if the template contains any error. If not, it will log the errors as a warning in the console and return `undefined` instead. |
 | `throwWarnings`    | yes           | true    | Indicates if the library should throw warnings in the console, either when there is an error in the templates and `throwErrors` is configured in `false`, or when a non-existent entity or domain is used in the templates. |
-| `variables`        | yes           | `{}`    | An object holding custom variables to be used inside the templates. The values could be any type |
+| `variables`        | yes           | `{}`    | An object holding custom global variables to be used inside all the templates. The values could be any type |
 | `autoReturn`       | yes           | true    | Indicates if the library should add a `return` statement at the beginning of a template code if no `return` statements are contained in the code|
 
 ### Methods
@@ -108,7 +108,7 @@ This class is only exported as a type in the package, you cannot import it direc
 
 #### variables
 
-This property gets and sets the global variables that will be available in the templates.
+This property gets and sets the global variables that will be available in all the templates.
 
 ### Methods
 
@@ -123,14 +123,16 @@ renderTemplate(
 
 This method renders a `JavaScript` template and return its result. It needs a string as a parameter. Inside this string you can use [several objects and methods](#objects-and-methods-available-in-the-templates). It returns whatever the `JavaScript` code returns, because of that it is typed as `any`.
 
-This method accepts an optional second parameter with extra variables. These variables will be appended to [the global variables](#variables).
+>[!NOTE]
+>This method accepts an optional second parameter with extra variables. These variables will be appended to [the global variables](#variables).
 
 #### trackTemplate
 
 ```typescript
 trackTemplate(
     template: string,
-    renderingFunction: (result?: any) => void
+    renderingFunction: (result?: any) => void,
+    extraVariables?: Record<string, unknown>
 ): () => void
 ```
 
@@ -139,6 +141,9 @@ This method registers a template tracking. It executes the `renderingFunction` s
 If some entity was not reached in the template code because it was inside a condition that never met, then it will not be tracked, so if its state changes it will not trigger the `renderingFunction` again. Only those entities that were called during the rendering using [states](#states), [is_state](#is_state), [state_attr](#state_attr), [is_state_attr](#is_state_attr), [has_value](#has_value) [entities](#entities), [entity_prop](#entity_prop), [is_entity_prop](#is_entity_prop) or [device_id](#device_id) will be included.
 
 This method will return a function. When this function is executed, the tracking of that template/rendering function is removed and subsecuent changes in the entities of the template will not call the `renderingFunction`.
+
+>[!NOTE]
+>This method accepts an optional third parameter with extra variables. These variables will be appended to [the global variables](#variables).
 
 #### cleanTracked
 
@@ -467,7 +472,7 @@ haJsTemplates.getRenderer()
             }
         );
 
-        // Later untrack the template
+        // Later if one wants to untrack the template
         untrack();
 
     });

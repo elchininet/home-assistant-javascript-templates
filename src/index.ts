@@ -2,11 +2,13 @@ import { getPromisableResult } from 'get-promisable-result';
 import {
     HomeAssistant,
     Hass,
-    Options,
-    Scopped,
-    RenderingFunction,
     HassConnection,
+    Options,
+    RenderingFunction,
+    RenderingFunctionsMap,
     SubscriberEvent,
+    Scopped,
+    SubscriptionsMap,
     Vars
 } from '@types';
 import {
@@ -32,13 +34,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         this._throwWarnings = throwWarnings;
         this._variables = variables;
         this._autoReturn = autoReturn;
-        this._subscriptions = new Map<
-            string,
-            Map<
-                string,
-                Set<RenderingFunction>
-            >
-        >();
+        this._subscriptions = new Map<string, RenderingFunctionsMap>();
         this._clientSideEntitiesRegExp = new RegExp(
             `(^|[ \\?(+:\\{\\[><,])(${Object.values(CLIENT_SIDE_ENTITIES).join('|')})($|[ \\?)+:\\}\\]><.,])`,
             'gm'
@@ -59,21 +55,19 @@ class HomeAssistantJavaScriptTemplatesRenderer {
     private _variables: Vars;
     private _autoReturn: boolean;
     private _clientSideEntitiesRegExp: RegExp;
-    private _subscriptions: Map<
-        string,
-        Map<
-            string,
-            Set<RenderingFunction>
-        >
-    >;
+    private _subscriptions: SubscriptionsMap;
     private _scopped: Scopped;
 
     private _executeRenderingFunctions(id: string): void {
         this._subscriptions
             .get(id)
-            .forEach((functions: Set<RenderingFunction>, template: string): void => {
-                functions.forEach((renderingFunction: RenderingFunction) => {
-                    this.trackTemplate(template, renderingFunction);
+            .forEach((functions: Map<RenderingFunction, Vars>, template: string): void => {
+                functions.forEach((entraVariables: Vars, renderingFunction: RenderingFunction) => {
+                    const result = this.trackTemplate(
+                        template,
+                        renderingFunction,
+                        entraVariables
+                    );
                 });
             });
     }
@@ -123,21 +117,27 @@ class HomeAssistantJavaScriptTemplatesRenderer {
 		}
 	}
 
-    private _storeTracked(template: string, renderingFunction: RenderingFunction): void {
+    private _storeTracked(
+        template: string,
+        renderingFunction: RenderingFunction,
+        extraVariables: Vars
+    ): void {
         this._scopped.tracked.forEach((id: string): void => {
+            const mapEntry: [RenderingFunction, Vars] = [
+                renderingFunction,
+                extraVariables
+            ];
             if (this._subscriptions.has(id)) {
                 const renderingFunctionMap = this._subscriptions.get(id);
                 if (renderingFunctionMap.has(template)) {
                     const functions = renderingFunctionMap.get(template);
                     if (!functions.has(renderingFunction)) {
-                        functions.add(renderingFunction);
+                        functions.set(...mapEntry);
                     }
                 } else {
                     renderingFunctionMap.set(
                         template,
-                        new Set<RenderingFunction>(
-                            [renderingFunction]
-                        )
+                        new Map([mapEntry])
                     );
                 }
             } else {
@@ -146,9 +146,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                     new Map([
                         [
                             template,
-                            new Set([
-                                renderingFunction
-                            ])
+                            new Map([mapEntry])
                         ]
                     ])
                 );
@@ -158,10 +156,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
 
     private _untrackTemplate(template: string, renderingFunction: RenderingFunction): void {
         this._subscriptions.forEach((
-            renderingFunctionMap: Map<
-                string,
-                Set<RenderingFunction>
-            >,
+            renderingFunctionMap: RenderingFunctionsMap,
             id: string
         ): void => {
             if (renderingFunctionMap.has(template)) {
@@ -283,11 +278,16 @@ class HomeAssistantJavaScriptTemplatesRenderer {
 
     public trackTemplate(
         template: string,
-        renderingFunction: RenderingFunction
+        renderingFunction: RenderingFunction,
+        extraVariables: Vars = {}
     ): () => void {
         this._scopped.cleanTracked();
-        const result = this.renderTemplate(template);
-        this._storeTracked(template, renderingFunction);                  
+        const result = this.renderTemplate(template, extraVariables);
+        this._storeTracked(
+            template,
+            renderingFunction,
+            extraVariables
+        );
         renderingFunction(result);
         return () => this._untrackTemplate(template, renderingFunction);
     }

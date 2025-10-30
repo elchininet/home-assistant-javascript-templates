@@ -116,6 +116,9 @@ describe('Custom variables', () => {
     });
 
     it('variables sent in the methods should be available in the templates', () => {
+
+        const renderingFunction = jest.fn();
+
         const extraVariables = {
             EXTRA_VAR: 'CUSTOM_EXTRA_VALUE'
         };
@@ -124,6 +127,20 @@ describe('Custom variables', () => {
             extraVariables
         );
         expect(result).toBe('CUSTOM_VALUE/CUSTOM_EXTRA_VALUE');
+
+        compiler.trackTemplate(
+            `
+                if (is_state("light.woonkamer_lamp", "off")) {
+                    return MY_STRING + "_modified_" + EXTRA_VAR;
+                }
+                return 'NONE';
+            `,
+            renderingFunction,
+            extraVariables
+        );
+        expect(renderingFunction).toHaveBeenCalledWith(
+            `${variables.MY_STRING}_modified_${extraVariables.EXTRA_VAR}`
+        );
     });
 
 });
