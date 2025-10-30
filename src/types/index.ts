@@ -72,6 +72,16 @@ export interface ProxiedDevices {
     [deviceId: string]: Device | undefined;
 }
 
+export type RenderingFunctionsMap = Map<
+    string,
+    Map<RenderingFunction, Vars>
+>;
+
+export type SubscriptionsMap = Map<
+    string,
+    RenderingFunctionsMap
+>;
+
 export type SubscriberEvent = {
     event_type: string;
     data: {

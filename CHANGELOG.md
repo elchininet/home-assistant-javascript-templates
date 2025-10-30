@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.11.0] - 2025-10-30
+
+- Add a new parameter to the `trackTemplate` method to send extra variables
+
 ## [5.10.0] - 2025-07-27
 
 - Fix a bug that was impeding to use the variable `panel_url` with commas before of after it (e.g `console.log("test",panel_url)`)
