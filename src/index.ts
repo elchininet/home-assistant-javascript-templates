@@ -63,7 +63,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
             .get(id)
             .forEach((functions: Map<RenderingFunction, Vars>, template: string): void => {
                 functions.forEach((entraVariables: Vars, renderingFunction: RenderingFunction) => {
-                    const result = this.trackTemplate(
+                    this.trackTemplate(
                         template,
                         renderingFunction,
                         entraVariables
