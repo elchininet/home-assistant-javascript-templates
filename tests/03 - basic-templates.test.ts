@@ -36,11 +36,11 @@ describe('Basic templates tests', () => {
         it('states object and states method should return undefined if the device id doesn\'t exist', () => {
             expect(
                 compiler.renderTemplate('states["sensor.non_existent"]')
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
             expect(
                 compiler.renderTemplate('states("light.non_existent")')
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity light.non_existent used in a JavaScript template doesn\'t exist');
         });
 
@@ -279,7 +279,7 @@ describe('Basic templates tests', () => {
         it('state_attr should return undefined if the entity doesn\'t exist', () => {
             expect(
                 compiler.renderTemplate('state_attr("sensor.non_existent", "device_class")')
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
 
@@ -368,7 +368,7 @@ describe('Basic templates tests', () => {
         it('entities method with a non-existent entity should return undefined', () => {
             expect(
                 compiler.renderTemplate('entities("sensor.non_existent")')
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
 
@@ -398,7 +398,7 @@ describe('Basic templates tests', () => {
         it('entities object should return undefined if the entity doesn\t exist', () => {
             expect(
                 compiler.renderTemplate('entities.sensor.non_existent')
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
 
@@ -415,13 +415,13 @@ describe('Basic templates tests', () => {
         it('entity_prop should return undefined if the attribute doesn\'t exist', () => {
             expect(
                 compiler.renderTemplate('entity_prop("binary_sensor.koffiezetapparaat_aan", "unexistent")')
-            ).toBe(undefined);
+            ).toBeUndefined();
         });
 
         it('entity_prop should return undefined if the entity doesn\'t exist', () => {
             expect(
                 compiler.renderTemplate('entity_prop("sensor.non_existent", "area_id")')
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
 
@@ -469,7 +469,7 @@ describe('Basic templates tests', () => {
         it('devices method with a non-existent device should return undefined', () => {
             expect(
                 compiler.renderTemplate('devices("40cbf3563c76dc376d072f30c1c9c650")')
-            ).toBe(undefined);
+            ).toBeUndefined();
         });
 
         it('devices object should return the proper device', () => {
@@ -483,7 +483,7 @@ describe('Basic templates tests', () => {
         it('devices object with a non-existent device should return undefined', () => {
             expect(
                 compiler.renderTemplate('devices["40cbf3563c76dc376d072f30c1c9c650"]')
-            ).toBe(undefined);
+            ).toBeUndefined();
         });
 
     });
@@ -504,13 +504,13 @@ describe('Basic templates tests', () => {
             it('device_attr should return undefined if the attribute doesn\'t exist', () => {
                 expect(
                     compiler.renderTemplate('device_attr("binary_sensor.koffiezetapparaat_verbonden", "attr")')
-                ).toBe(undefined);
+                ).toBeUndefined();
             });
 
             it('device_attr should return undefined if the entity doesn\'t exist', () => {
                 expect(
                     compiler.renderTemplate('device_attr("sensor.non_existent", "attr")')
-                ).toBe(undefined);
+                ).toBeUndefined();
                 expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
             });
 
@@ -530,13 +530,13 @@ describe('Basic templates tests', () => {
             it('device_attr should return undefined if the attribute doesn\'t exist', () => {
                 expect(
                     compiler.renderTemplate('device_attr("b8c1c9dd23cb82bbfa09b5657f41d04f", "attr")')
-                ).toBe(undefined);
+                ).toBeUndefined();
             });
 
             it('device_attr should return undefined if the device doesn\'t exist', () => {
                 expect(
                     compiler.renderTemplate('device_attr("012345", "attr")')
-                ).toBe(undefined);
+                ).toBeUndefined();
             });
 
         });
@@ -629,7 +629,7 @@ describe('Basic templates tests', () => {
             it('device_id should return undefined if the entity id doesn\'t exist', () => {
                 expect(
                     compiler.renderTemplate('device_id("sensor.non_existent")')
-                ).toBe(undefined);
+                ).toBeUndefined();
                 expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
             });
 
@@ -650,7 +650,7 @@ describe('Basic templates tests', () => {
             it('device_id should return undefined if the device name doesn\'t exist', () => {
                 expect(
                     compiler.renderTemplate('device_id("My camera")')
-                ).toBe(undefined);
+                ).toBeUndefined();
             });
 
         });
@@ -674,7 +674,7 @@ describe('Basic templates tests', () => {
             it('device_name should return undefined if the entity id doesn\'t exist', () => {
                 expect(
                     compiler.renderTemplate('device_name("sensor.non_existent")')
-                ).toBe(undefined);
+                ).toBeUndefined();
                 expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
             });
 
@@ -695,7 +695,7 @@ describe('Basic templates tests', () => {
             it('device_name should return undefined if the device id doesn\'t exist', () => {
                 expect(
                     compiler.renderTemplate('device_name("4d58451c8b0e74ae85f0eb89172ce1a7")')
-                ).toBe(undefined);
+                ).toBeUndefined();
             });
 
         });
@@ -739,7 +739,7 @@ describe('Basic templates tests', () => {
         it('area_id should return undefined if no valid device id, entity id or area name is sent', () => {
             expect(
                 compiler.renderTemplate('area_id("NonExistent")')
-            ).toBe(undefined);
+            ).toBeUndefined();
         });        
 
     });
@@ -767,7 +767,7 @@ describe('Basic templates tests', () => {
         it('area_name should return undefined if no valid device id, entity id or area id is sent', () => {
             expect(
                 compiler.renderTemplate('area_name("non_existent")')
-            ).toBe(undefined);
+            ).toBeUndefined();
         });
 
     });

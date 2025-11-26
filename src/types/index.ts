@@ -4,6 +4,8 @@ export interface Options {
     throwErrors?: boolean;
     throwWarnings?: boolean;
     variables?: Vars;
+    refs?: Vars;
+    refsVariableName?: string;
     autoReturn?: boolean;
 }
 
@@ -75,7 +77,7 @@ export interface ProxiedDevices {
 
 export type RenderingFunctionsMap = Map<
     string,
-    Map<RenderingFunction, Vars>
+    Map<RenderingFunction, Extras>
 >;
 
 export type SubscriptionsMap = Map<
@@ -117,6 +119,13 @@ export type Ref = {
     value: unknown;
 };
 
+export type EntityWatchCallback = (event: SubscriberEvent) => void;
+
+export interface Extras {
+    variables?: Vars;
+    refs?: Vars;
+}
+
 export interface Scopped {
     hass: Hass;
     // states
@@ -151,7 +160,10 @@ export interface Scopped {
     clientSideProxy: Vars;
     // utilities
     tracked: Set<string>;
-    ref(entityWatchCallback: (event: SubscriberEvent) => void, name: string, value?: unknown): Ref;
+    ref(entityWatchCallback: EntityWatchCallback, name: string, value?: unknown): Ref;
     unref(cleanTracked: (refId: string) => void, name: string): void;
+    refsVariables: Map<string, unknown>;
+    buildRefsVariables(entityWatchCallback: EntityWatchCallback, variables: Vars): Vars;
+    cleanRefsVariables(): void;
     cleanTracked: () => void;
 }

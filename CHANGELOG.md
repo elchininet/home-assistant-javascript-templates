@@ -1,5 +1,11 @@
 # Changelog
 
+## [6.0.0] - 2025-11-26
+
+- Add support for refs variables (an object containing variables that by default are reactive).
+- New property to get and assign refs variables
+- Removed the `extraVariables` parameter from the `renderTemplate` and `trackTemplate` methods. Now it accepts an object holding `variables` and `refs`
+
 ## [5.12.0] - 2025-10-31
 
 - Add a new method to return the device name from an entity id or a device id (`device_name`)

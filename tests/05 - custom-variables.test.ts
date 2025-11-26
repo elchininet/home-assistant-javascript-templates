@@ -124,7 +124,9 @@ describe('Custom variables', () => {
         };
         const result = compiler.renderTemplate(
             'return MY_STRING + "/" + EXTRA_VAR',
-            extraVariables
+            {
+                variables: extraVariables
+            }
         );
         expect(result).toBe('CUSTOM_VALUE/CUSTOM_EXTRA_VALUE');
 
@@ -136,7 +138,9 @@ describe('Custom variables', () => {
                 return 'NONE';
             `,
             renderingFunction,
-            extraVariables
+            {
+                variables: extraVariables
+            }
         );
         expect(renderingFunction).toHaveBeenCalledWith(
             `${variables.MY_STRING}_modified_${extraVariables.EXTRA_VAR}`

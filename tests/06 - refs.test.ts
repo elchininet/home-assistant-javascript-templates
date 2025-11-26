@@ -28,10 +28,10 @@ describe('ref and unref without errors', () => {
                     const myRef = ref('custom');
                     return myRef.value;
                 `)
-            ).toBe(undefined);
+            ).toBeUndefined();
         });
 
-        it('if a value is assigned to a refit should return that value', () => {
+        it('if a value is assigned to a ref it should return that value', () => {
             expect(
                 compiler.renderTemplate(`
                     const myRef = ref('custom');
@@ -118,7 +118,7 @@ describe('ref and unref without errors', () => {
                     const myRef = ref('custom');
                     return JSON.stringify(myRef);
                 `)
-            ).toBe(undefined);
+            ).toBeUndefined();
         });
 
         it('refs with a value should be serialized correctly', () => {
@@ -149,7 +149,7 @@ describe('ref and unref without errors', () => {
                     unref('custom');
                     return ref('custom').value;
                 `)
-            ).toBe(undefined);
+            ).toBeUndefined();
         });
 
         it('unref in one template should remove the ref also in other templates', () => {
@@ -164,7 +164,7 @@ describe('ref and unref without errors', () => {
                     const myRef = ref('custom');
                     return myRef.value;
                 `)
-            ).toBe(undefined);
+            ).toBeUndefined();
         });
 
         it('after unref, two refs with the same name do not reference the same object', () => {
@@ -424,6 +424,403 @@ describe('ref and unref without errors and with warnings disabled', () => {
             `);
             expect(consoleWarnMock).not.toHaveBeenCalled();
 
+        });
+
+    });
+
+});
+
+describe('ref variables', () => {
+
+    const refs = {
+        MY_STRING: 'CUSTOM_VALUE',
+        MY_NUMBER: 100,
+        MY_REGEXP: /^(\w+)-([A-Za-z]+)$/,
+        MY_OBJECT: {
+            prop: 'custom_prop'
+        },
+        MY_ARRAY: [0, 1, 2, 3],
+        MY_FUNCTION: (value: unknown) => typeof value === 'number'
+            ? value * 2
+            : `${value}_DOUBLE`,
+    };
+
+    let compiler: HomeAssistantJavaScriptTemplatesRenderer;
+    
+    beforeEach(async () => {
+        window.hassConnection = Promise.resolve({
+            conn: {
+                subscribeMessage: jest.fn()
+            }
+        });
+        compiler = await new HomeAssistantJavaScriptTemplates(
+            HOME_ASSISTANT_ELEMENT,
+            {
+                refs,
+                throwWarnings: false
+            }
+        ).getRenderer();
+    });
+
+
+    describe('renderTemplate with refs variables', () => {
+
+        it('refs should be defined', () => {
+            expect(
+                compiler.renderTemplate('refs')
+            ).toBeDefined()
+        });
+
+        it('refs property should return the refs object', () => {
+            expect(compiler.refs).toEqual(refs);
+        });
+
+        it('refs property should override the refs object', () => {
+            Object.keys(refs).forEach((name: string): void => {
+                expect(
+                    compiler.renderTemplate(`refs.${name}`)
+                ).toBeDefined();
+            });
+            compiler.refs = {
+                OVERRIDE: 'OVERRIDE'
+            };
+            Object.keys(refs).forEach((name: string): void => {
+                expect(
+                    compiler.renderTemplate(`refs.${name}`)
+                ).toBeUndefined();
+            });
+            expect(
+                compiler.renderTemplate('refs.OVERRIDE')
+            ).toBe('OVERRIDE');
+        });
+
+        describe.each([
+            ['refs.MY_STRING', 'CUSTOM_VALUE'],
+            ['refs.MY_NUMBER', 100],
+            ['refs.MY_REGEXP.toString()', '/^(\\w+)-([A-Za-z]+)$/'],
+            ['refs.MY_OBJECT.prop', 'custom_prop'],
+            ['refs.MY_ARRAY[2]', 2],
+            ['refs.MY_FUNCTION(2)', 4],
+            ['refs.MY_FUNCTION("2")', '2_DOUBLE']
+        ])('template %s should return %s', (template: string, expected: unknown): void => {
+            it('refs variables should have the proper value', () => {
+                expect(
+                    compiler.renderTemplate(template)
+                ).toBe(expected);
+            });
+        });
+
+        describe.each([
+            {
+                variable: 'MY_STRING',
+                templateAssign: 'refs.MY_STRING = "CUSTOM_VALUE_ASSIGNED"',
+                templateReturn: 'refs.MY_STRING',
+                expected: 'CUSTOM_VALUE_ASSIGNED'
+            },
+            {
+                variable: 'MY_NUMBER',
+                templateAssign: 'refs.MY_NUMBER = 200',
+                templateReturn: 'refs.MY_NUMBER',
+                expected: 200
+            },
+            {
+                variable: 'MY_REGEXP',
+                templateAssign: 'refs.MY_REGEXP = /^\\d{2}-\\d{2}-\\d{4}/',
+                templateReturn: 'refs.MY_REGEXP.test("01-05-2024")',
+                expected: true
+            },
+            {
+                variable: 'MY_OBJECT',
+                templateAssign: 'refs.MY_OBJECT.prop = "custom_prop_assigned"',
+                templateReturn: 'refs.MY_OBJECT.prop',
+                expected: 'custom_prop_assigned'
+            },
+            {
+                variable: 'MY_ARRAY',
+                templateAssign: 'refs.MY_ARRAY[2] = 100',
+                templateReturn: 'refs.MY_ARRAY[2]',
+                expected: 100
+            },
+            {
+                variable: 'MY_FUNCTION',
+                templateAssign: `
+                    refs.MY_FUNCTION = (value) => {
+                        if (typeof value === 'number') {
+                            return value / 2;
+                        }
+                        return value + "_HALF"
+                    };
+                `,
+                templateReturn: 'refs.MY_FUNCTION(2)',
+                expected: 1
+            },
+            {
+                variable: 'MY_FUNCTION',
+                templateAssign: `
+                    refs.MY_FUNCTION = (value) => {
+                        if (typeof value === 'number') {
+                            return value / 2;
+                        }
+                        return value + "_HALF"
+                    };
+                `,
+                templateReturn: 'refs.MY_FUNCTION("2")',
+                expected: '2_HALF'
+            }
+        ])('Assign value to the ref variable $variable and retrieve it from another template', ({ templateAssign, templateReturn, expected }) => {
+            it(`should return ${expected}`, () => {
+                compiler.renderTemplate(templateAssign);
+                expect(
+                    compiler.renderTemplate(templateReturn)
+                ).toBe(expected);
+            });
+        });
+
+    });
+
+    describe('renderTemplate with extra refs variables', () => {
+
+        it('extra refs variables should be available in the templates', () => {
+            expect(
+                compiler.renderTemplate('return `${refs.MY_STRING}_${refs.EXTRA_REF_VARIABLE}`',
+                    {
+                        refs: {
+                            EXTRA_REF_VARIABLE: 'EXTRA'
+                        }
+                    }
+                )
+            ).toBe('CUSTOM_VALUE_EXTRA');
+        });
+
+        it('extra refs variables set in one template should be available in another template', () => {
+            expect(
+                compiler.renderTemplate('refs.MY_STRING',
+                    {
+                        refs: {
+                            EXTRA_REF_VARIABLE: 'EXTRA'
+                        }
+                    }
+                )
+            ).toBe('CUSTOM_VALUE');
+            expect(
+                compiler.renderTemplate('refs.EXTRA_REF_VARIABLE')
+            ).toBe('EXTRA');
+        });
+
+    });
+
+    describe('trackTemplate with refs variables', () => {
+
+        it('changing the value of a ref variable in a template should rerender all templates using it', () => {
+
+            const renderingFunction1 = jest.fn();
+            const renderingFunction2 = jest.fn();
+            const renderingFunction3 = jest.fn();
+
+            compiler.trackTemplate(
+                `
+                    if (refs.MY_STRING === 'CUSTOM_VALUE') {
+                        return 'yes';
+                    }
+                    return 'no';
+                `,
+                renderingFunction1
+            );
+
+            compiler.trackTemplate(
+                'return refs.MY_NUMBER * 2',
+                renderingFunction2
+            );
+
+            expect(renderingFunction1).toHaveBeenNthCalledWith(1, 'yes');
+            expect(renderingFunction2).toHaveBeenNthCalledWith(1, 200);
+            expect(renderingFunction3).not.toHaveBeenCalled();
+
+            compiler.trackTemplate(
+                `
+                    refs.MY_STRING = 'CUSTOM_VALUE_CHANGED';
+                    refs.MY_NUMBER = 200;
+                    return refs.MY_STRING + '/' + refs.MY_NUMBER;
+                `,
+                renderingFunction3
+            );
+
+            expect(renderingFunction1).toHaveBeenNthCalledWith(2, 'no');
+            expect(renderingFunction2).toHaveBeenNthCalledWith(2, 400);
+            expect(renderingFunction3).toHaveBeenNthCalledWith(1, 'CUSTOM_VALUE_CHANGED/200');
+
+        });
+
+    });
+
+    describe('trackTemplate with extra refs variables', () => {
+
+        it('changing the value of an extra ref variable in a template should rerender all templates that were using it', () => {
+
+            const renderingFunction1 = jest.fn();
+            const renderingFunction2 = jest.fn();
+            const renderingFunction3 = jest.fn();
+
+            compiler.trackTemplate(
+                'refs.EXTRA_REF_VARIABLE',
+                renderingFunction1
+            );
+
+            compiler.trackTemplate(
+                'return refs.EXTRA_REF_VARIABLE + "_APPEND"',
+                renderingFunction2
+            );
+
+            expect(renderingFunction1).toHaveBeenNthCalledWith(1, undefined);
+            expect(renderingFunction2).toHaveBeenNthCalledWith(1, 'undefined_APPEND');
+            expect(renderingFunction3).not.toHaveBeenCalled();
+
+            compiler.trackTemplate(
+                `
+                    refs.EXTRA_REF_VARIABLE = 'EXTRA';
+                    return refs.EXTRA_REF_VARIABLE;
+                `,
+                renderingFunction3
+            );
+
+            expect(renderingFunction1).toHaveBeenNthCalledWith(2, 'EXTRA');
+            expect(renderingFunction2).toHaveBeenNthCalledWith(2, 'EXTRA_APPEND');
+            expect(renderingFunction3).toHaveBeenNthCalledWith(1, 'EXTRA');
+
+        });
+
+    });
+
+});
+
+describe('ref variables with custom name', () => {
+
+    const refs = {
+        MY_STRING: 'CUSTOM_VALUE',
+        MY_NUMBER: 100,
+        MY_REGEXP: /^(\w+)-([A-Za-z]+)$/,
+        MY_OBJECT: {
+            prop: 'custom_prop'
+        },
+        MY_ARRAY: [0, 1, 2, 3],
+        MY_FUNCTION: (value: unknown) => typeof value === 'number'
+            ? value * 2
+            : `${value}_DOUBLE`,
+    };
+
+    let compiler: HomeAssistantJavaScriptTemplatesRenderer;
+    
+    beforeEach(async () => {
+        window.hassConnection = Promise.resolve({
+            conn: {
+                subscribeMessage: jest.fn()
+            }
+        });
+        compiler = await new HomeAssistantJavaScriptTemplates(
+            HOME_ASSISTANT_ELEMENT,
+            {
+                refs,
+                refsVariableName: 'vars',
+                throwWarnings: false
+            }
+        ).getRenderer();
+    });
+
+
+    describe('renderTemplate with refs variables', () => {
+
+        it('refs should not be defined', () => {
+            expect(
+                compiler.renderTemplate('refs')
+            ).toBeUndefined()
+        });
+
+        it('vars should be defined', () => {
+            expect(
+                compiler.renderTemplate('vars')
+            ).toBeDefined()
+        });
+
+        describe.each([
+            ['vars.MY_STRING', 'CUSTOM_VALUE'],
+            ['vars.MY_NUMBER', 100],
+            ['vars.MY_REGEXP.toString()', '/^(\\w+)-([A-Za-z]+)$/'],
+            ['vars.MY_OBJECT.prop', 'custom_prop'],
+            ['vars.MY_ARRAY[2]', 2],
+            ['vars.MY_FUNCTION(2)', 4],
+            ['vars.MY_FUNCTION("2")', '2_DOUBLE']
+        ])('template %s should return %s', (template: string, expected: unknown): void => {
+            it('ref variables should have the proper value', () => {
+                expect(
+                    compiler.renderTemplate(template)
+                ).toBe(expected);
+            });
+        });
+
+        describe.each([
+            {
+                variable: 'MY_STRING',
+                templateAssign: 'vars.MY_STRING = "CUSTOM_VALUE_ASSIGNED"',
+                templateReturn: 'vars.MY_STRING',
+                expected: 'CUSTOM_VALUE_ASSIGNED'
+            },
+            {
+                variable: 'MY_NUMBER',
+                templateAssign: 'vars.MY_NUMBER = 200',
+                templateReturn: 'vars.MY_NUMBER',
+                expected: 200
+            },
+            {
+                variable: 'MY_REGEXP',
+                templateAssign: 'vars.MY_REGEXP = /^\\d{2}-\\d{2}-\\d{4}/',
+                templateReturn: 'vars.MY_REGEXP.test("01-05-2024")',
+                expected: true
+            },
+            {
+                variable: 'MY_OBJECT',
+                templateAssign: 'vars.MY_OBJECT.prop = "custom_prop_assigned"',
+                templateReturn: 'vars.MY_OBJECT.prop',
+                expected: 'custom_prop_assigned'
+            },
+            {
+                variable: 'MY_ARRAY',
+                templateAssign: 'vars.MY_ARRAY[2] = 100',
+                templateReturn: 'vars.MY_ARRAY[2]',
+                expected: 100
+            },
+            {
+                variable: 'MY_FUNCTION',
+                templateAssign: `
+                    vars.MY_FUNCTION = (value) => {
+                        if (typeof value === 'number') {
+                            return value / 2;
+                        }
+                        return value + "_HALF"
+                    };
+                `,
+                templateReturn: 'vars.MY_FUNCTION(2)',
+                expected: 1
+            },
+            {
+                variable: 'MY_FUNCTION',
+                templateAssign: `
+                    vars.MY_FUNCTION = (value) => {
+                        if (typeof value === 'number') {
+                            return value / 2;
+                        }
+                        return value + "_HALF"
+                    };
+                `,
+                templateReturn: 'vars.MY_FUNCTION("2")',
+                expected: '2_HALF'
+            }
+        ])('Assign value to the ref variable $variable and retrieve it from another template', ({ templateAssign, templateReturn, expected }) => {
+            it(`should return ${expected}`, () => {
+                compiler.renderTemplate(templateAssign);
+                expect(
+                    compiler.renderTemplate(templateReturn)
+                ).toBe(expected);
+            });
         });
 
     });

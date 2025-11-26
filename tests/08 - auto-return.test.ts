@@ -17,7 +17,7 @@ describe('autoReturn', () => {
     it('if there is no return the template should return undefined', () => {
         expect(
             compiler.renderTemplate('states["light.woonkamer_lamp"].state')
-        ).toBe(undefined);
+        ).toBeUndefined();
     });
 
 });

@@ -1,16 +1,19 @@
 import {
-    HomeAssistant,
-    State,
-    Entity,
     Device,
+    Entity,
+    EntityWatchCallback,
+    HomeAssistant,
     ProxiedStates,
     ProxiedStatesOptions,
     ProxiedEntities,
     ProxiedDevices,
+    Ref,
     Scopped,
-    Ref
+    State,
+    Vars
 } from '@types';
 import {
+    DEFAULT_REFS_VARIABLE_NAME,
     NAMESPACE,
     ENTITY_REGEXP,
     STATE_VALUES,
@@ -30,6 +33,16 @@ const objectFromEntries = <T = unknown>(entries: [string, T][]): Record<string, 
 
 const hasDot = (entityId: string): boolean => entityId.includes('.');
 
+const refProp = 'ref';
+const refValue = 'value';
+const refToJson = 'toJSON';
+export const getRefId = (name: string, refVariable = false): string => {
+    if (refVariable) {
+        return `${DEFAULT_REFS_VARIABLE_NAME}.${name}`;
+    }
+    return `${refProp}.${name}`;
+};
+
 export function createScoppedFunctions(
     ha: HomeAssistant,
     throwErrors: boolean,
@@ -43,10 +56,8 @@ export function createScoppedFunctions(
 
     const entities = new Set<string>();
     const refs = new Map<string, Ref>();
-    const refProp = 'ref';
-    const refValue = 'value';
-    const refToJson = 'toJSON';
-    const getRefId = (name: string): string => `${refProp}.${name}`;
+    const refsVariables = new Map<string, unknown>();
+    
 
     const warnNonExistent = (type: string, entityId: string): void => {
         if(throwWarnings) {
@@ -372,7 +383,7 @@ export function createScoppedFunctions(
         cleanTracked(): void {
             entities.clear();
         },
-        ref(entityWatchCallback, name: string): Ref {
+        ref(entityWatchCallback: EntityWatchCallback, name: string): Ref {
 
             const entityId = getRefId(name);
             
@@ -437,6 +448,50 @@ export function createScoppedFunctions(
             } else {
                 refError(`${name} is not a ref or it has been unrefed already`);
             }
+        },
+        get refsVariables(): Map<string, unknown> {
+            return refsVariables;
+        },
+        buildRefsVariables(entityWatchCallback: EntityWatchCallback, variables: Vars): Vars {
+
+            Object.entries(variables).forEach((entry: [string, unknown]) => {
+                const [property, value] = entry;
+                if (!refsVariables.has(property)) {
+                    refsVariables.set(property, value);
+                }
+            });
+
+            return new Proxy(
+                variables,
+                {
+                    get(__target, property: string): unknown {
+                        const entityId = getRefId(property);
+                        trackClientSideEntity(entityId);
+                        return refsVariables.get(property);
+                    },
+                    set(__target, property: string, value: unknown): boolean {
+                        const entityId = getRefId(property);
+                        const oldValue = refsVariables.get(property);
+                        refsVariables.set(property, value);
+                        entityWatchCallback({
+                            event_type: EVENT.STATE_CHANGE_EVENT,
+                            data: {
+                                entity_id: entityId,
+                                old_state: {
+                                    state: JSON.stringify(oldValue)
+                                },
+                                new_state: {
+                                    state: JSON.stringify(value)
+                                }
+                            }
+                        });
+                        return true;
+                    }
+                }
+            );
+        },
+        cleanRefsVariables() {
+            refsVariables.clear();
         },
         clientSideProxy: new Proxy(
             {},

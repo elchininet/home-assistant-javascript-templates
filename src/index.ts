@@ -1,5 +1,6 @@
 import { getPromisableResult } from 'get-promisable-result';
 import {
+    Extras,
     HomeAssistant,
     Hass,
     HassConnection,
@@ -12,11 +13,12 @@ import {
     Vars
 } from '@types';
 import {
-    STRICT_MODE,
     CLIENT_SIDE_ENTITIES,
-    EVENT
+    DEFAULT_REFS_VARIABLE_NAME,
+    EVENT,
+    STRICT_MODE
 } from '@constants';
-import { createScoppedFunctions } from '@utilities';
+import { createScoppedFunctions, getRefId } from '@utilities';
 
 class HomeAssistantJavaScriptTemplatesRenderer {
 
@@ -28,11 +30,15 @@ class HomeAssistantJavaScriptTemplatesRenderer {
             throwErrors = false,
             throwWarnings = true,
             variables = {},
+            refs = {},
+            refsVariableName = DEFAULT_REFS_VARIABLE_NAME,
             autoReturn = true
         } = options;
         this._throwErrors = throwErrors;
         this._throwWarnings = throwWarnings;
         this._variables = variables;
+        this._refs = refs;
+        this._refsVariableName = refsVariableName;
         this._autoReturn = autoReturn;
         this._subscriptions = new Map<string, RenderingFunctionsMap>();
         this._clientSideEntitiesRegExp = new RegExp(
@@ -53,6 +59,8 @@ class HomeAssistantJavaScriptTemplatesRenderer {
     private _throwErrors: boolean;
     private _throwWarnings: boolean;
     private _variables: Vars;
+    private _refs: Vars;
+    private _refsVariableName: string;
     private _autoReturn: boolean;
     private _clientSideEntitiesRegExp: RegExp;
     private _subscriptions: SubscriptionsMap;
@@ -62,11 +70,11 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         this._subscriptions
             .get(id)
             .forEach((functions: Map<RenderingFunction, Vars>, template: string): void => {
-                functions.forEach((entraVariables: Vars, renderingFunction: RenderingFunction) => {
+                functions.forEach((extras: Extras, renderingFunction: RenderingFunction) => {
                     this.trackTemplate(
                         template,
                         renderingFunction,
-                        entraVariables
+                        extras
                     );
                 });
             });
@@ -120,12 +128,12 @@ class HomeAssistantJavaScriptTemplatesRenderer {
     private _storeTracked(
         template: string,
         renderingFunction: RenderingFunction,
-        extraVariables: Vars
+        extras: Extras
     ): void {
         this._scopped.tracked.forEach((id: string): void => {
-            const mapEntry: [RenderingFunction, Vars] = [
+            const mapEntry: [RenderingFunction, Extras] = [
                 renderingFunction,
-                extraVariables
+                extras
             ];
             if (this._subscriptions.has(id)) {
                 const renderingFunctionMap = this._subscriptions.get(id);
@@ -174,17 +182,23 @@ class HomeAssistantJavaScriptTemplatesRenderer {
 
     public renderTemplate(
         template: string,
-        extraVariables: Vars = {}
+        extras: Extras = {}
     ): any {
-
         try {
-
+            const {
+                variables: extraVariables = {},
+                refs: extraRefs = {}
+            } = extras;
             const variables = new Map(
                 Object.entries({
                     ...this._variables,
                     ...extraVariables
                 })
             );
+            const refs = {
+                ...this._refs,
+                ...extraRefs
+            };
             const trimmedTemplate = template
                 .trim()
                 .replace(
@@ -224,6 +238,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 'clientSide',
                 'ref',
                 'unref',
+                this._refsVariableName,
                 ...Array.from(variables.keys()),
                 `${STRICT_MODE} ${functionBody}`
             );
@@ -262,6 +277,10 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                     this._scopped,
                     this.cleanTracked.bind(this)
                 ),
+                this._scopped.buildRefsVariables.bind(
+                    this._scopped,
+                    this._entityWatchCallback.bind(this)
+                )(refs),
                 ...Array.from(variables.values()),
             );
 
@@ -281,14 +300,14 @@ class HomeAssistantJavaScriptTemplatesRenderer {
     public trackTemplate(
         template: string,
         renderingFunction: RenderingFunction,
-        extraVariables: Vars = {}
+        extras: Extras = {}
     ): () => void {
         this._scopped.cleanTracked();
-        const result = this.renderTemplate(template, extraVariables);
+        const result = this.renderTemplate(template, extras);
         this._storeTracked(
             template,
             renderingFunction,
-            extraVariables
+            extras
         );
         renderingFunction(result);
         return () => this._untrackTemplate(template, renderingFunction);
@@ -308,6 +327,21 @@ class HomeAssistantJavaScriptTemplatesRenderer {
 
     public set variables(value: Vars) {
         this._variables = value;
+    }
+
+    public get refs(): Vars {
+        return this._refs;
+    }
+
+    public set refs(value: Vars) {
+        const refs = this._scopped.refsVariables;
+        Array.from(refs.keys()).forEach((name: string): void => {
+            this.cleanTracked(
+                getRefId(name, true)
+            );
+        });
+        this._scopped.cleanRefsVariables();
+        this._refs = value;
     }
 
 }

@@ -40,29 +40,29 @@ describe('Templates with errors', () => {
         it('should return a SyntaxError during instantiation', () => {
             expect(
                 compiler.renderTemplate(syntaxErrorCode)
-            ).toBe(undefined);    
+            ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith(new TypeError(syntaxErrorMessage));    
         });
 
         it('should return a TypeError during the execution', () => {
             expect(
                 compiler.renderTemplate(typeErrorCode1)
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith(new TypeError(typeErrorMessage1));
         });
 
         it('should return a SyntaxError during the execution', () => {
             expect(
                 compiler.renderTemplate(typeErrorCode2)
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith(new SyntaxError(typeErrorMessage2));
             expect(
                 compiler.renderTemplate(typeErrorCode3)
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith(new SyntaxError(typeErrorMessage3));
             expect(
                 compiler.renderTemplate(typeErrorCode4)
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith(new SyntaxError(typeErrorMessage4));
         });
 
@@ -90,29 +90,29 @@ describe('Templates with errors', () => {
         it('should return a SyntaxError during instantiation', () => {
             expect(
                 compiler.renderTemplate(syntaxErrorCode)
-            ).toBe(undefined);    
+            ).toBeUndefined();    
             expect(consoleWarnMock).not.toHaveBeenCalled();
         });
 
         it('should return a TypeError during the execution', () => {
             expect(
                 compiler.renderTemplate(typeErrorCode1)
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).not.toHaveBeenCalled();
         });
 
         it('should return a SyntaxError during the execution', () => {
             expect(
                 compiler.renderTemplate(typeErrorCode2)
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).not.toHaveBeenCalled();
             expect(
                 compiler.renderTemplate(typeErrorCode3)
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).not.toHaveBeenCalled();
             expect(
                 compiler.renderTemplate(typeErrorCode4)
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).not.toHaveBeenCalled();
         });
 
@@ -203,7 +203,7 @@ describe('Templates with errors', () => {
         it('accesing a variable inside clientSide', () => {
             expect(
                 compiler.renderTemplate('return clientSide.non_existent')
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith('clientSideProxy should only be used to access these variables: panel_url, lang');
         });
 
@@ -229,7 +229,7 @@ describe('Templates with errors', () => {
         it('accesing a variable inside clientSide', () => {
             expect(
                 compiler.renderTemplate('return clientSide.non_existent')
-            ).toBe(undefined);
+            ).toBeUndefined();
             expect(consoleWarnMock).not.toHaveBeenCalled();
         });
 
