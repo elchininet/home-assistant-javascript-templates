@@ -25,3 +25,5 @@ export enum EVENT {
 }
 
 export const STRICT_MODE = '"use strict";';
+
+export const DEFAULT_REFS_VARIABLE_NAME = 'refs';
