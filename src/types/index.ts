@@ -1,4 +1,4 @@
-export type Vars = Record<string, unknown>;
+export type Vars = Record<string, any>;
 
 export interface Options {
     throwErrors?: boolean;
@@ -120,6 +120,7 @@ export type Ref = {
 };
 
 export type EntityWatchCallback = (event: SubscriberEvent) => void;
+export type CleanTracked = (refId: string) => void;
 
 export interface Extras {
     variables?: Vars;
@@ -161,9 +162,12 @@ export interface Scopped {
     // utilities
     tracked: Set<string>;
     ref(entityWatchCallback: EntityWatchCallback, name: string, value?: unknown): Ref;
-    unref(cleanTracked: (refId: string) => void, name: string): void;
-    refsVariables: Map<string, unknown>;
-    buildRefsVariables(entityWatchCallback: EntityWatchCallback, variables: Vars): Vars;
-    cleanRefsVariables(): void;
+    unref(cleanTracked: CleanTracked, name: string): void;
+    refs(
+        entityWatchCallback: EntityWatchCallback,
+        cleanTracked: CleanTracked,
+        vars?: Vars
+    ): Vars;
+    cleanRefs(cleanTracked: CleanTracked,): void;
     cleanTracked: () => void;
 }
