@@ -18,7 +18,7 @@ import {
     EVENT,
     STRICT_MODE
 } from '@constants';
-import { createScoppedFunctions, getRefId } from '@utilities';
+import { createScoppedFunctions } from '@utilities';
 
 class HomeAssistantJavaScriptTemplatesRenderer {
 
@@ -37,7 +37,6 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         this._throwErrors = throwErrors;
         this._throwWarnings = throwWarnings;
         this._variables = variables;
-        this._refs = refs;
         this._refsVariableName = refsVariableName;
         this._autoReturn = autoReturn;
         this._subscriptions = new Map<string, RenderingFunctionsMap>();
@@ -51,6 +50,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
             throwErrors,
             throwWarnings
         );
+        this.refs = refs;
         this._watchForPanelUrlChange();
         this._watchForEntitiesChange();
         this._watchForLanguageChange();
@@ -59,7 +59,6 @@ class HomeAssistantJavaScriptTemplatesRenderer {
     private _throwErrors: boolean;
     private _throwWarnings: boolean;
     private _variables: Vars;
-    private _refs: Vars;
     private _refsVariableName: string;
     private _autoReturn: boolean;
     private _clientSideEntitiesRegExp: RegExp;
@@ -195,10 +194,6 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                     ...extraVariables
                 })
             );
-            const refs = {
-                ...this._refs,
-                ...extraRefs
-            };
             const trimmedTemplate = template
                 .trim()
                 .replace(
@@ -277,10 +272,11 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                     this._scopped,
                     this.cleanTracked.bind(this)
                 ),
-                this._scopped.buildRefsVariables.bind(
-                    this._scopped,
-                    this._entityWatchCallback.bind(this)
-                )(refs),
+                this._scopped.refs(
+                    this._entityWatchCallback.bind(this),
+                    this.cleanTracked.bind(this),
+                    extraRefs
+                ),
                 ...Array.from(variables.values()),
             );
 
@@ -330,18 +326,21 @@ class HomeAssistantJavaScriptTemplatesRenderer {
     }
 
     public get refs(): Vars {
-        return this._refs;
+        return this._scopped.refs(
+            this._entityWatchCallback.bind(this),
+            this.cleanTracked.bind(this)
+        );
     }
 
     public set refs(value: Vars) {
-        const refs = this._scopped.refsVariables;
-        Array.from(refs.keys()).forEach((name: string): void => {
-            this.cleanTracked(
-                getRefId(name, true)
-            );
-        });
-        this._scopped.cleanRefsVariables();
-        this._refs = value;
+        this._scopped.cleanRefs(
+            this.cleanTracked.bind(this)
+        );
+        this._scopped.refs(
+            this._entityWatchCallback.bind(this),
+            this.cleanTracked.bind(this),
+            value
+        );
     }
 
 }

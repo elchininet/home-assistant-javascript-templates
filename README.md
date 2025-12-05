@@ -133,7 +133,7 @@ renderTemplate(
 This method renders a `JavaScript` template and return its result. It needs a string as a parameter. Inside this string you can use [several objects and methods](#objects-and-methods-available-in-the-templates). It returns whatever the `JavaScript` code returns, because of that it is typed as `any`.
 
 >[!NOTE]
->This method accepts an optional second parameter with an object. In this object it is possible to send a `variables` object, containing extra variables that will be appended to [the global variables](#variables) and a `refs` object, containing extra [refs variables](#refs-variables). The extra `refs` variables will be appended to the global ones, making them available even in templates that weere declared before the call to this method. You need to be aware, that if a ref variable already exists, sending it again in this method will not override it because it will be ignored.
+>This method accepts an optional second parameter with an object. In this object it is possible to send a `variables` object, containing extra variables that will be appended to [the global variables](#variables) and a `refs` object, containing extra [refs variables](#refs-variables). The extra `refs` variables will be appended to the global ones, making them available even in templates that weere declared before the call to this method. You need to be aware, that if a ref variable already exists, sending it again in this method will override it.
 
 #### trackTemplate
 
@@ -155,7 +155,7 @@ If some entity was not reached in the template code because it was inside a cond
 This method will return a function. When this function is executed, the tracking of that template/rendering function is removed and subsecuent changes in the entities of the template will not call the `renderingFunction`.
 
 >[!NOTE]
->This method accepts an optional third parameter with an object. In this object it is possible to send a `variables` object, containing extra variables that will be appended to [the global variables](#variables) and a `refs` object, containing extra [refs variables](#refs-variables). The extra `refs` variables will be appended to the global ones, making them available even in templates that weere declared before the call to this method. You need to be aware, that if a ref variable already exists, sending it again in this method will not override it because it will be ignored.
+>This method accepts an optional third parameter with an object. In this object it is possible to send a `variables` object, containing extra variables that will be appended to [the global variables](#variables) and a `refs` object, containing extra [refs variables](#refs-variables). The extra `refs` variables will be appended to the global ones, making them available even in templates that weere declared before the call to this method. You need to be aware, that if a ref variable already exists, sending it again in this method will override it.
 
 #### cleanTracked
 
@@ -508,7 +508,7 @@ haJsTemplates.getRenderer()
 
 ### Refs variables
 
-`Refs` refers to "reactive variables". If you use a reactive variable in a template, this template will get re-render if the value of that reactive variable changes. To access reactive variables in a template you just need to access the `refs` object. The name of this object can be changed through the `refsVariableName` option of the [HomeAssistantJavaScriptTemplates class](#homeassistantjavascripttemplates-class).
+`Refs` refers to "reactive variables", for each variable inside `refs`, [a ref object](#ref-and-unref) is registered behind the scenes. If you use a reactive variable in a template, this template will get re-render if the value of that reactive variable changes. To access reactive variables in a template you just need to access the `refs` object. The name of this object can be changed through the `refsVariableName` option of the [HomeAssistantJavaScriptTemplates class](#homeassistantjavascripttemplates-class).
 
 #### Declaring a global reactive variable
 
