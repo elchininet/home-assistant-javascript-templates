@@ -58,7 +58,7 @@ describe('promise instance', () => {
             renderingFunction
         );
         expect(renderingFunction).toHaveBeenNthCalledWith(1, "no");
-        location.assign('/path/test');
+        window.location.pathname = '/path/test';
         window.dispatchEvent(
             new CustomEvent(EVENT.LOCATION_CHANGED)
         );
@@ -78,7 +78,7 @@ describe('promise instance', () => {
         expect(renderingFunction).toHaveBeenNthCalledWith(1, "no");
         window.dispatchEvent(new Event(EVENT.POPSTATE));
         expect(renderingFunction).toHaveBeenNthCalledWith(2, "no");
-        location.assign('/path/test');
+        window.location.pathname = '/path/test';
         window.dispatchEvent(new Event(EVENT.POPSTATE));
         expect(renderingFunction).toHaveBeenNthCalledWith(3, "yes");
     });

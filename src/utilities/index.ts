@@ -484,7 +484,7 @@ export function createScoppedFunctions(
                     }
                     switch (property) {
                         case CLIENT_SIDE_ENTITIES.PANEL_URL:
-                            return location.pathname;
+                            return window.location.pathname;
                         case CLIENT_SIDE_ENTITIES.LANG:
                             return ha.hass.language;
                     }

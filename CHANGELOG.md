@@ -1,5 +1,9 @@
 # Changelog
 
+## [6.0.1] - 2026-03-08
+
+- Take the `location` used for `panel_url` specifically from the `window` object instead of from `global`
+
 ## [6.0.0] - 2025-11-26
 
 - Add support for refs variables (an object containing variables that by default are reactive).
