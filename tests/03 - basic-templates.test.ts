@@ -863,7 +863,7 @@ describe('Basic templates tests', () => {
         });
 
         it('panel_url should return the current location', () => {
-            location.assign('/path/test');
+            window.location.pathname = '/path/test';
             expect(compiler.renderTemplate('panel_url')).toBe('/path/test'); 
         });
 
