@@ -48,6 +48,7 @@ describe('promise instance', () => {
                 ...HOME_ASSISTANT_ELEMENT,
                 hass: {
                     ...HASS,
+                    // @ts-ignore
                     areas: undefined
                 }
             });
@@ -61,6 +62,7 @@ describe('promise instance', () => {
                 ...HOME_ASSISTANT_ELEMENT,
                 hass: {
                     ...HASS,
+                    // @ts-ignore
                     devices: undefined
                 }
             });
@@ -74,6 +76,7 @@ describe('promise instance', () => {
                 ...HOME_ASSISTANT_ELEMENT,
                 hass: {
                     ...HASS,
+                    // @ts-ignore
                     entities: undefined
                 }
             });
@@ -87,6 +90,7 @@ describe('promise instance', () => {
                 ...HOME_ASSISTANT_ELEMENT,
                 hass: {
                     ...HASS,
+                    // @ts-ignore
                     states: undefined
                 }
             });
@@ -100,6 +104,7 @@ describe('promise instance', () => {
                 ...HOME_ASSISTANT_ELEMENT,
                 hass: {
                     ...HASS,
+                    // @ts-ignore
                     user: undefined
                 }
             });

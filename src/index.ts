@@ -56,18 +56,18 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         this._watchForLanguageChange();
     }
 
-    private _throwErrors: boolean;
-    private _throwWarnings: boolean;
-    private _variables: Vars;
-    private _refsVariableName: string;
-    private _autoReturn: boolean;
-    private _clientSideEntitiesRegExp: RegExp;
-    private _subscriptions: SubscriptionsMap;
-    private _scopped: Scopped;
+    private _throwErrors!: boolean;
+    private _throwWarnings!: boolean;
+    private _variables!: Vars;
+    private _refsVariableName!: string;
+    private _autoReturn!: boolean;
+    private _clientSideEntitiesRegExp!: RegExp;
+    private _subscriptions!: SubscriptionsMap;
+    private _scopped!: Scopped;
 
     private _executeRenderingFunctions(id: string): void {
         this._subscriptions
-            .get(id)
+            .get(id)!
             .forEach((functions: Map<RenderingFunction, Vars>, template: string): void => {
                 functions.forEach((extras: Extras, renderingFunction: RenderingFunction) => {
                     this.trackTemplate(
@@ -135,9 +135,9 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 extras
             ];
             if (this._subscriptions.has(id)) {
-                const renderingFunctionMap = this._subscriptions.get(id);
+                const renderingFunctionMap = this._subscriptions.get(id)!;
                 if (renderingFunctionMap.has(template)) {
-                    const functions = renderingFunctionMap.get(template);
+                    const functions = renderingFunctionMap.get(template)!;
                     if (!functions.has(renderingFunction)) {
                         functions.set(...mapEntry);
                     }
@@ -167,7 +167,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
             id: string
         ): void => {
             if (renderingFunctionMap.has(template)) {
-                const functions = renderingFunctionMap.get(template);
+                const functions = renderingFunctionMap.get(template)!;
                 functions.delete(renderingFunction);
                 if (functions.size === 0) {
                     renderingFunctionMap.delete(template);

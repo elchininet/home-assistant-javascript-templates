@@ -131,7 +131,7 @@ export interface Scopped {
     hass: Hass;
     // states
     states: ProxiedStates;
-    state_translated: (entityId: string) => string;
+    state_translated: (entityId: string) => string | undefined;
     is_state: (entityId: string, value: string | string[]) => boolean;
     state_attr: (entityId: string, attr: string) => unknown | undefined;
     is_state_attr: (entityId: string, attr: string, value: unknown) => boolean;
