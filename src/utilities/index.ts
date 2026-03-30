@@ -126,7 +126,7 @@ export function createScoppedFunctions(
                 return __target[prop];
             }
         }
-    );;
+    );
 
     return {
         get hass() {
@@ -283,9 +283,9 @@ export function createScoppedFunctions(
             if (hasDot(entityIdOrDeviceId)) {
                 trackEntity(entityIdOrDeviceId);
                 const id = ha.hass.entities[entityIdOrDeviceId]?.device_id;
-                return ha.hass.devices[id]?.name;
+                return ha.hass.devices[id]?.name ?? undefined;
             }
-            return ha.hass.devices[entityIdOrDeviceId]?.name;
+            return ha.hass.devices[entityIdOrDeviceId]?.name ?? undefined;
         },
         
         // ---------------------- Areas
@@ -296,23 +296,23 @@ export function createScoppedFunctions(
         },
         area_id(lookupValue: string): string | undefined {
             if (lookupValue in ha.hass.devices) {
-                return this.device_attr(lookupValue, ATTRIBUTES.AREA_ID);
+                return this.device_attr(lookupValue, ATTRIBUTES.AREA_ID) as string | undefined;
             }
             const deviceId = ha.hass.entities[lookupValue]?.device_id;
             if (deviceId) {
-                return this.device_attr(deviceId, ATTRIBUTES.AREA_ID);
+                return this.device_attr(deviceId, ATTRIBUTES.AREA_ID) as string | undefined;;
             }
             const area = areasEntries().find(([, area]) => area.name === lookupValue);
             return area?.[1]?.area_id;
         },
         area_name(lookupValue: string): string | undefined {
-            let areaId: string;
+            let areaId: string | undefined;
             if (lookupValue in ha.hass.devices) {
-                areaId = this.device_attr(lookupValue, ATTRIBUTES.AREA_ID);
+                areaId = this.device_attr(lookupValue, ATTRIBUTES.AREA_ID) as string | undefined;
             }
             const deviceId = ha.hass.entities[lookupValue]?.device_id;
             if (deviceId) {
-                areaId = this.device_attr(deviceId, ATTRIBUTES.AREA_ID);
+                areaId = this.device_attr(deviceId, ATTRIBUTES.AREA_ID) as string | undefined;
             }
             const area = areasEntries().find(([, area]) => {
                 return (
@@ -381,7 +381,7 @@ export function createScoppedFunctions(
             const entityId = getRefId(name);
             
             if (refs.has(name)) {
-                return refs.get(name);
+                return refs.get(name) as Ref;
             }
 
             const ref = new Proxy(

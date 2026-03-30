@@ -2,19 +2,20 @@
     "compilerOptions": {
       "outDir": "./dist/",
       "module": "esnext",
-      "target": "ES5",
-      "lib": ["DOM", "ES2017"],
-      "moduleResolution": "node",
+      "target": "es6",
+      "lib": ["dom", "es2017"],
+      "moduleResolution": "bundler",
       "esModuleInterop": true,
       "resolveJsonModule": true,
-      "declaration": true,
+      "declaration": false,
       "noImplicitAny": true,
       "removeComments": true,
-      "baseUrl": "./src",
+      "types": ["node", "jest"],
+      "rootDir": "./src",
       "paths": {
-        "@types": ["types"],
-        "@constants": ["constants"],
-        "@utilities": ["utilities"]
+        "@types": ["./src/types"],
+        "@constants": ["./src/constants"],
+        "@utilities": ["./src/utilities"]
       }
     },
     "include": ["src/**/*.ts"],

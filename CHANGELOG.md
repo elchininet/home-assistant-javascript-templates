@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.0.0] - 2026-03-31
+
+- Migrated to `TypeScript 6`, so the target of the library is now `es6` instead of the previous `es5`
+- Some refactors have been needed to make the project compatible with `TypeScript 6` but they should not affect the functionality of the plugin
+
 ## [6.0.1] - 2026-03-08
 
 - Take the `location` used for `panel_url` specifically from the `window` object instead of from `global`
