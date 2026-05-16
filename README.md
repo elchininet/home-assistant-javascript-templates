@@ -133,7 +133,7 @@ renderTemplate(
 This method renders a `JavaScript` template and return its result. It needs a string as a parameter. Inside this string you can use [several objects and methods](#objects-and-methods-available-in-the-templates). It returns whatever the `JavaScript` code returns, because of that it is typed as `any`.
 
 >[!NOTE]
->This method accepts an optional second parameter with an object. In this object it is possible to send a `variables` object, containing extra variables that will be appended to [the global variables](#variables) and a `refs` object, containing extra [refs variables](#refs-variables). The extra `refs` variables will be appended to the global ones, making them available even in templates that weere declared before the call to this method. You need to be aware, that if a ref variable already exists, sending it again in this method will override it.
+>This method accepts an optional second parameter with an object. In this object it is possible to send a `variables` object, containing extra variables that will be appended to [the global variables](#variables) and a `refs` object, containing extra [refs variables](#refs-variables). The extra `refs` variables will be appended to the global ones, making them available even in templates that were declared before the call to this method. You need to be aware, that if a ref variable already exists, sending it again in this method will override it.
 
 #### trackTemplate
 
@@ -150,12 +150,12 @@ trackTemplate(
 
 This method registers a template tracking. It executes the `renderingFunction` sent to the method with the result of the rendered `template` and will execute `renderingFunction` with an updated result of the rendered `template` every time that the entities used in the template update. You can use [several objects and methods](#objects-and-methods-available-in-the-templates) inside the `template` string.
 
-If some entity was not reached in the template code because it was inside a condition that never met, then it will not be tracked, so if its state changes it will not trigger the `renderingFunction` again. Only those entities that were called during the rendering using [states](#states), [state_translated](#state_translated), [is_state](#is_state), [state_attr](#state_attr), [is_state_attr](#is_state_attr), [has_value](#has_value) [entities](#entities), [entity_prop](#entity_prop), [is_entity_prop](#is_entity_prop) or [device_id](#device_id), [device_attr](#device_attr), [is_device_attr](#is_device_attr), [device_id](#device_id), [device_name](#device_name), [area_id](#area_id), and [area_name](#area_name) will be included.
+If some entity was not reached in the template code because it was inside a condition that never met, then it will not be tracked, so if its state changes it will not trigger the `renderingFunction` again. Only those entities that were called during the rendering using [states](#states), [state_translated](#state_translated), [is_state](#is_state), [state_attr](#state_attr), [state_attr_translated](#state_attr_translated), [is_state_attr](#is_state_attr), [has_value](#has_value) [entities](#entities), [entity_prop](#entity_prop), [is_entity_prop](#is_entity_prop) or [device_id](#device_id), [device_attr](#device_attr), [is_device_attr](#is_device_attr), [device_id](#device_id), [device_name](#device_name), [area_id](#area_id), and [area_name](#area_name) will be included.
 
 This method will return a function. When this function is executed, the tracking of that template/rendering function is removed and subsecuent changes in the entities of the template will not call the `renderingFunction`.
 
 >[!NOTE]
->This method accepts an optional third parameter with an object. In this object it is possible to send a `variables` object, containing extra variables that will be appended to [the global variables](#variables) and a `refs` object, containing extra [refs variables](#refs-variables). The extra `refs` variables will be appended to the global ones, making them available even in templates that weere declared before the call to this method. You need to be aware, that if a ref variable already exists, sending it again in this method will override it.
+>This method accepts an optional third parameter with an object. In this object it is possible to send a `variables` object, containing extra variables that will be appended to [the global variables](#variables) and a `refs` object, containing extra [refs variables](#refs-variables). The extra `refs` variables will be appended to the global ones, making them available even in templates that were declared before the call to this method. You need to be aware, that if a ref variable already exists, sending it again in this method will override it.
 
 #### cleanTracked
 
@@ -202,7 +202,7 @@ states.sensor // returns an object containing all the entities states of the 'se
 
 #### state_translated
 
-Method to return a translated state of an entity using a language that is currently configured in the general settings. If the entity id doesn‘t exist it returns `undefined`.
+Method to return a translated state of an entity using the language that is currently configured in the general settings. If the entity id doesn‘t exist it returns `undefined`.
 
 ```javascript
 states('device_tracker.paulus'); // not_home
