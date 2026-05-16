@@ -285,6 +285,25 @@ describe('Basic templates tests', () => {
 
     });
 
+    describe('state_attr_translated', () => {
+
+        describe.each(
+            Object.keys(HASS.states)
+        )('for entity id %s', (entityId: string) => {
+            it('should send the proper state and attribute to the formatEntityAttributeValue function', () => {
+                compiler.renderTemplate(`state_attr_translated("${entityId}", "test")`);
+                expect(HASS.formatEntityAttributeValue).toHaveBeenNthCalledWith(1, HASS.states[entityId], "test");
+            });
+        });
+
+        it('should return undefined if the entity id doesn\'t exist', () => {
+            const result = compiler.renderTemplate('state_attr_translated("sensor.non_existent", "test")');
+            expect(HASS.formatEntityAttributeValue).not.toHaveBeenCalled();
+            expect(result).toBeUndefined();
+        });
+
+    });
+
     describe('is_state_attr', () => {
 
         it('is_state_attr should return true if the attribute has the proper value', () => {

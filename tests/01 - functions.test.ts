@@ -16,8 +16,10 @@ describe('Function tests', () => {
 
     const methods = [
         'states',
+        'state_translated',
         'is_state',
         'state_attr',
+        'state_attr_translated',
         'is_state_attr',
         'has_value',
         'entities',
@@ -27,6 +29,7 @@ describe('Function tests', () => {
         'device_attr',
         'is_device_attr',
         'device_id',
+        'device_name',
         'areas',
         'area_id',
         'area_name',
@@ -34,11 +37,26 @@ describe('Function tests', () => {
         'area_devices'
     ];
 
+    const propertiesMap = new Map([
+        ['user_name', 'string'],
+        ['user_is_admin', 'boolean'],
+        ['user_is_owner', 'boolean'],
+        ['user_agent', 'string']
+    ]);
+
     methods.forEach((method: string): void => {
         it(`${method} should be a function`, () => {
             expect(
                 compiler.renderTemplate(method)
             ).toBeInstanceOf(Function);    
+        });
+    });
+
+    propertiesMap.forEach((type, property) => {
+        it(`${property} should be of type ${type}`, () => {
+            expect(
+                compiler.renderTemplate(`typeof ${property}`)
+            ).toBe(type);    
         });
     });
 
