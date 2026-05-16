@@ -185,6 +185,13 @@ export function createScoppedFunctions(
             trackEntity(entityId);
             return ha.hass.states[entityId]?.attributes?.[attr];
         },
+        state_attr_translated(entityId: string, attr: string): string | undefined {
+            trackEntity(entityId);
+            if (ha.hass.states[entityId]) {
+                return ha.hass.formatEntityAttributeValue(ha.hass.states[entityId], attr);
+            }
+            return undefined;
+        },
         is_state_attr(entityId: string, attr: string, value: unknown): boolean {
             return this.state_attr(entityId, attr) === value;
         },

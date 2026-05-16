@@ -220,10 +220,18 @@ is_state('device_tracker.paulus', ['not_home', 'work']) // check for a list of v
 
 #### state_attr
 
-Method to return the value of the state attribute or `undefined` if it doesn’t exist.
+Method to return the value of a state attribute of an entity or `undefined` if the entity doesn’t exist.
 
 ```javascript
 state_attr('device_tracker.paulus', 'battery')
+```
+
+#### state_attr_translated
+
+Method to return the translated value of a state attribute of an entity or `undefined` if the entity doesn’t exist.
+
+```javascript
+state_attr_translated('device_tracker.paulus', 'battery')
 ```
 
 #### is_state_attr

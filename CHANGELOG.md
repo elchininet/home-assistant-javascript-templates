@@ -1,5 +1,9 @@
 # Changelog
 
+## [7.1.0] - 2026-05-16
+
+- Add a new method `state_attr_translated` to return the translated value of a state attribute of an entity
+
 ## [7.0.0] - 2026-03-31
 
 - Migrated to `TypeScript 6`, so the target of the library is now `es6` instead of the previous `es5`

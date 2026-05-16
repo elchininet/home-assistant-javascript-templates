@@ -165,7 +165,8 @@ export const HASS: Hass = {
         name: 'ElChiniNet'
     },
     language: 'en',
-    formatEntityState: jest.fn()
+    formatEntityState: jest.fn(),
+    formatEntityAttributeValue: jest.fn()
 };
 
 export const HOME_ASSISTANT_ELEMENT = {
