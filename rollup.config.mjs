@@ -1,4 +1,4 @@
-import packageJson from './package.json';
+import packageJson from './package.json' with { type: 'json' };
 import ts from '@rollup/plugin-typescript';
 import { dts } from 'rollup-plugin-dts';
 import tsConfigPaths from 'rollup-plugin-tsconfig-paths';
