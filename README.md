@@ -39,8 +39,10 @@ const haJsTemplates = new HomeAssistantJavaScriptTemplates(
 );
 
 haJsTemplates.getRenderer()
-    then((renderer) => {
+    then(async (renderer) => {
         renderer.renderTemplate('... template string ...');
+        // Call init to start the subscriptions for changes
+        await renderer.init();
         renderer.trackTemplate('... template string ...', () => {
             // execute this function every time that en entity used in the template changes
         });
@@ -57,8 +59,10 @@ const haJsTemplates = new HomeAssistantJavaScriptTemplates(
 );
 
 haJsTemplates.getRenderer()
-    then((renderer) => {
+    then(async (renderer) => {
         renderer.renderTemplate('... template string ...');
+        // Call init to start the subscriptions for changes
+        await renderer.init();
         renderer.trackTemplate('... template string ...', () => {
             // execute this function every time that en entity used in the template changes
         });
@@ -118,6 +122,14 @@ This property gets and sets the global refs variables that will be available in 
 
 ### Methods
 
+#### init
+
+Initializes the subscriptions for changes. If this method is not called, calls to [trackTemplate](#tracktemplate) will execute the `renderingFunction` only when it is called and not during the changes. This method returns a promise that will be resolved when all the subscriptions have been created correctly. Until this promise is not resolved you should not call [stop](#stop) or you will get an error.
+
+#### stop
+
+Stops the subscriptions for changes. If this method is called, any tracking set with [trackTemplate](#tracktemplate) will stop executing its `renderingFunction` when there are changes.
+
 #### renderTemplate
 
 ```typescript
@@ -148,9 +160,9 @@ trackTemplate(
 ): () => void
 ```
 
-This method registers a template tracking. It executes the `renderingFunction` sent to the method with the result of the rendered `template` and will execute `renderingFunction` with an updated result of the rendered `template` every time that the entities used in the template update. You can use [several objects and methods](#objects-and-methods-available-in-the-templates) inside the `template` string.
+This method registers a template tracking. It executes the `renderingFunction` sent to the method with the result of the rendered `template`. If the [init](#init) method was called before, it will execute the `renderingFunction` with an updated result of the rendered `template` every time that the `panel_url`, the `lang` or the entities used in the template update. You can use [several objects and methods](#objects-and-methods-available-in-the-templates) inside the `template` string.
 
-If some entity was not reached in the template code because it was inside a condition that never met, then it will not be tracked, so if its state changes it will not trigger the `renderingFunction` again. Only those entities that were called during the rendering using [states](#states), [state_translated](#state_translated), [is_state](#is_state), [state_attr](#state_attr), [state_attr_translated](#state_attr_translated), [is_state_attr](#is_state_attr), [has_value](#has_value) [entities](#entities), [entity_prop](#entity_prop), [is_entity_prop](#is_entity_prop) or [device_id](#device_id), [device_attr](#device_attr), [is_device_attr](#is_device_attr), [device_id](#device_id), [device_name](#device_name), [area_id](#area_id), and [area_name](#area_name) will be included.
+If some entity was not reached in the template code because it was inside a condition that never met, then it will not be tracked, so if its state changes it will not trigger the `renderingFunction` again even if `init` was called before. Only those entities that were called during the rendering using [states](#states), [state_translated](#state_translated), [is_state](#is_state), [state_attr](#state_attr), [state_attr_translated](#state_attr_translated), [is_state_attr](#is_state_attr), [has_value](#has_value) [entities](#entities), [entity_prop](#entity_prop), [is_entity_prop](#is_entity_prop) or [device_id](#device_id), [device_attr](#device_attr), [is_device_attr](#is_device_attr), [device_id](#device_id), [device_name](#device_name), [area_id](#area_id), and [area_name](#area_name) will be included.
 
 This method will return a function. When this function is executed, the tracking of that template/rendering function is removed and subsecuent changes in the entities of the template will not call the `renderingFunction`.
 
@@ -163,7 +175,7 @@ This method will return a function. When this function is executed, the tracking
 cleanTracked(entityId?: string): void
 ```
 
-This method will clean the template tracking for a specific entity or will clean all the template trackings if no entity id is specified.
+This method will clean the template tracking for a specific entity or will clean all the template trackings if no entity id is specified. It will not stop the subscriptions, so the watchers for the subscriptions will still be running. Call [stop](#stop) to stop the subscriptions.
 
 >[!NOTE]
 >With this method, it is possible to clean `refs` variables. To do so, you just need to send as the name of the entity the value of `refsVariableName` (by default `refs`) and the name of the variable separated by a dot, e.g `refs.my_variable`.
@@ -493,7 +505,9 @@ const haJsTemplates = new HomeAssistantJavaScriptTemplates(
 );
 
 haJsTemplates.getRenderer()
-    .then((renderer) => {
+    .then(async (renderer) => {
+        // Start the subscriptions
+        await renderer.init();
         const element = document.querySelector('#my-element');
         const untrack = renderer.trackTemplate(
             `
@@ -535,10 +549,14 @@ const haJsTemplates = new HomeAssistantJavaScriptTemplates(
 
 ```javascript
 haJsTemplates.getRenderer()
-    .then((renderer) => {
+    .then(async (renderer) => {
+
         // Render the initial value
         const result = renderer.renderTemplate('refs.MY_VARIABLE');
         console.log(result); // REACTIVE
+
+        // Start the subscriptions
+        await renderer.init();
         
         // Track changes in a template with a reactive variable
         const untrack = renderer.trackTemplate(

@@ -3,7 +3,7 @@ import { HOME_ASSISTANT_ELEMENT } from './constants';
 
 describe('Custom variables', () => {
 
-    let compiler: HomeAssistantJavaScriptTemplatesRenderer;
+    let renderer: HomeAssistantJavaScriptTemplatesRenderer;
 
     const variables = {
         MY_STRING: 'CUSTOM_VALUE',
@@ -20,21 +20,26 @@ describe('Custom variables', () => {
     beforeEach(async () => {
         window.hassConnection = Promise.resolve({
             conn: {
-                subscribeMessage: jest.fn()
+                subscribeMessage: jest.fn(
+                    () => Promise.resolve(
+                        jest.fn()
+                    )
+                )
             }
-        });
-        
-        compiler = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT, { variables }).getRenderer();
+        });        
+        renderer = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT, { variables }).getRenderer();
+        renderer.init();
+        await new Promise(process.nextTick);
     });
 
     it('strig variable should be retrieved correctly', () => {
         const renderingFunction = jest.fn();
         expect(
-            compiler.renderTemplate('return MY_STRING + "_modified"')
+            renderer.renderTemplate('return MY_STRING + "_modified"')
         ).toBe(
             `${variables.MY_STRING}_modified`
         );
-        compiler.trackTemplate(
+        renderer.trackTemplate(
             `
                 if (is_state("light.woonkamer_lamp", "off")) {
                     return MY_STRING + "_modified";
@@ -51,9 +56,9 @@ describe('Custom variables', () => {
     it('number variable should be retrieved cocrrectly', () => {
         const renderingFunction = jest.fn();
         expect(
-            compiler.renderTemplate('return MY_NUMBER / 2')
+            renderer.renderTemplate('return MY_NUMBER / 2')
         ).toBe(50);
-        compiler.trackTemplate(
+        renderer.trackTemplate(
             `
                 if (is_state("light.woonkamer_lamp", "off")) {
                     return MY_NUMBER / 2;
@@ -67,13 +72,13 @@ describe('Custom variables', () => {
 
     it('regular expression variable should be retrieved cocrrectly', () => {
         expect(
-            compiler.renderTemplate('MY_REGEXP.test("word_100")')
+            renderer.renderTemplate('MY_REGEXP.test("word_100")')
         ).toBe(false);
         expect(
-            compiler.renderTemplate('return MY_REGEXP.test("correct-word")')
+            renderer.renderTemplate('return MY_REGEXP.test("correct-word")')
         ).toBe(true);
         expect(
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 const str = "100-words";
                 const replaced = str.replace(MY_REGEXP, "$2-$1");
                 return replaced;
@@ -83,7 +88,7 @@ describe('Custom variables', () => {
 
     it('object variable should be retrieved cocrrectly', () => {
         expect(
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 if ('prop' in MY_OBJECT) {
                     return MY_OBJECT.prop;
                 }
@@ -94,25 +99,25 @@ describe('Custom variables', () => {
 
     it('function variable should be retrieved cocrrectly', () => {
         expect(
-            compiler.renderTemplate('MY_FUNCTION(5)')
+            renderer.renderTemplate('MY_FUNCTION(5)')
         ).toBe(10);
         expect(
-            compiler.renderTemplate('MY_FUNCTION("STRING")')
+            renderer.renderTemplate('MY_FUNCTION("STRING")')
         ).toBe('STRING_DOUBLE');
     });
 
     it('retrieving the variables properties should return the same object sent in the HomeAssistantJavaScriptTemplates instance', () => {
-        expect(compiler.variables).toEqual(variables);
+        expect(renderer.variables).toEqual(variables);
     });
 
     it('setting variables should override the global variables', () => {
         const overrideVariables = {
             ONLY_ONE: 'OVERRIDE'
         };
-        compiler.variables = overrideVariables;
-        expect(compiler.variables).not.toMatchObject(variables);
-        expect(compiler.variables).toEqual(overrideVariables);
-        expect(compiler.renderTemplate('ONLY_ONE')).toBe('OVERRIDE');
+        renderer.variables = overrideVariables;
+        expect(renderer.variables).not.toMatchObject(variables);
+        expect(renderer.variables).toEqual(overrideVariables);
+        expect(renderer.renderTemplate('ONLY_ONE')).toBe('OVERRIDE');
     });
 
     it('variables sent in the methods should be available in the templates', () => {
@@ -122,7 +127,7 @@ describe('Custom variables', () => {
         const extraVariables = {
             EXTRA_VAR: 'CUSTOM_EXTRA_VALUE'
         };
-        const result = compiler.renderTemplate(
+        const result = renderer.renderTemplate(
             'return MY_STRING + "/" + EXTRA_VAR',
             {
                 variables: extraVariables
@@ -130,7 +135,7 @@ describe('Custom variables', () => {
         );
         expect(result).toBe('CUSTOM_VALUE/CUSTOM_EXTRA_VALUE');
 
-        compiler.trackTemplate(
+        renderer.trackTemplate(
             `
                 if (is_state("light.woonkamer_lamp", "off")) {
                     return MY_STRING + "_modified_" + EXTRA_VAR;

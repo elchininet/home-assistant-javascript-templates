@@ -3,17 +3,23 @@ import { HOME_ASSISTANT_ELEMENT, HASS } from './constants';
 
 describe('Basic templates tests', () => {
 
-    let compiler: HomeAssistantJavaScriptTemplatesRenderer;
+    let renderer: HomeAssistantJavaScriptTemplatesRenderer;
     let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>;
     
     beforeEach(async () => {
         window.hassConnection = Promise.resolve({
             conn: {
-                subscribeMessage: jest.fn()
+                subscribeMessage: jest.fn(
+                    () => Promise.resolve(
+                        jest.fn()
+                    )
+                )
             }
         });
         consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
-        compiler = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
+        renderer = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
+        renderer.init();
+        await new Promise(process.nextTick);
     });
 
     afterEach(() => {
@@ -24,7 +30,7 @@ describe('Basic templates tests', () => {
     describe('hass object', () => {
         it('hass object should be the same as the hass object inside the home assistant HTMLElement ', () => {
             expect(
-                compiler.renderTemplate('hass')
+                renderer.renderTemplate('hass')
             ).toBe(
                 HASS
             );
@@ -35,11 +41,11 @@ describe('Basic templates tests', () => {
 
         it('states object and states method should return undefined if the device id doesn\'t exist', () => {
             expect(
-                compiler.renderTemplate('states["sensor.non_existent"]')
+                renderer.renderTemplate('states["sensor.non_existent"]')
             ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
             expect(
-                compiler.renderTemplate('states("light.non_existent")')
+                renderer.renderTemplate('states("light.non_existent")')
             ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity light.non_existent used in a JavaScript template doesn\'t exist');
         });
@@ -48,19 +54,19 @@ describe('Basic templates tests', () => {
 
             it('states method with with_unit as false should not return the units', () => {
                 expect(
-                    compiler.renderTemplate('states("sensor.slaapkamer_temperatuur", { with_unit: false })')
+                    renderer.renderTemplate('states("sensor.slaapkamer_temperatuur", { with_unit: false })')
                 ).toBe('17.456');
             });
 
             it('states method with with_unit as true should return the units', () => {
                 expect(
-                    compiler.renderTemplate('states("sensor.slaapkamer_temperatuur", { with_unit: true })')
+                    renderer.renderTemplate('states("sensor.slaapkamer_temperatuur", { with_unit: true })')
                 ).toBe('17.456 ºC');
             });
 
             it('if there are no units states method with with_unit as true should return the state value without any units', () => {
                 expect(
-                    compiler.renderTemplate('states("light.woonkamer_lamp", { with_unit: true })')
+                    renderer.renderTemplate('states("light.woonkamer_lamp", { with_unit: true })')
                 ).toBe('off');
             });
 
@@ -70,43 +76,43 @@ describe('Basic templates tests', () => {
 
             it('states method with rounded in true should round the number to 1 decimal', () => {
                 expect(
-                    compiler.renderTemplate('states("sensor.slaapkamer_temperatuur", { rounded: true })')
+                    renderer.renderTemplate('states("sensor.slaapkamer_temperatuur", { rounded: true })')
                 ).toBe('17.5');
             });
 
             it('states method with rounded in false should not round the number', () => {
                 expect(
-                    compiler.renderTemplate('states("sensor.slaapkamer_temperatuur", { rounded: false })')
+                    renderer.renderTemplate('states("sensor.slaapkamer_temperatuur", { rounded: false })')
                 ).toBe('17.456');
             });
 
             it('states method with rounded as a number should round the number to the number of decimals', () => {
                 expect(
-                    compiler.renderTemplate('states("sensor.slaapkamer_temperatuur", { rounded: 2 })')
+                    renderer.renderTemplate('states("sensor.slaapkamer_temperatuur", { rounded: 2 })')
                 ).toBe('17.46');
             });
 
             it('states method with rounded as 0 should round the number without decimals', () => {
                 expect(
-                    compiler.renderTemplate('states("sensor.slaapkamer_temperatuur", { rounded: 0 })')
+                    renderer.renderTemplate('states("sensor.slaapkamer_temperatuur", { rounded: 0 })')
                 ).toBe('17');
             });
 
             it('if the states value is not a number states method with rounded in true should not do anything', () => {
                 expect(
-                    compiler.renderTemplate('states("light.woonkamer_lamp", { rounded: true })')
+                    renderer.renderTemplate('states("light.woonkamer_lamp", { rounded: true })')
                 ).toBe('off');
             });
 
             it('if the states value is not a number states method with rounded in false should not do anything', () => {
                 expect(
-                    compiler.renderTemplate('states("light.woonkamer_lamp", { rounded: false })')
+                    renderer.renderTemplate('states("light.woonkamer_lamp", { rounded: false })')
                 ).toBe('off');
             });
 
             it('if the states value is not a number states method with rounded as a number should not do anything', () => {
                 expect(
-                    compiler.renderTemplate('states("light.woonkamer_lamp", { rounded: 2 })')
+                    renderer.renderTemplate('states("light.woonkamer_lamp", { rounded: 2 })')
                 ).toBe('off');
             });
 
@@ -116,25 +122,25 @@ describe('Basic templates tests', () => {
 
             it('if states object is queried with an entity id with state_with_unit should return a formatted number with units', () => {
                 expect(
-                    compiler.renderTemplate('states["sensor.slaapkamer_temperatuur"].state_with_unit')
+                    renderer.renderTemplate('states["sensor.slaapkamer_temperatuur"].state_with_unit')
                 ).toBe('17.5 ºC');
             });
 
             it('if states object is queried with an entity id that is not a number with state_with_unit should return the regular state', () => {
                 expect(
-                    compiler.renderTemplate('states["light.woonkamer_lamp"].state_with_unit')
+                    renderer.renderTemplate('states["light.woonkamer_lamp"].state_with_unit')
                 ).toBe('off');
             });
 
             it('if states object is queried with a domain and an id with state_with_unit should return a formatted number with units', () => {
                 expect(
-                    compiler.renderTemplate('states.sensor.slaapkamer_temperatuur.state_with_unit')
+                    renderer.renderTemplate('states.sensor.slaapkamer_temperatuur.state_with_unit')
                 ).toBe('17.5 ºC');
             });
 
             it('if states object is queried with a domain and an id that is not a number with state_with_unit should return the regular state', () => {
                 expect(
-                    compiler.renderTemplate('states.light.woonkamer_lamp.state_with_unit')
+                    renderer.renderTemplate('states.light.woonkamer_lamp.state_with_unit')
                 ).toBe('off');
             });
 
@@ -142,43 +148,43 @@ describe('Basic templates tests', () => {
 
         it('states object should return the right states', () => {
             expect(
-                compiler.renderTemplate('states["light.woonkamer_lamp"].state')
+                renderer.renderTemplate('states["light.woonkamer_lamp"].state')
             ).toBe('off');
             expect(
-                compiler.renderTemplate('states["binary_sensor.koffiezetapparaat_verbonden"].state')
+                renderer.renderTemplate('states["binary_sensor.koffiezetapparaat_verbonden"].state')
             ).toBe('on');
         });
 
         it('states as an object or as a method should return the same result', () => {
             expect(
-                compiler.renderTemplate('states["binary_sensor.koffiezetapparaat_verbonden"].state')
+                renderer.renderTemplate('states["binary_sensor.koffiezetapparaat_verbonden"].state')
             ).toBe(
-                compiler.renderTemplate('states("binary_sensor.koffiezetapparaat_verbonden")')
+                renderer.renderTemplate('states("binary_sensor.koffiezetapparaat_verbonden")')
             );
         });
 
         it('states object should return the same result if it queried with a decice id or first the domain and then the device id', () => {
             expect(
-                compiler.renderTemplate('states.light.woonkamer_lamp')
+                renderer.renderTemplate('states.light.woonkamer_lamp')
             ).toBeDefined();
     
             expect(
-                compiler.renderTemplate('states.light.woonkamer_lamp')
+                renderer.renderTemplate('states.light.woonkamer_lamp')
             ).toEqual(
-                compiler.renderTemplate('states["light.woonkamer_lamp"]')
+                renderer.renderTemplate('states["light.woonkamer_lamp"]')
             );
         });
 
         it('states object should return all the states of a domain', () => {
             expect(
-                { ...compiler.renderTemplate('states.sensor') }
+                { ...renderer.renderTemplate('states.sensor') }
             ).toEqual({
                 slaapkamer_temperatuur: HASS.states['sensor.slaapkamer_temperatuur'],
                 slaapkamer_luchtvochtigheid: HASS.states['sensor.slaapkamer_luchtvochtigheid']
             });
     
             expect(
-                { ...compiler.renderTemplate('states.binary_sensor') }
+                { ...renderer.renderTemplate('states.binary_sensor') }
             ).toEqual({
                 koffiezetapparaat_aan: HASS.states['binary_sensor.koffiezetapparaat_aan'],
                 koffiezetapparaat_verbonden: HASS.states['binary_sensor.koffiezetapparaat_verbonden'],
@@ -188,7 +194,7 @@ describe('Basic templates tests', () => {
 
         it('states object should return an empty object if the domain doesn\'t exist', () => {
             expect(
-                { ...compiler.renderTemplate('states["battery"]') }
+                { ...renderer.renderTemplate('states["battery"]') }
             ).toEqual({});
             expect(consoleWarnMock).toHaveBeenCalledWith('Domain battery used in a JavaScript template doesn\'t exist');
         });
@@ -201,13 +207,13 @@ describe('Basic templates tests', () => {
             Object.keys(HASS.states)
         )('for entity id %s', (entityId: string) => {
             it('should send the proper state to the formatEntityState function', () => {
-                compiler.renderTemplate(`state_translated("${entityId}")`);
+                renderer.renderTemplate(`state_translated("${entityId}")`);
                 expect(HASS.formatEntityState).toHaveBeenNthCalledWith(1, HASS.states[entityId]);
             });
         });
 
         it('should return undefined if the entity id doesn\'t exist', () => {
-            const result = compiler.renderTemplate('state_translated("sensor.non_existent")');
+            const result = renderer.renderTemplate('state_translated("sensor.non_existent")');
             expect(HASS.formatEntityState).not.toHaveBeenCalled();
             expect(result).toBeUndefined();
         });
@@ -220,19 +226,19 @@ describe('Basic templates tests', () => {
 
             it('is_state should return true if the value coincides', () => {
                 expect(
-                    compiler.renderTemplate('is_state("sensor.slaapkamer_luchtvochtigheid", "45")')
+                    renderer.renderTemplate('is_state("sensor.slaapkamer_luchtvochtigheid", "45")')
                 ).toBe(true);
             });
 
             it('is_state should return false if the value doesn\'t coincide', () => {
                 expect(
-                    compiler.renderTemplate('is_state("sensor.slaapkamer_temperatuur", "10")')
+                    renderer.renderTemplate('is_state("sensor.slaapkamer_temperatuur", "10")')
                 ).toBe(false);
             });
 
             it('is_state should return false if the entity id doesn\'t exist', () => {
                 expect(
-                    compiler.renderTemplate('is_state("sensor.non_existent", "45")')
+                    renderer.renderTemplate('is_state("sensor.non_existent", "45")')
                 ).toBe(false);
                 expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
             });
@@ -243,19 +249,19 @@ describe('Basic templates tests', () => {
 
             it('is_state should return true if the value is contained inside the array', () => {
                 expect(
-                    compiler.renderTemplate('is_state("sensor.slaapkamer_luchtvochtigheid", ["15", "45", "56"])')
+                    renderer.renderTemplate('is_state("sensor.slaapkamer_luchtvochtigheid", ["15", "45", "56"])')
                 ).toBe(true);
             });
 
             it('is_state should return false if the value isn\'t contained inside the array', () => {
                 expect(
-                    compiler.renderTemplate('is_state("sensor.slaapkamer_temperatuur", ["5", "10", "28", "100"])')
+                    renderer.renderTemplate('is_state("sensor.slaapkamer_temperatuur", ["5", "10", "28", "100"])')
                 ).toBe(false);
             });
 
             it('is_state should return false if the entity id doesn\'t exist', () => {
                 expect(
-                    compiler.renderTemplate('is_state("sensor.non_existent", ["17", "45", "2"])')
+                    renderer.renderTemplate('is_state("sensor.non_existent", ["17", "45", "2"])')
                 ).toBe(false);
                 expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
             });
@@ -268,17 +274,17 @@ describe('Basic templates tests', () => {
 
         it('state_attr should return the right value', () => {
             expect(
-                compiler.renderTemplate('state_attr("sensor.slaapkamer_luchtvochtigheid", "state_class")')
+                renderer.renderTemplate('state_attr("sensor.slaapkamer_luchtvochtigheid", "state_class")')
             ).toBe('measurement');
     
             expect(
-                compiler.renderTemplate('state_attr("sensor.slaapkamer_temperatuur", "friendly_name")')
+                renderer.renderTemplate('state_attr("sensor.slaapkamer_temperatuur", "friendly_name")')
             ).toBe('Slaapkamer Temperatuur');
         });
 
         it('state_attr should return undefined if the entity doesn\'t exist', () => {
             expect(
-                compiler.renderTemplate('state_attr("sensor.non_existent", "device_class")')
+                renderer.renderTemplate('state_attr("sensor.non_existent", "device_class")')
             ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
@@ -291,13 +297,13 @@ describe('Basic templates tests', () => {
             Object.keys(HASS.states)
         )('for entity id %s', (entityId: string) => {
             it('should send the proper state and attribute to the formatEntityAttributeValue function', () => {
-                compiler.renderTemplate(`state_attr_translated("${entityId}", "test")`);
+                renderer.renderTemplate(`state_attr_translated("${entityId}", "test")`);
                 expect(HASS.formatEntityAttributeValue).toHaveBeenNthCalledWith(1, HASS.states[entityId], "test");
             });
         });
 
         it('should return undefined if the entity id doesn\'t exist', () => {
-            const result = compiler.renderTemplate('state_attr_translated("sensor.non_existent", "test")');
+            const result = renderer.renderTemplate('state_attr_translated("sensor.non_existent", "test")');
             expect(HASS.formatEntityAttributeValue).not.toHaveBeenCalled();
             expect(result).toBeUndefined();
         });
@@ -308,19 +314,19 @@ describe('Basic templates tests', () => {
 
         it('is_state_attr should return true if the attribute has the proper value', () => {
             expect(
-                compiler.renderTemplate('is_state_attr("binary_sensor.koffiezetapparaat_verbonden", "device_class", "connectivity")')
+                renderer.renderTemplate('is_state_attr("binary_sensor.koffiezetapparaat_verbonden", "device_class", "connectivity")')
             ).toBe(true);
         });
 
         it('is_state_attr should return false if the attribute doesn\'t have the proper value', () => {
             expect(
-                compiler.renderTemplate('is_state_attr("sensor.slaapkamer_luchtvochtigheid", "state_class", "battery")')
+                renderer.renderTemplate('is_state_attr("sensor.slaapkamer_luchtvochtigheid", "state_class", "battery")')
             ).toBe(false);
         });
 
         it('is_state_attr should return false if the entity doesn\'t exist', () => {
             expect(
-                compiler.renderTemplate('is_state_attr("sensor.non_existent", "name", "fake")')
+                renderer.renderTemplate('is_state_attr("sensor.non_existent", "name", "fake")')
             ).toBe(false);
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
@@ -330,19 +336,19 @@ describe('Basic templates tests', () => {
     it('has_value', () => {
 
         expect(
-            compiler.renderTemplate('has_value("binary_sensor.koffiezetapparaat_verbonden")')
+            renderer.renderTemplate('has_value("binary_sensor.koffiezetapparaat_verbonden")')
         ).toBe(true);
 
         expect(
-            compiler.renderTemplate('has_value("button.knopje")')
+            renderer.renderTemplate('has_value("button.knopje")')
         ).toBe(false);
 
         expect(
-            compiler.renderTemplate('has_value("camera.keukencamera")')
+            renderer.renderTemplate('has_value("camera.keukencamera")')
         ).toBe(false);
 
         expect(
-            compiler.renderTemplate('has_value("sensor.non_existent")')
+            renderer.renderTemplate('has_value("sensor.non_existent")')
         ).toBe(false);
         expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
 
@@ -352,13 +358,13 @@ describe('Basic templates tests', () => {
 
         it('entities method without any parameter should return all the entities', () => {
             expect(
-                compiler.renderTemplate('entities()')
+                renderer.renderTemplate('entities()')
             ).toEqual(HASS.entities);
         });
 
         it('entities method specifying a domain should return all the entities of that domain', () => {
             expect(
-                { ...compiler.renderTemplate('entities("light")') }
+                { ...renderer.renderTemplate('entities("light")') }
             ).toEqual({
                 'woonkamer_lamp': {
                     area_id: 'woonkamer',
@@ -373,50 +379,50 @@ describe('Basic templates tests', () => {
 
         it('entities method specifying an entity id should return that specific entity', () => {
             expect(
-                compiler.renderTemplate('entities("binary_sensor.koffiezetapparaat_verbonden")')
+                renderer.renderTemplate('entities("binary_sensor.koffiezetapparaat_verbonden")')
             ).toEqual(HASS.entities['binary_sensor.koffiezetapparaat_verbonden']);
         });
 
         it('entities method with a non-existent domain should return an empty object', () => {
             expect(
-                { ...compiler.renderTemplate('entities("update")') }
+                { ...renderer.renderTemplate('entities("update")') }
             ).toEqual({});
             expect(consoleWarnMock).toHaveBeenCalledWith('Domain update used in a JavaScript template doesn\'t exist');
         });
 
         it('entities method with a non-existent entity should return undefined', () => {
             expect(
-                compiler.renderTemplate('entities("sensor.non_existent")')
+                renderer.renderTemplate('entities("sensor.non_existent")')
             ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
 
         it('entities object should return the same domains as the entity method', () => {
             expect(
-                { ...compiler.renderTemplate('entities.light') }
+                { ...renderer.renderTemplate('entities.light') }
             ).toEqual(
-                { ...compiler.renderTemplate('entities("light")') }
+                { ...renderer.renderTemplate('entities("light")') }
             );
         });
 
         it('entities object should return the same entity than the entity method', () => {
             expect(
-                compiler.renderTemplate('entities.binary_sensor.koffiezetapparaat_verbonden')
+                renderer.renderTemplate('entities.binary_sensor.koffiezetapparaat_verbonden')
             ).toEqual(
-                compiler.renderTemplate('entities("binary_sensor.koffiezetapparaat_verbonden")')
+                renderer.renderTemplate('entities("binary_sensor.koffiezetapparaat_verbonden")')
             );
         });
 
         it('entities object should return en empty object if the domain doesn\t exist', () => {
             expect(
-                { ...compiler.renderTemplate('entities.update') }
+                { ...renderer.renderTemplate('entities.update') }
             ).toEqual({});
             expect(consoleWarnMock).toHaveBeenCalledWith('Domain update used in a JavaScript template doesn\'t exist');
         });
 
         it('entities object should return undefined if the entity doesn\t exist', () => {
             expect(
-                compiler.renderTemplate('entities.sensor.non_existent')
+                renderer.renderTemplate('entities.sensor.non_existent')
             ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
@@ -427,19 +433,19 @@ describe('Basic templates tests', () => {
 
         it('entity_prop should return the proper attribute value', () => {
             expect(
-                compiler.renderTemplate('entity_prop("binary_sensor.koffiezetapparaat_aan", "device_id")')
+                renderer.renderTemplate('entity_prop("binary_sensor.koffiezetapparaat_aan", "device_id")')
             ).toBe('706ad0ebe27e105d7cd0b73386deefdd');
         });
 
         it('entity_prop should return undefined if the attribute doesn\'t exist', () => {
             expect(
-                compiler.renderTemplate('entity_prop("binary_sensor.koffiezetapparaat_aan", "unexistent")')
+                renderer.renderTemplate('entity_prop("binary_sensor.koffiezetapparaat_aan", "unexistent")')
             ).toBeUndefined();
         });
 
         it('entity_prop should return undefined if the entity doesn\'t exist', () => {
             expect(
-                compiler.renderTemplate('entity_prop("sensor.non_existent", "area_id")')
+                renderer.renderTemplate('entity_prop("sensor.non_existent", "area_id")')
             ).toBeUndefined();
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
@@ -450,19 +456,19 @@ describe('Basic templates tests', () => {
 
         it('is_entity_prop should return true if the entity attribute has the proper value', () => {
             expect(
-                compiler.renderTemplate('is_entity_prop("binary_sensor.internetverbinding", "device_id", "a121a9414241f03ce6b3108b2716f9be")')
+                renderer.renderTemplate('is_entity_prop("binary_sensor.internetverbinding", "device_id", "a121a9414241f03ce6b3108b2716f9be")')
             ).toBe(true);
         });
 
         it('is_entity_prop should return false if the entity attribute doesn\'t have the proper value', () => {
             expect(
-                compiler.renderTemplate('is_entity_prop("light.eetkamer_lampje", "area_id", "woonkamer")')
+                renderer.renderTemplate('is_entity_prop("light.eetkamer_lampje", "area_id", "woonkamer")')
             ).toBe(false);
         });
 
         it('is_entity_prop should return false if the entity doesn\'t exist', () => {
             expect(
-                compiler.renderTemplate('is_entity_prop("sensor.non_existent", "area_id", "eetkamer")')
+                renderer.renderTemplate('is_entity_prop("sensor.non_existent", "area_id", "eetkamer")')
             ).toBe(false);
             expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
         });
@@ -473,13 +479,13 @@ describe('Basic templates tests', () => {
 
         it('devices method without any parameters should return all the devices', () => {
             expect(
-                compiler.renderTemplate('devices()')
+                renderer.renderTemplate('devices()')
             ).toEqual(HASS.devices);
         });
 
         it('devices method should return the proper device', () => {
             expect(
-                compiler.renderTemplate('devices("0c1c9c65040cbf3563c76dc376d072f3")')
+                renderer.renderTemplate('devices("0c1c9c65040cbf3563c76dc376d072f3")')
             ).toEqual(
                 HASS.devices['0c1c9c65040cbf3563c76dc376d072f3']
             );
@@ -487,21 +493,21 @@ describe('Basic templates tests', () => {
 
         it('devices method with a non-existent device should return undefined', () => {
             expect(
-                compiler.renderTemplate('devices("40cbf3563c76dc376d072f30c1c9c650")')
+                renderer.renderTemplate('devices("40cbf3563c76dc376d072f30c1c9c650")')
             ).toBeUndefined();
         });
 
         it('devices object should return the proper device', () => {
             expect(
-                compiler.renderTemplate('devices["0c1c9c65040cbf3563c76dc376d072f3"]')
+                renderer.renderTemplate('devices["0c1c9c65040cbf3563c76dc376d072f3"]')
             ).toEqual(
-                compiler.renderTemplate('devices("0c1c9c65040cbf3563c76dc376d072f3")')
+                renderer.renderTemplate('devices("0c1c9c65040cbf3563c76dc376d072f3")')
             );
         });
 
         it('devices object with a non-existent device should return undefined', () => {
             expect(
-                compiler.renderTemplate('devices["40cbf3563c76dc376d072f30c1c9c650"]')
+                renderer.renderTemplate('devices["40cbf3563c76dc376d072f30c1c9c650"]')
             ).toBeUndefined();
         });
 
@@ -513,22 +519,22 @@ describe('Basic templates tests', () => {
 
             it('device_attr should return the proper value', () => {
                 expect(
-                    compiler.renderTemplate('device_attr("binary_sensor.koffiezetapparaat_aan", "manufacturer")')
+                    renderer.renderTemplate('device_attr("binary_sensor.koffiezetapparaat_aan", "manufacturer")')
                 ).toBe('Synology');
                 expect(
-                    compiler.renderTemplate('device_attr("light.woonkamer_lamp", "model")')
+                    renderer.renderTemplate('device_attr("light.woonkamer_lamp", "model")')
                 ).toBe('HHCCJCY01');
             });
 
             it('device_attr should return undefined if the attribute doesn\'t exist', () => {
                 expect(
-                    compiler.renderTemplate('device_attr("binary_sensor.koffiezetapparaat_verbonden", "attr")')
+                    renderer.renderTemplate('device_attr("binary_sensor.koffiezetapparaat_verbonden", "attr")')
                 ).toBeUndefined();
             });
 
             it('device_attr should return undefined if the entity doesn\'t exist', () => {
                 expect(
-                    compiler.renderTemplate('device_attr("sensor.non_existent", "attr")')
+                    renderer.renderTemplate('device_attr("sensor.non_existent", "attr")')
                 ).toBeUndefined();
                 expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
             });
@@ -539,22 +545,22 @@ describe('Basic templates tests', () => {
 
             it('device_attr should return the proper value', () => {
                 expect(
-                    compiler.renderTemplate('device_attr("706ad0ebe27e105d7cd0b73386deefdd", "manufacturer")')
+                    renderer.renderTemplate('device_attr("706ad0ebe27e105d7cd0b73386deefdd", "manufacturer")')
                 ).toBe('Synology');
                 expect(
-                    compiler.renderTemplate('device_attr("4d584585f0eb89172ce1a71c8b0e74ae", "model")')
+                    renderer.renderTemplate('device_attr("4d584585f0eb89172ce1a71c8b0e74ae", "model")')
                 ).toBe('HHCCJCY01');
             });
 
             it('device_attr should return undefined if the attribute doesn\'t exist', () => {
                 expect(
-                    compiler.renderTemplate('device_attr("b8c1c9dd23cb82bbfa09b5657f41d04f", "attr")')
+                    renderer.renderTemplate('device_attr("b8c1c9dd23cb82bbfa09b5657f41d04f", "attr")')
                 ).toBeUndefined();
             });
 
             it('device_attr should return undefined if the device doesn\'t exist', () => {
                 expect(
-                    compiler.renderTemplate('device_attr("012345", "attr")')
+                    renderer.renderTemplate('device_attr("012345", "attr")')
                 ).toBeUndefined();
             });
 
@@ -568,29 +574,29 @@ describe('Basic templates tests', () => {
 
             it('is_device_attr should return true if the attribute has the proper value', () => {
                 expect(
-                    compiler.renderTemplate('is_device_attr("binary_sensor.koffiezetapparaat_aan", "manufacturer", "Synology")')
+                    renderer.renderTemplate('is_device_attr("binary_sensor.koffiezetapparaat_aan", "manufacturer", "Synology")')
                 ).toBe(true);
         
                 expect(
-                    compiler.renderTemplate('is_device_attr("light.woonkamer_lamp", "model", "HHCCJCY01")')
+                    renderer.renderTemplate('is_device_attr("light.woonkamer_lamp", "model", "HHCCJCY01")')
                 ).toBe(true);
             });
 
             it('is_device_attr should return false if the attribute doesn\'t have the proper value', () => {
                 expect(
-                    compiler.renderTemplate('is_device_attr("sensor.slaapkamer_temperatuur", "area_id", "woonkamer")')
+                    renderer.renderTemplate('is_device_attr("sensor.slaapkamer_temperatuur", "area_id", "woonkamer")')
                 ).toBe(false);
             });
 
             it('is_device_attr should return false if the attribute doesn\'t exist', () => {
                 expect(
-                    compiler.renderTemplate('is_device_attr("binary_sensor.koffiezetapparaat_verbonden", "attr", "value")')
+                    renderer.renderTemplate('is_device_attr("binary_sensor.koffiezetapparaat_verbonden", "attr", "value")')
                 ).toBe(false);
             });
 
             it('is_device_attr should return false if the entity doesn\'t exist', () => {
                 expect(
-                    compiler.renderTemplate('is_device_attr("sensor.non_existent", "attr", "value")')
+                    renderer.renderTemplate('is_device_attr("sensor.non_existent", "attr", "value")')
                 ).toBe(false);
                 expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
             }); 
@@ -601,29 +607,29 @@ describe('Basic templates tests', () => {
 
             it('is_device_attr should return true if the attribute has the proper value', () => {
                 expect(
-                    compiler.renderTemplate('is_device_attr("706ad0ebe27e105d7cd0b73386deefdd", "manufacturer", "Synology")')
+                    renderer.renderTemplate('is_device_attr("706ad0ebe27e105d7cd0b73386deefdd", "manufacturer", "Synology")')
                 ).toBe(true);
         
                 expect(
-                    compiler.renderTemplate('is_device_attr("4d584585f0eb89172ce1a71c8b0e74ae", "model", "HHCCJCY01")')
+                    renderer.renderTemplate('is_device_attr("4d584585f0eb89172ce1a71c8b0e74ae", "model", "HHCCJCY01")')
                 ).toBe(true);
             });
 
             it('is_device_attr should return false if the attribute doesn\'t have the proper value', () => {
                 expect(
-                    compiler.renderTemplate('is_device_attr("dea1c4475b8dc901b7b33c7eac09896d", "area_id", "woonkamer")')
+                    renderer.renderTemplate('is_device_attr("dea1c4475b8dc901b7b33c7eac09896d", "area_id", "woonkamer")')
                 ).toBe(false);
             });
 
             it('is_device_attr should return false if the attribute doesn\'t exist', () => {
                 expect(
-                    compiler.renderTemplate('is_device_attr("b8c1c9dd23cb82bbfa09b5657f41d04f", "attr", "value")')
+                    renderer.renderTemplate('is_device_attr("b8c1c9dd23cb82bbfa09b5657f41d04f", "attr", "value")')
                 ).toBe(false);
             });
 
             it('is_device_attr should return false if the device doesn\'t exist', () => {
                 expect(
-                    compiler.renderTemplate('is_device_attr("012345", "attr", "value")')
+                    renderer.renderTemplate('is_device_attr("012345", "attr", "value")')
                 ).toBe(false);
             }); 
 
@@ -637,17 +643,17 @@ describe('Basic templates tests', () => {
 
             it('device_id should return the proper device id', () => {
                 expect(
-                    compiler.renderTemplate('device_id("light.woonkamer_lamp")')
+                    renderer.renderTemplate('device_id("light.woonkamer_lamp")')
                 ).toBe('4d584585f0eb89172ce1a71c8b0e74ae');
         
                 expect(
-                    compiler.renderTemplate('device_id("binary_sensor.internetverbinding")')
+                    renderer.renderTemplate('device_id("binary_sensor.internetverbinding")')
                 ).toBe('a121a9414241f03ce6b3108b2716f9be');
             });
 
             it('device_id should return undefined if the entity id doesn\'t exist', () => {
                 expect(
-                    compiler.renderTemplate('device_id("sensor.non_existent")')
+                    renderer.renderTemplate('device_id("sensor.non_existent")')
                 ).toBeUndefined();
                 expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
             });
@@ -658,17 +664,17 @@ describe('Basic templates tests', () => {
 
             it('device_id should return the proper device id', () => {
                 expect(
-                    compiler.renderTemplate('device_id("Woonkamer Lamp")')
+                    renderer.renderTemplate('device_id("Woonkamer Lamp")')
                 ).toBe('4d584585f0eb89172ce1a71c8b0e74ae');
         
                 expect(
-                    compiler.renderTemplate('device_id("Eetkamer lampje")')
+                    renderer.renderTemplate('device_id("Eetkamer lampje")')
                 ).toBe('720a719fe7db1460b0e4cc9ffbb1488d');
             });
 
             it('device_id should return undefined if the device name doesn\'t exist', () => {
                 expect(
-                    compiler.renderTemplate('device_id("My camera")')
+                    renderer.renderTemplate('device_id("My camera")')
                 ).toBeUndefined();
             });
 
@@ -682,17 +688,17 @@ describe('Basic templates tests', () => {
 
             it('device_name should return the proper device name', () => {
                 expect(
-                    compiler.renderTemplate('device_name("binary_sensor.koffiezetapparaat_aan")')
+                    renderer.renderTemplate('device_name("binary_sensor.koffiezetapparaat_aan")')
                 ).toBe('Mijn Koffiezetapparaat');
         
                 expect(
-                    compiler.renderTemplate('device_name("light.eetkamer_lampje")')
+                    renderer.renderTemplate('device_name("light.eetkamer_lampje")')
                 ).toBe('Eetkamer lampje');
             });
 
             it('device_name should return undefined if the entity id doesn\'t exist', () => {
                 expect(
-                    compiler.renderTemplate('device_name("sensor.non_existent")')
+                    renderer.renderTemplate('device_name("sensor.non_existent")')
                 ).toBeUndefined();
                 expect(consoleWarnMock).toHaveBeenCalledWith('Entity sensor.non_existent used in a JavaScript template doesn\'t exist');
             });
@@ -703,17 +709,17 @@ describe('Basic templates tests', () => {
 
             it('device_name using a device id should return the proper device name', () => {
                 expect(
-                    compiler.renderTemplate('device_name("4d584585f0eb89172ce1a71c8b0e74ae")')
+                    renderer.renderTemplate('device_name("4d584585f0eb89172ce1a71c8b0e74ae")')
                 ).toBe('Woonkamer Lamp');
         
                 expect(
-                    compiler.renderTemplate('device_name("720a719fe7db1460b0e4cc9ffbb1488d")')
+                    renderer.renderTemplate('device_name("720a719fe7db1460b0e4cc9ffbb1488d")')
                 ).toBe('Eetkamer lampje');
             });
 
             it('device_name should return undefined if the device id doesn\'t exist', () => {
                 expect(
-                    compiler.renderTemplate('device_name("4d58451c8b0e74ae85f0eb89172ce1a7")')
+                    renderer.renderTemplate('device_name("4d58451c8b0e74ae85f0eb89172ce1a7")')
                 ).toBeUndefined();
             });
 
@@ -725,7 +731,7 @@ describe('Basic templates tests', () => {
 
         it('areas should return the proper areas', () => {
             expect(
-                compiler.renderTemplate('areas()')
+                renderer.renderTemplate('areas()')
             ).toEqual([
                 HASS.areas.eetkamer.area_id,
                 HASS.areas.slaapkamer.area_id,
@@ -739,25 +745,25 @@ describe('Basic templates tests', () => {
 
         it('area_id should return the proper area id if a device id is sent', () => {
             expect(
-                compiler.renderTemplate('area_id("4d584585f0eb89172ce1a71c8b0e74ae")')
+                renderer.renderTemplate('area_id("4d584585f0eb89172ce1a71c8b0e74ae")')
             ).toBe('woonkamer');
         });
 
         it('area_id should return the proper area id if an entity id is sent', () => {
             expect(
-                compiler.renderTemplate('area_id("binary_sensor.koffiezetapparaat_verbonden")')
+                renderer.renderTemplate('area_id("binary_sensor.koffiezetapparaat_verbonden")')
             ).toBe('eetkamer');
         });
 
         it('area_id should return the proper area id if an area name is sent', () => {
             expect(
-                compiler.renderTemplate('area_id("Slaapkamer")')
+                renderer.renderTemplate('area_id("Slaapkamer")')
             ).toBe('slaapkamer');
         });
 
         it('area_id should return undefined if no valid device id, entity id or area name is sent', () => {
             expect(
-                compiler.renderTemplate('area_id("NonExistent")')
+                renderer.renderTemplate('area_id("NonExistent")')
             ).toBeUndefined();
         });        
 
@@ -767,25 +773,25 @@ describe('Basic templates tests', () => {
 
         it('area_name should return the proper area name if a device id is sent', () => {
             expect(
-                compiler.renderTemplate('area_name("4d584585f0eb89172ce1a71c8b0e74ae")')
+                renderer.renderTemplate('area_name("4d584585f0eb89172ce1a71c8b0e74ae")')
             ).toBe('Woonkamer');
         });
 
         it('area_name should return the proper area name if anentity id is sent', () => {
             expect(
-                compiler.renderTemplate('area_name("binary_sensor.koffiezetapparaat_verbonden")')
+                renderer.renderTemplate('area_name("binary_sensor.koffiezetapparaat_verbonden")')
             ).toBe('Eetkamer');
         });
 
         it('area_name should return the proper area name if an area id is sent', () => {
             expect(
-                compiler.renderTemplate('area_name("slaapkamer")')
+                renderer.renderTemplate('area_name("slaapkamer")')
             ).toBe('Slaapkamer');
         });
         
         it('area_name should return undefined if no valid device id, entity id or area id is sent', () => {
             expect(
-                compiler.renderTemplate('area_name("non_existent")')
+                renderer.renderTemplate('area_name("non_existent")')
             ).toBeUndefined();
         });
 
@@ -795,7 +801,7 @@ describe('Basic templates tests', () => {
 
         it('area_entities should return the proper entities ids in an area if an area id is sent', () => {
             expect(
-                compiler.renderTemplate('area_entities("eetkamer")')
+                renderer.renderTemplate('area_entities("eetkamer")')
             ).toEqual([
                 'binary_sensor.koffiezetapparaat_aan',
                 'binary_sensor.koffiezetapparaat_verbonden',
@@ -805,7 +811,7 @@ describe('Basic templates tests', () => {
 
         it('area_entities should return the proper entities ids in an area if an area name is sent', () => {
             expect(
-                compiler.renderTemplate('area_entities("Woonkamer")')
+                renderer.renderTemplate('area_entities("Woonkamer")')
             ).toEqual([
                 'light.woonkamer_lamp'
             ]);
@@ -813,7 +819,7 @@ describe('Basic templates tests', () => {
 
         it('area_entities should return an empty array if no valid area id or area name is sent', () => {
             expect(
-                compiler.renderTemplate('area_entities("keuken")')
+                renderer.renderTemplate('area_entities("keuken")')
             ).toEqual([]);
         });
 
@@ -823,7 +829,7 @@ describe('Basic templates tests', () => {
 
         it('area_devices should return all the devices ids in an area if an area id is sent', () => {
             expect(
-                compiler.renderTemplate('area_devices("eetkamer")')
+                renderer.renderTemplate('area_devices("eetkamer")')
             ).toEqual([
                 '706ad0ebe27e105d7cd0b73386deefdd',
                 'b8c1c9dd23cb82bbfa09b5657f41d04f',
@@ -833,7 +839,7 @@ describe('Basic templates tests', () => {
 
         it('area_devices should return all the devices ids in an area if an area name is sent', () => {
             expect(
-                compiler.renderTemplate('area_devices("Woonkamer")')
+                renderer.renderTemplate('area_devices("Woonkamer")')
             ).toEqual([
                 '4d584585f0eb89172ce1a71c8b0e74ae'
             ]);
@@ -841,7 +847,7 @@ describe('Basic templates tests', () => {
 
         it('area_devices should return an empty array if no valid area id or area name is sent', () => {
             expect(
-                compiler.renderTemplate('area_devices("keuken")')
+                renderer.renderTemplate('area_devices("keuken")')
             ).toEqual([]);
         });
 
@@ -851,19 +857,19 @@ describe('Basic templates tests', () => {
 
         it('should return the proper user name', () => {
             expect(
-                compiler.renderTemplate('user_name')
+                renderer.renderTemplate('user_name')
             ).toBe('ElChiniNet');
         });
         
         it('should return if the user is admin', () => {
             expect(
-                compiler.renderTemplate('user_is_admin')
+                renderer.renderTemplate('user_is_admin')
             ).toBe(true);
         });
 
         it('should return if the user is owner', () => {
             expect(
-                compiler.renderTemplate('user_is_owner')
+                renderer.renderTemplate('user_is_owner')
             ).toBe(false);
         });
 
@@ -871,19 +877,19 @@ describe('Basic templates tests', () => {
 
     describe('user_agent', () => {
         it('should return the proper user agent of the browser', () => {
-            expect(compiler.renderTemplate('user_agent')).toBe('Custom/Agent');
+            expect(renderer.renderTemplate('user_agent')).toBe('Custom/Agent');
         });
     });
 
     describe('panel_url', () => {
 
         it('panel_url should return the default location.pathname', () => {
-            expect(compiler.renderTemplate('panel_url')).toBe('/');
+            expect(renderer.renderTemplate('panel_url')).toBe('/');
         });
 
         it('panel_url should return the current location', () => {
             window.location.pathname = '/path/test';
-            expect(compiler.renderTemplate('panel_url')).toBe('/path/test'); 
+            expect(renderer.renderTemplate('panel_url')).toBe('/path/test'); 
         });
 
     });
@@ -891,7 +897,7 @@ describe('Basic templates tests', () => {
     describe('lang', () => {
 
         it('lang should return the language in the hass object', () => {
-            expect(compiler.renderTemplate('lang')).toBe('en');
+            expect(renderer.renderTemplate('lang')).toBe('en');
         });
 
     });
