@@ -112,6 +112,10 @@ This class is only exported as a type in the package, you cannot import it direc
 
 ### Properties
 
+#### initialized (only getter)
+
+Returns if the renderer has been initialized (the `init` method has been called and the `stop` method has not been called after that).
+
 #### variables
 
 This property gets and sets the global variables that will be available in all the templates.
@@ -523,6 +527,9 @@ haJsTemplates.getRenderer()
 
         // Later if one wants to untrack the template
         untrack();
+
+        // Later if one wants to stop the subscriptions
+        renderer.stop();
 
     });
 
