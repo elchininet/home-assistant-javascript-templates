@@ -28,6 +28,13 @@ describe('promise instance', () => {
         expect(renderer.renderTemplate('user_name')).toBe('ElChiniNet');
     });
 
+    it('init method should return a promise that resolves to the same renderer', async () => {
+        const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
+        const renderer = await compiler.getRenderer();
+        const instance = await renderer.init();
+        expect(renderer).toBe(instance);
+    });
+
     it('hassConnection.conn.subscribeMessage should not be called if init is not called', async () => {
         const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
         await compiler.getRenderer();

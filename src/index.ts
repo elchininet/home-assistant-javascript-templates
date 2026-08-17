@@ -114,7 +114,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         }
     }
 
-    private _watchForEntitiesChange(): Promise<void> {
+    private _watchForEntitiesChange(): Promise<HomeAssistantJavaScriptTemplatesRenderer> {
         if (this._cancelSubscription) {
             throw new Error('You cannot call init method consecutively, call stop first');
         }
@@ -130,7 +130,7 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                     )
                     .then((cancelSubscription: CancelSubscription) => {
                         this._cancelSubscription = cancelSubscription;
-                        resolve();
+                        resolve(this);
                     });
                 });	
         });
@@ -208,10 +208,10 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         });
     }
 
-    public async init(): Promise<void> {
+    public async init(): Promise<HomeAssistantJavaScriptTemplatesRenderer> {
         this._watchForPanelUrlChange();
         this._watchForLanguageChange();
-        await this._watchForEntitiesChange();
+        return this._watchForEntitiesChange();
     }
 
     public stop() {
