@@ -7,13 +7,19 @@ describe('Complex templates tests', () => {
 
         window.hassConnection = Promise.resolve({
             conn: {
-                subscribeMessage: jest.fn()
+                subscribeMessage: jest.fn(
+                    () => Promise.resolve(
+                        jest.fn()
+                    )
+                )
             }
         });
-        const compiler = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
+        const renderer = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
+        renderer.init();
+        await new Promise(process.nextTick);
 
         expect(
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 const allStates = states["binary_sensor"];
                 const filter = Object.entries(allStates).filter(([, stateObject]) => {
                     return stateObject.state === 'off';
@@ -23,7 +29,7 @@ describe('Complex templates tests', () => {
         ).toBe('(binary_sensor.internetverbinding)');
 
         expect(
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 const state = states.sensor.slaapkamer_luchtvochtigheid;
                 if (+state > 50) {
                     return 'High';
@@ -33,7 +39,7 @@ describe('Complex templates tests', () => {
         ).toBe('Low');
 
         expect(
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 const deviceId = device_id("binary_sensor.koffiezetapparaat_aan");
                 const serialNumber = device_attr(deviceId, "serial_number");
                 return \`sn: \${serialNumber}\`
@@ -41,7 +47,7 @@ describe('Complex templates tests', () => {
         ).toBe('sn: 123456789');
 
         expect(
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
 
                 states("binary_sensor.koffiezetapparaat_aan")
             `)

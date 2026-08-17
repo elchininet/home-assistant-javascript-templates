@@ -1,5 +1,9 @@
 # Changelog
 
+## [8.0.0] - 2026-08-18
+
+- The subscriptions for panel URL changes, language changes or entity changes are not created on instantiation. The `init` method should be called first.
+
 ## [7.1.0] - 2026-05-16
 
 - Add a new method `state_attr_translated` to return the translated value of a state attribute of an entity

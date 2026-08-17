@@ -4,10 +4,12 @@ import { EVENT } from '../src/constants';
 
 describe('promise instance', () => {
 
+    let cancelSubscription: jest.Mock;
     let subscribeMessage: jest.Mock;
 
     beforeEach(() => {
-        subscribeMessage = jest.fn();
+        cancelSubscription = jest.fn();
+        subscribeMessage = jest.fn(() => Promise.resolve(cancelSubscription));
         window.hassConnection = Promise.resolve({
             conn: {
                 subscribeMessage
@@ -26,9 +28,18 @@ describe('promise instance', () => {
         expect(renderer.renderTemplate('user_name')).toBe('ElChiniNet');
     });
 
-    it('hassConnection.conn.subscribeMessage should be called', async () => {
+    it('hassConnection.conn.subscribeMessage should not be called if init is not called', async () => {
+        const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
+        await compiler.getRenderer();
+        await new Promise(process.nextTick);
+        expect(subscribeMessage).not.toHaveBeenCalled();
+    });
+
+    it('hassConnection.conn.subscribeMessage should be called after init is called', async () => {
         const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
         const renderer = await compiler.getRenderer();
+        renderer.init();
+        await new Promise(process.nextTick);
         expect(subscribeMessage).toHaveBeenCalledWith(
             expect.any(Function),
             {
@@ -36,6 +47,36 @@ describe('promise instance', () => {
                 event_type: EVENT.STATE_CHANGE_EVENT
             }
         );
+    });
+
+    it('should throw an error if stop is called without calling init first', async () => {
+        const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
+        const renderer = await compiler.getRenderer();
+        await expect(
+            async () => renderer.stop()
+        ).rejects.toThrow('You cannot call stop method without init being fully executed, call init first or wait for its promise to be resolved');
+        expect(cancelSubscription).not.toHaveBeenCalled();
+    });
+
+    it('should throw an error if init is called without calling stop first', async () => {
+        const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
+        const renderer = await compiler.getRenderer();
+        renderer.init();
+        await new Promise(process.nextTick);
+        await expect(
+            async () => renderer.init()
+        ).rejects.toThrow('You cannot call init method consecutively, call stop first');
+    });
+
+    it('should not throw an error if init is called after calling stop', async () => {
+        const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
+        const renderer = await compiler.getRenderer();
+        renderer.init();
+        await new Promise(process.nextTick);
+        renderer.stop();
+        await new Promise(process.nextTick);
+        expect(cancelSubscription).toHaveBeenCalled();
+        renderer.init();
     });
 
     describe('getRenderer promise rejection', () => {

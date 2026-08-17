@@ -3,16 +3,22 @@ import { HOME_ASSISTANT_ELEMENT } from './constants';
 
 describe('ref and unref without errors', () => {
 
-    let compiler: HomeAssistantJavaScriptTemplatesRenderer;
+    let renderer: HomeAssistantJavaScriptTemplatesRenderer;
     let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>;
     
     beforeEach(async () => {
         window.hassConnection = Promise.resolve({
             conn: {
-                subscribeMessage: jest.fn()
+                subscribeMessage: jest.fn(
+                    () => Promise.resolve(
+                        jest.fn()
+                    )
+                )
             }
         });
-        compiler = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
+        renderer = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
+        renderer.init();
+        await new Promise(process.nextTick);
         consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
     });
 
@@ -24,7 +30,7 @@ describe('ref and unref without errors', () => {
 
         it('ref value should be undefined by default', () => {
             expect(
-                compiler.renderTemplate(`
+                renderer.renderTemplate(`
                     const myRef = ref('custom');
                     return myRef.value;
                 `)
@@ -33,7 +39,7 @@ describe('ref and unref without errors', () => {
 
         it('if a value is assigned to a ref it should return that value', () => {
             expect(
-                compiler.renderTemplate(`
+                renderer.renderTemplate(`
                     const myRef = ref('custom');
                     myRef.value = 'Assigned';
                     return myRef.value;
@@ -43,7 +49,7 @@ describe('ref and unref without errors', () => {
 
         it('two refs with the same name should make reference to the same object', () => {
             expect(
-                compiler.renderTemplate(`
+                renderer.renderTemplate(`
                     const one = ref('custom');
                     const two = ref('custom');
                     return one === two;
@@ -52,13 +58,13 @@ describe('ref and unref without errors', () => {
         });
 
         it('a ref created in a template should be accesed from another template', () => {
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 const myRef = ref('custom');
                 myRef.value = 'changed';
                 return true;
             `);
             expect(
-                compiler.renderTemplate(`
+                renderer.renderTemplate(`
                     const myRef = ref('custom');
                     return myRef.value;
                 `)
@@ -66,13 +72,13 @@ describe('ref and unref without errors', () => {
         });
 
         it('a ref should support objects', () => {
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 const myRef = ref('custom');
                 myRef.value = { prop: 'refProp' };
                 return true;
             `);
             expect(
-                compiler.renderTemplate(`
+                renderer.renderTemplate(`
                     const myRef = ref('custom');
                     myRef.value.prop = 'changed';
                     return myRef.value;
@@ -81,13 +87,13 @@ describe('ref and unref without errors', () => {
         });
 
         it('a ref should support arrays', () => {
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 const myRef = ref('custom');
                 myRef.value = [1, 2, 3];
                 return true;
             `);
             expect(
-                compiler.renderTemplate(`
+                renderer.renderTemplate(`
                     const myRef = ref('custom');
                     myRef.value.push(4);
                     return myRef.value;
@@ -96,7 +102,7 @@ describe('ref and unref without errors', () => {
         });
 
         it('refs should not allow to access other properties but value', () => {
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 const myRef = ref('custom');
                 return myRef.customProp;
             `);
@@ -104,7 +110,7 @@ describe('ref and unref without errors', () => {
         });
 
         it('refs should not allow to assign other properties but value', () => {
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 const myRef = ref('custom');
                 myRef.customProp = 'changed';
                 return true;
@@ -114,7 +120,7 @@ describe('ref and unref without errors', () => {
 
         it('refs without a value should be serialized as undefined', () => {
             expect(
-                compiler.renderTemplate(`
+                renderer.renderTemplate(`
                     const myRef = ref('custom');
                     return JSON.stringify(myRef);
                 `)
@@ -129,7 +135,7 @@ describe('ref and unref without errors', () => {
                 propNumber: 100
             });
             expect(
-                compiler.renderTemplate(`
+                renderer.renderTemplate(`
                     const myRef = ref('custom');
                     myRef.value = ${customValue};
                     return JSON.stringify(myRef);
@@ -143,7 +149,7 @@ describe('ref and unref without errors', () => {
 
         it('unref should remove the ref', () => {
             expect(
-                compiler.renderTemplate(`
+                renderer.renderTemplate(`
                     const myRef = ref('custom');
                     myRef.value = 'changed';
                     unref('custom');
@@ -153,14 +159,14 @@ describe('ref and unref without errors', () => {
         });
 
         it('unref in one template should remove the ref also in other templates', () => {
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 const myRef = ref('custom');
                 myRef.value = 'changed';
                 unref('custom');
                 return true;
             `);
             expect(
-                compiler.renderTemplate(`
+                renderer.renderTemplate(`
                     const myRef = ref('custom');
                     return myRef.value;
                 `)
@@ -169,7 +175,7 @@ describe('ref and unref without errors', () => {
 
         it('after unref, two refs with the same name do not reference the same object', () => {
             expect(
-                compiler.renderTemplate(`
+                renderer.renderTemplate(`
                     const one = ref('custom');
                     unref('custom');
                     const two = ref('custom');
@@ -179,7 +185,7 @@ describe('ref and unref without errors', () => {
         });
 
         it('trying to unref a non defined ref should not be allowed', () => {
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 unref('custom');
                 return true;
             `);
@@ -196,7 +202,7 @@ describe('ref and unref without errors', () => {
             const renderingFunction2 = jest.fn();
             const renderingFunction3 = jest.fn();
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 `
                     const one = ref('one');
                     if (one.value) {
@@ -207,7 +213,7 @@ describe('ref and unref without errors', () => {
                 renderingFunction1
             );
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 `
                     const two = ref('two');
                     return two.value;
@@ -219,7 +225,7 @@ describe('ref and unref without errors', () => {
             expect(renderingFunction2).toHaveBeenNthCalledWith(1, undefined);
             expect(renderingFunction3).not.toHaveBeenCalled();
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 `
                     const one = ref('one');
                     const two = ref('two');
@@ -246,7 +252,7 @@ describe('ref and unref without errors', () => {
             const renderingFunction2 = jest.fn();
             const renderingFunction3 = jest.fn();
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 `
                     const myRef = ref('custom');
                     if (myRef.value) {
@@ -261,7 +267,7 @@ describe('ref and unref without errors', () => {
             expect(renderingFunction2).not.toHaveBeenCalled();
             expect(renderingFunction3).not.toHaveBeenCalled();
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 `
                     const myRef = ref('custom');
                     myRef.value = 'changed';
@@ -274,7 +280,7 @@ describe('ref and unref without errors', () => {
             expect(renderingFunction2).toHaveBeenNthCalledWith(1, 'changed');
             expect(renderingFunction3).not.toHaveBeenCalled();
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 `
                     unref('custom');
                     const myRef = ref('custom');
@@ -296,7 +302,7 @@ describe('ref and unref without errors', () => {
 
 describe('ref and unref with errors', () => {
 
-    let compiler: HomeAssistantJavaScriptTemplatesRenderer;
+    let renderer: HomeAssistantJavaScriptTemplatesRenderer;
     
     beforeEach(async () => {
         window.hassConnection = Promise.resolve({
@@ -304,7 +310,7 @@ describe('ref and unref with errors', () => {
                 subscribeMessage: jest.fn()
             }
         });
-        compiler = await new HomeAssistantJavaScriptTemplates(
+        renderer = await new HomeAssistantJavaScriptTemplates(
             HOME_ASSISTANT_ELEMENT,
             {
                 throwErrors: true
@@ -316,7 +322,7 @@ describe('ref and unref with errors', () => {
 
         it('refs should not allow to access other properties but value', () => {
             expect(
-                () => compiler.renderTemplate(`
+                () => renderer.renderTemplate(`
                     const myRef = ref('custom');
                     return myRef.customProp;
                 `)
@@ -325,7 +331,7 @@ describe('ref and unref with errors', () => {
 
         it('refs should not allow to assign other properties but value', () => {
             expect(
-                () => compiler.renderTemplate(`
+                () => renderer.renderTemplate(`
                     const myRef = ref('custom');
                     myRef.customProp = 'changed';
                     return true;
@@ -335,7 +341,7 @@ describe('ref and unref with errors', () => {
 
         it('refs should be serializable without errors', () => {
             expect(
-                () => compiler.renderTemplate(`
+                () => renderer.renderTemplate(`
                     const myRef = ref('custom');
                     return JSON.stringify(myRef);
                 `)
@@ -349,7 +355,7 @@ describe('ref and unref with errors', () => {
         it('trying to unref a non defined ref should not be allowed', () => {
 
             expect(
-                () => compiler.renderTemplate(`
+                () => renderer.renderTemplate(`
                     unref('custom');
                     return true;
                 `)
@@ -363,7 +369,7 @@ describe('ref and unref with errors', () => {
 
 describe('ref and unref without errors and with warnings disabled', () => {
 
-    let compiler: HomeAssistantJavaScriptTemplatesRenderer;
+    let renderer: HomeAssistantJavaScriptTemplatesRenderer;
     let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>;
     
     beforeEach(async () => {
@@ -372,7 +378,7 @@ describe('ref and unref without errors and with warnings disabled', () => {
                 subscribeMessage: jest.fn()
             }
         });
-        compiler = await new HomeAssistantJavaScriptTemplates(
+        renderer = await new HomeAssistantJavaScriptTemplates(
             HOME_ASSISTANT_ELEMENT,
             {
                 throwWarnings: false
@@ -388,7 +394,7 @@ describe('ref and unref without errors and with warnings disabled', () => {
     describe('renderTemplate with refs', () => {
 
         it('refs should not allow to access other properties but value', () => {
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 const myRef = ref('custom');
                 return myRef.customProp;
             `);
@@ -396,7 +402,7 @@ describe('ref and unref without errors and with warnings disabled', () => {
         });
 
         it('refs should not allow to assign other properties but value', () => {
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 const myRef = ref('custom');
                 myRef.customProp = 'changed';
                 return true;
@@ -405,7 +411,7 @@ describe('ref and unref without errors and with warnings disabled', () => {
         });
 
         it('refs should be serializable without errors', () => {
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 const myRef = ref('custom');
                 return JSON.stringify(myRef);
             `);
@@ -418,7 +424,7 @@ describe('ref and unref without errors and with warnings disabled', () => {
 
         it('trying to unref a non defined ref should not be allowed', () => {
 
-            compiler.renderTemplate(`
+            renderer.renderTemplate(`
                 unref('custom');
                 return true;
             `);
@@ -445,7 +451,7 @@ describe('ref variables', () => {
             : `${value}_DOUBLE`,
     };
 
-    let compiler: HomeAssistantJavaScriptTemplatesRenderer;
+    let renderer: HomeAssistantJavaScriptTemplatesRenderer;
     
     beforeEach(async () => {
         window.hassConnection = Promise.resolve({
@@ -453,7 +459,7 @@ describe('ref variables', () => {
                 subscribeMessage: jest.fn()
             }
         });
-        compiler = await new HomeAssistantJavaScriptTemplates(
+        renderer = await new HomeAssistantJavaScriptTemplates(
             HOME_ASSISTANT_ELEMENT,
             {
                 refs,
@@ -467,33 +473,33 @@ describe('ref variables', () => {
 
         it('refs should be defined', () => {
             expect(
-                compiler.renderTemplate('refs')
+                renderer.renderTemplate('refs')
             ).toBeDefined()
         });
 
         it('refs property should return an object with the initial ref values', () => {
             Object.entries(refs).forEach((entry: [string, unknown]): void => {
                 const [property, value] = entry;
-                expect(compiler.refs[property]).toEqual(value);
+                expect(renderer.refs[property]).toEqual(value);
             });
         });
 
         it('refs property should override the refs object', () => {
             Object.keys(refs).forEach((name: string): void => {
                 expect(
-                    compiler.renderTemplate(`refs.${name}`)
+                    renderer.renderTemplate(`refs.${name}`)
                 ).toBeDefined();
             });
-            compiler.refs = {
+            renderer.refs = {
                 OVERRIDE: 'OVERRIDE'
             };
             Object.keys(refs).forEach((name: string): void => {
                 expect(
-                    compiler.renderTemplate(`refs.${name}`)
+                    renderer.renderTemplate(`refs.${name}`)
                 ).toBeUndefined();
             });
             expect(
-                compiler.renderTemplate('refs.OVERRIDE')
+                renderer.renderTemplate('refs.OVERRIDE')
             ).toBe('OVERRIDE');
         });
 
@@ -508,7 +514,7 @@ describe('ref variables', () => {
         ])('template %s should return %s', (template: string, expected: unknown): void => {
             it('refs variables should have the proper value', () => {
                 expect(
-                    compiler.renderTemplate(template)
+                    renderer.renderTemplate(template)
                 ).toBe(expected);
             });
         });
@@ -572,20 +578,20 @@ describe('ref variables', () => {
             }
         ])('Assign value to the ref variable $variable and retrieve it from another template', ({ templateAssign, templateReturn, expected }) => {
             it(`should return ${expected}`, () => {
-                compiler.renderTemplate(templateAssign);
+                renderer.renderTemplate(templateAssign);
                 expect(
-                    compiler.renderTemplate(templateReturn)
+                    renderer.renderTemplate(templateReturn)
                 ).toBe(expected);
             });
         });
 
         it('changing a ref variable through the class property should be reflected in the templates', () => {
-            compiler.refs.MY_STRING = 'CUSTOM_VALUE_ASSIGNED';
-            compiler.refs.MY_NUMBER = 200;
-            compiler.refs.MY_REGEXP = /^\d{2}-\d{2}-\d{4}/;
-            compiler.refs.MY_OBJECT.prop = 'custom_prop_assigned';
-            compiler.refs.MY_ARRAY[2] = 100;
-            compiler.refs.MY_FUNCTION = (value: unknown) => {
+            renderer.refs.MY_STRING = 'CUSTOM_VALUE_ASSIGNED';
+            renderer.refs.MY_NUMBER = 200;
+            renderer.refs.MY_REGEXP = /^\d{2}-\d{2}-\d{4}/;
+            renderer.refs.MY_OBJECT.prop = 'custom_prop_assigned';
+            renderer.refs.MY_ARRAY[2] = 100;
+            renderer.refs.MY_FUNCTION = (value: unknown) => {
                 if (typeof value === 'number') {
                     return value / 2;
                 }
@@ -593,31 +599,31 @@ describe('ref variables', () => {
             };
 
             expect(
-                compiler.renderTemplate('refs.MY_STRING')
+                renderer.renderTemplate('refs.MY_STRING')
             ).toBe('CUSTOM_VALUE_ASSIGNED');
 
             expect(
-                compiler.renderTemplate('refs.MY_NUMBER')
+                renderer.renderTemplate('refs.MY_NUMBER')
             ).toBe(200);
 
             expect(
-                compiler.renderTemplate('refs.MY_REGEXP.test("01-05-2024")')
+                renderer.renderTemplate('refs.MY_REGEXP.test("01-05-2024")')
             ).toBe(true);
 
             expect(
-                compiler.renderTemplate('refs.MY_OBJECT.prop')
+                renderer.renderTemplate('refs.MY_OBJECT.prop')
             ).toBe('custom_prop_assigned');
 
             expect(
-                compiler.renderTemplate('refs.MY_ARRAY[2]')
+                renderer.renderTemplate('refs.MY_ARRAY[2]')
             ).toBe(100);
 
             expect(
-                compiler.renderTemplate('refs.MY_FUNCTION(2)')
+                renderer.renderTemplate('refs.MY_FUNCTION(2)')
             ).toBe(1);
 
             expect(
-                compiler.renderTemplate('refs.MY_FUNCTION("2")')
+                renderer.renderTemplate('refs.MY_FUNCTION("2")')
             ).toBe('2_HALF');
         });
 
@@ -627,7 +633,7 @@ describe('ref variables', () => {
 
         it('extra refs variables should be available in the templates', () => {
             expect(
-                compiler.renderTemplate('return `${refs.MY_STRING}_${refs.EXTRA_REF_VARIABLE}`',
+                renderer.renderTemplate('return `${refs.MY_STRING}_${refs.EXTRA_REF_VARIABLE}`',
                     {
                         refs: {
                             EXTRA_REF_VARIABLE: 'EXTRA'
@@ -639,7 +645,7 @@ describe('ref variables', () => {
 
         it('extra refs variables set in one template should be available in another template', () => {
             expect(
-                compiler.renderTemplate('refs.MY_STRING',
+                renderer.renderTemplate('refs.MY_STRING',
                     {
                         refs: {
                             EXTRA_REF_VARIABLE: 'EXTRA'
@@ -648,13 +654,13 @@ describe('ref variables', () => {
                 )
             ).toBe('CUSTOM_VALUE');
             expect(
-                compiler.renderTemplate('refs.EXTRA_REF_VARIABLE')
+                renderer.renderTemplate('refs.EXTRA_REF_VARIABLE')
             ).toBe('EXTRA');
         });
 
         it('extra refs variables with the same name of a previous variable should override it', () => {
             expect(
-                compiler.renderTemplate('refs.MY_STRING',
+                renderer.renderTemplate('refs.MY_STRING',
                     {
                         refs: {
                             MY_NUMBER: 200
@@ -663,7 +669,7 @@ describe('ref variables', () => {
                 )
             ).toBe('CUSTOM_VALUE');
             expect(
-                compiler.renderTemplate('refs.MY_NUMBER')
+                renderer.renderTemplate('refs.MY_NUMBER')
             ).toBe(200);
         });
 
@@ -677,7 +683,7 @@ describe('ref variables', () => {
             const renderingFunction2 = jest.fn();
             const renderingFunction3 = jest.fn();
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 `
                     if (refs.MY_STRING === 'CUSTOM_VALUE') {
                         return 'yes';
@@ -687,7 +693,7 @@ describe('ref variables', () => {
                 renderingFunction1
             );
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 'return refs.MY_NUMBER * 2',
                 renderingFunction2
             );
@@ -696,7 +702,7 @@ describe('ref variables', () => {
             expect(renderingFunction2).toHaveBeenNthCalledWith(1, 200);
             expect(renderingFunction3).not.toHaveBeenCalled();
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 `
                     refs.MY_STRING = 'CUSTOM_VALUE_CHANGED';
                     refs.MY_NUMBER = 200;
@@ -716,7 +722,7 @@ describe('ref variables', () => {
             const renderingFunction1 = jest.fn();
             const renderingFunction2 = jest.fn();
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 `
                     if (refs.MY_STRING === 'CUSTOM_VALUE') {
                         return 'yes';
@@ -726,7 +732,7 @@ describe('ref variables', () => {
                 renderingFunction1
             );
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 'return refs.MY_NUMBER * 2',
                 renderingFunction2
             );
@@ -734,8 +740,8 @@ describe('ref variables', () => {
             expect(renderingFunction1).toHaveBeenNthCalledWith(1, 'yes');
             expect(renderingFunction2).toHaveBeenNthCalledWith(1, 200);
 
-            compiler.refs.MY_STRING = 'CUSTOM_VALUE_CHANGED';
-            compiler.refs.MY_NUMBER = 200;
+            renderer.refs.MY_STRING = 'CUSTOM_VALUE_CHANGED';
+            renderer.refs.MY_NUMBER = 200;
 
             expect(renderingFunction1).toHaveBeenNthCalledWith(2, 'no');
             expect(renderingFunction2).toHaveBeenNthCalledWith(2, 400);
@@ -752,12 +758,12 @@ describe('ref variables', () => {
             const renderingFunction2 = jest.fn();
             const renderingFunction3 = jest.fn();
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 'refs.EXTRA_REF_VARIABLE',
                 renderingFunction1
             );
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 'return refs.EXTRA_REF_VARIABLE + "_APPEND"',
                 renderingFunction2
             );
@@ -766,7 +772,7 @@ describe('ref variables', () => {
             expect(renderingFunction2).toHaveBeenNthCalledWith(1, 'undefined_APPEND');
             expect(renderingFunction3).not.toHaveBeenCalled();
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 `
                     refs.EXTRA_REF_VARIABLE = 'EXTRA';
                     return refs.EXTRA_REF_VARIABLE;
@@ -785,12 +791,12 @@ describe('ref variables', () => {
             const renderingFunction1 = jest.fn();
             const renderingFunction2 = jest.fn();
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 'refs.EXTRA_REF_VARIABLE',
                 renderingFunction1
             );
 
-            compiler.trackTemplate(
+            renderer.trackTemplate(
                 'return refs.EXTRA_REF_VARIABLE + "_APPEND"',
                 renderingFunction2
             );
@@ -798,7 +804,7 @@ describe('ref variables', () => {
             expect(renderingFunction1).toHaveBeenNthCalledWith(1, undefined);
             expect(renderingFunction2).toHaveBeenNthCalledWith(1, 'undefined_APPEND');
 
-            compiler.refs.EXTRA_REF_VARIABLE = 'EXTRA';
+            renderer.refs.EXTRA_REF_VARIABLE = 'EXTRA';
 
             expect(renderingFunction1).toHaveBeenNthCalledWith(2, 'EXTRA');
             expect(renderingFunction2).toHaveBeenNthCalledWith(2, 'EXTRA_APPEND');
@@ -824,7 +830,7 @@ describe('ref variables with custom name', () => {
             : `${value}_DOUBLE`,
     };
 
-    let compiler: HomeAssistantJavaScriptTemplatesRenderer;
+    let renderer: HomeAssistantJavaScriptTemplatesRenderer;
     
     beforeEach(async () => {
         window.hassConnection = Promise.resolve({
@@ -832,7 +838,7 @@ describe('ref variables with custom name', () => {
                 subscribeMessage: jest.fn()
             }
         });
-        compiler = await new HomeAssistantJavaScriptTemplates(
+        renderer = await new HomeAssistantJavaScriptTemplates(
             HOME_ASSISTANT_ELEMENT,
             {
                 refs,
@@ -847,13 +853,13 @@ describe('ref variables with custom name', () => {
 
         it('refs should not be defined', () => {
             expect(
-                compiler.renderTemplate('refs')
+                renderer.renderTemplate('refs')
             ).toBeUndefined()
         });
 
         it('vars should be defined', () => {
             expect(
-                compiler.renderTemplate('vars')
+                renderer.renderTemplate('vars')
             ).toBeDefined()
         });
 
@@ -868,7 +874,7 @@ describe('ref variables with custom name', () => {
         ])('template %s should return %s', (template: string, expected: unknown): void => {
             it('ref variables should have the proper value', () => {
                 expect(
-                    compiler.renderTemplate(template)
+                    renderer.renderTemplate(template)
                 ).toBe(expected);
             });
         });
@@ -932,20 +938,20 @@ describe('ref variables with custom name', () => {
             }
         ])('Assign value to the ref variable $variable and retrieve it from another template', ({ templateAssign, templateReturn, expected }) => {
             it(`should return ${expected}`, () => {
-                compiler.renderTemplate(templateAssign);
+                renderer.renderTemplate(templateAssign);
                 expect(
-                    compiler.renderTemplate(templateReturn)
+                    renderer.renderTemplate(templateReturn)
                 ).toBe(expected);
             });
         });
 
         it('changing a ref variable through the class property should be reflected in the templates', () => {
-            compiler.refs.MY_STRING = 'CUSTOM_VALUE_ASSIGNED';
-            compiler.refs.MY_NUMBER = 200;
-            compiler.refs.MY_REGEXP = /^\d{2}-\d{2}-\d{4}/;
-            compiler.refs.MY_OBJECT.prop = 'custom_prop_assigned';
-            compiler.refs.MY_ARRAY[2] = 100;
-            compiler.refs.MY_FUNCTION = (value: unknown) => {
+            renderer.refs.MY_STRING = 'CUSTOM_VALUE_ASSIGNED';
+            renderer.refs.MY_NUMBER = 200;
+            renderer.refs.MY_REGEXP = /^\d{2}-\d{2}-\d{4}/;
+            renderer.refs.MY_OBJECT.prop = 'custom_prop_assigned';
+            renderer.refs.MY_ARRAY[2] = 100;
+            renderer.refs.MY_FUNCTION = (value: unknown) => {
                 if (typeof value === 'number') {
                     return value / 2;
                 }
@@ -953,31 +959,31 @@ describe('ref variables with custom name', () => {
             };
 
             expect(
-                compiler.renderTemplate('vars.MY_STRING')
+                renderer.renderTemplate('vars.MY_STRING')
             ).toBe('CUSTOM_VALUE_ASSIGNED');
 
             expect(
-                compiler.renderTemplate('vars.MY_NUMBER')
+                renderer.renderTemplate('vars.MY_NUMBER')
             ).toBe(200);
 
             expect(
-                compiler.renderTemplate('vars.MY_REGEXP.test("01-05-2024")')
+                renderer.renderTemplate('vars.MY_REGEXP.test("01-05-2024")')
             ).toBe(true);
 
             expect(
-                compiler.renderTemplate('vars.MY_OBJECT.prop')
+                renderer.renderTemplate('vars.MY_OBJECT.prop')
             ).toBe('custom_prop_assigned');
 
             expect(
-                compiler.renderTemplate('vars.MY_ARRAY[2]')
+                renderer.renderTemplate('vars.MY_ARRAY[2]')
             ).toBe(100);
 
             expect(
-                compiler.renderTemplate('vars.MY_FUNCTION(2)')
+                renderer.renderTemplate('vars.MY_FUNCTION(2)')
             ).toBe(1);
 
             expect(
-                compiler.renderTemplate('vars.MY_FUNCTION("2")')
+                renderer.renderTemplate('vars.MY_FUNCTION("2")')
             ).toBe('2_HALF');
         });
 

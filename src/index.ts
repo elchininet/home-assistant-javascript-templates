@@ -1,5 +1,6 @@
 import { getPromisableResult } from 'get-promisable-result';
 import {
+    CancelSubscription,
     Extras,
     HomeAssistant,
     Hass,
@@ -51,9 +52,9 @@ class HomeAssistantJavaScriptTemplatesRenderer {
             throwWarnings
         );
         this.refs = refs;
-        this._watchForPanelUrlChange();
-        this._watchForEntitiesChange();
-        this._watchForLanguageChange();
+        this._cancelSubscription = null;
+        this._panelUrlWatchCallbackBinded = this._panelUrlWatchCallback.bind(this);
+        this._watchForLanguageChangeCallbackBinded = this._watchForLanguageChangeCallback.bind(this);
     }
 
     private _throwErrors!: boolean;
@@ -64,6 +65,10 @@ class HomeAssistantJavaScriptTemplatesRenderer {
     private _clientSideEntitiesRegExp!: RegExp;
     private _subscriptions!: SubscriptionsMap;
     private _scopped!: Scopped;
+
+    private _cancelSubscription: CancelSubscription | null;
+    private _panelUrlWatchCallbackBinded: () => void;
+    private _watchForLanguageChangeCallbackBinded: () => void;
 
     private _executeRenderingFunctions(id: string): void {
         this._subscriptions
@@ -80,12 +85,13 @@ class HomeAssistantJavaScriptTemplatesRenderer {
     }
 
     private _watchForPanelUrlChange() {
-        window.addEventListener(EVENT.LOCATION_CHANGED, (): void => {
-            this._panelUrlWatchCallback();
-        });
-        window.addEventListener(EVENT.POPSTATE, () => {
-            this._panelUrlWatchCallback();
-        });
+        window.addEventListener(EVENT.LOCATION_CHANGED, this._panelUrlWatchCallbackBinded);
+        window.addEventListener(EVENT.POPSTATE, this._panelUrlWatchCallbackBinded);
+    }
+
+    private _stopWatchForPanelUrlChange() {
+        window.removeEventListener(EVENT.LOCATION_CHANGED, this._panelUrlWatchCallbackBinded);
+        window.removeEventListener(EVENT.POPSTATE, this._panelUrlWatchCallbackBinded);
     }
 
     private _panelUrlWatchCallback() {
@@ -94,25 +100,48 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         }
     }
 
-    private _watchForEntitiesChange() {
-		window.hassConnection
-            .then((hassConnection: HassConnection): void => {
-                hassConnection.conn.subscribeMessage<SubscriberEvent>(
-                    (event) => this._entityWatchCallback(event),
-                    {
-                        type: EVENT.SUBSCRIBE_EVENTS,
-                        event_type: EVENT.STATE_CHANGE_EVENT
-                    }
-                );
-            });
+    private _watchForLanguageChange() {
+        window.addEventListener(EVENT.TRANSLATIONS_UPDATED, this._watchForLanguageChangeCallbackBinded);
+    }
+
+    private _stopWatchForLanguageChange() {
+        window.removeEventListener(EVENT.TRANSLATIONS_UPDATED, this._watchForLanguageChangeCallbackBinded);
+    }
+
+    private _watchForLanguageChangeCallback() {
+        if (this._subscriptions.has(CLIENT_SIDE_ENTITIES.LANG)) {
+            this._executeRenderingFunctions(CLIENT_SIDE_ENTITIES.LANG);
+        }
+    }
+
+    private _watchForEntitiesChange(): Promise<void> {
+        if (this._cancelSubscription) {
+            throw new Error('You cannot call init method consecutively, call stop first');
+        }
+        return new Promise((resolve) => {
+            window.hassConnection
+                .then((hassConnection: HassConnection): void => {
+                    hassConnection.conn.subscribeMessage<SubscriberEvent>(
+                        (event) => this._entityWatchCallback(event),
+                        {
+                            type: EVENT.SUBSCRIBE_EVENTS,
+                            event_type: EVENT.STATE_CHANGE_EVENT
+                        }
+                    )
+                    .then((cancelSubscription: CancelSubscription) => {
+                        this._cancelSubscription = cancelSubscription;
+                        resolve();
+                    });
+                });	
+        });
 	}
 
-    private _watchForLanguageChange() {
-        window.addEventListener(EVENT.TRANSLATIONS_UPDATED, () => {
-            if (this._subscriptions.has(CLIENT_SIDE_ENTITIES.LANG)) {
-                this._executeRenderingFunctions(CLIENT_SIDE_ENTITIES.LANG);
-            }
-        });
+    private _stopWatchForEntitiesChange() {
+        if (!this._cancelSubscription) {
+            throw new Error('You cannot call stop method without init being fully executed, call init first or wait for its promise to be resolved');
+        }
+        this._cancelSubscription();
+        this._cancelSubscription = null;
     }
 
 	private _entityWatchCallback(event: SubscriberEvent) {        
@@ -177,6 +206,18 @@ class HomeAssistantJavaScriptTemplatesRenderer {
                 }
             }
         });
+    }
+
+    public async init(): Promise<void> {
+        this._watchForPanelUrlChange();
+        this._watchForLanguageChange();
+        await this._watchForEntitiesChange();
+    }
+
+    public stop() {
+        this._stopWatchForPanelUrlChange();
+        this._stopWatchForLanguageChange();
+        this._stopWatchForEntitiesChange();
     }
 
     public renderTemplate(
