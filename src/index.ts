@@ -386,6 +386,10 @@ class HomeAssistantJavaScriptTemplatesRenderer {
         );
     }
 
+    public get initialized(): boolean {
+        return this._cancelSubscription !== null;
+    }
+
 }
 
 export default class HomeAssistantJavaScriptTemplates {
