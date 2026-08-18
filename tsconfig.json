@@ -14,6 +14,7 @@
       "rootDir": "./",
       "paths": {
         "@types": ["./src/types"],
+        "@classes": ["./src/classes"],
         "@constants": ["./src/constants"],
         "@utilities": ["./src/utilities"]
       }

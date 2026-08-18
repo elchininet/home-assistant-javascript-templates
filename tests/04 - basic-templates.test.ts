@@ -1,4 +1,7 @@
-import HomeAssistantJavaScriptTemplates, { HomeAssistantJavaScriptTemplatesRenderer } from '../src';
+import {
+    HomeAssistantJavaScriptTemplates,
+    HomeAssistantJavaScriptTemplatesRenderer
+} from '../src/classes';
 import { HOME_ASSISTANT_ELEMENT, HASS } from './constants';
 
 describe('Basic templates tests', () => {

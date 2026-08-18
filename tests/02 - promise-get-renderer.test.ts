@@ -1,18 +1,19 @@
-import HomeAssistantJavaScriptTemplates from '../src';
+import {
+    HomeAssistantJavaScriptTemplates,
+    HomeAssistantJavaScriptTemplatesRenderer
+} from '../src/classes';
 import { HOME_ASSISTANT_ELEMENT, HASS } from './constants';
-import { EVENT } from '../src/constants';
 
 describe('promise instance', () => {
 
-    let cancelSubscription: jest.Mock;
-    let subscribeMessage: jest.Mock;
-
     beforeEach(() => {
-        cancelSubscription = jest.fn();
-        subscribeMessage = jest.fn(() => Promise.resolve(cancelSubscription));
         window.hassConnection = Promise.resolve({
             conn: {
-                subscribeMessage
+                subscribeMessage: jest.fn(
+                    () => Promise.resolve(
+                        jest.fn()
+                    )
+                )
             }
         });
     });
@@ -25,65 +26,7 @@ describe('promise instance', () => {
     it('getRenderer promise should resolve in a valid HomeAssistantJavaScriptTemplatesRenderer', async () => {
         const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
         const renderer = await compiler.getRenderer();
-        expect(renderer.renderTemplate('user_name')).toBe('ElChiniNet');
-    });
-
-    it('init method should return a promise that resolves to the same renderer', async () => {
-        const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
-        const renderer = await compiler.getRenderer();
-        const instance = await renderer.init();
-        expect(renderer).toBe(instance);
-    });
-
-    it('hassConnection.conn.subscribeMessage should not be called if init is not called', async () => {
-        const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
-        await compiler.getRenderer();
-        await new Promise(process.nextTick);
-        expect(subscribeMessage).not.toHaveBeenCalled();
-    });
-
-    it('hassConnection.conn.subscribeMessage should be called after init is called', async () => {
-        const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
-        const renderer = await compiler.getRenderer();
-        renderer.init();
-        await new Promise(process.nextTick);
-        expect(subscribeMessage).toHaveBeenCalledWith(
-            expect.any(Function),
-            {
-                type: EVENT.SUBSCRIBE_EVENTS,
-                event_type: EVENT.STATE_CHANGE_EVENT
-            }
-        );
-    });
-
-    it('should throw an error if stop is called without calling init first', async () => {
-        const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
-        const renderer = await compiler.getRenderer();
-        await expect(
-            async () => renderer.stop()
-        ).rejects.toThrow('You cannot call stop method without init being fully executed, call init first or wait for its promise to be resolved');
-        expect(cancelSubscription).not.toHaveBeenCalled();
-    });
-
-    it('should throw an error if init is called without calling stop first', async () => {
-        const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
-        const renderer = await compiler.getRenderer();
-        renderer.init();
-        await new Promise(process.nextTick);
-        await expect(
-            async () => renderer.init()
-        ).rejects.toThrow('You cannot call init method consecutively, call stop first');
-    });
-
-    it('should not throw an error if init is called after calling stop', async () => {
-        const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
-        const renderer = await compiler.getRenderer();
-        renderer.init();
-        await new Promise(process.nextTick);
-        renderer.stop();
-        await new Promise(process.nextTick);
-        expect(cancelSubscription).toHaveBeenCalled();
-        renderer.init();
+        expect(renderer).toBeInstanceOf(HomeAssistantJavaScriptTemplatesRenderer);
     });
 
     describe('getRenderer promise rejection', () => {

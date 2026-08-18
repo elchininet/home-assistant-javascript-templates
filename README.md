@@ -151,6 +151,23 @@ This method renders a `JavaScript` template and return its result. It needs a st
 >[!NOTE]
 >This method accepts an optional second parameter with an object. In this object it is possible to send a `variables` object, containing extra variables that will be appended to [the global variables](#variables) and a `refs` object, containing extra [refs variables](#refs-variables). The extra `refs` variables will be appended to the global ones, making them available even in templates that were declared before the call to this method. You need to be aware, that if a ref variable already exists, sending it again in this method will override it.
 
+#### parseTemplate
+
+```typescript
+parseTemplate(
+    template: string,
+    extras?: {
+        variables?: Record<string, unknown>,
+        refs?: Record<string, unknown>,
+    }
+): { result: any, entities: string[] }
+```
+
+This method parses a `JavaScript` template and return an object containing its result (the same result returned by [renderTemplate](#rendertemplate)) and the entities that were tracked. It needs a string as a parameter. Inside this string you can use [several objects and methods](#objects-and-methods-available-in-the-templates).
+
+>[!NOTE]
+>This method accepts an optional second parameter with an object. In this object it is possible to send a `variables` object, containing extra variables that will be appended to [the global variables](#variables) and a `refs` object, containing extra [refs variables](#refs-variables). The extra `refs` variables will be appended to the global ones, making them available even in templates that were declared before the call to this method. You need to be aware, that if a ref variable already exists, sending it again in this method will override it.
+
 #### trackTemplate
 
 ```typescript

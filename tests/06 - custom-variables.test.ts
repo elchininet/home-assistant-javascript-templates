@@ -1,4 +1,7 @@
-import HomeAssistantJavaScriptTemplates, { HomeAssistantJavaScriptTemplatesRenderer } from '../src';
+import {
+    HomeAssistantJavaScriptTemplates,
+    HomeAssistantJavaScriptTemplatesRenderer
+} from '../src/classes';
 import { HOME_ASSISTANT_ELEMENT } from './constants';
 
 describe('Custom variables', () => {

@@ -5,6 +5,7 @@
 - The subscriptions for panel URL changes, language changes or entity changes are not created on instantiation. The `init` method should be called first.
 - Add an `init` public method
 - Add a `stop` public method
+- Add a `parseTemplate` public method
 - Add an `initialized` public property
 
 ## [7.1.0] - 2026-05-16
