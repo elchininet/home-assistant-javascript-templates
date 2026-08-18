@@ -128,6 +128,11 @@ export interface Extras {
     refs?: Vars;
 }
 
+export interface ParsedTemplate {
+    result: any;
+    entities: string[];
+}
+
 export interface Scopped {
     hass: Hass;
     // states

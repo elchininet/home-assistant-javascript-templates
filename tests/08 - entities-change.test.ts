@@ -1,4 +1,7 @@
-import HomeAssistantJavaScriptTemplates, { HomeAssistantJavaScriptTemplatesRenderer } from '../src';
+import {
+    HomeAssistantJavaScriptTemplates,
+    HomeAssistantJavaScriptTemplatesRenderer
+} from '../src/classes';
 import { SubscriberEvent, HomeAssistant } from '../src/types';
 import { EVENT } from '../src/constants';
 import { HASS } from './constants';
