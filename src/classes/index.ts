@@ -36,6 +36,7 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
             refsVariableName = DEFAULT_REFS_VARIABLE_NAME,
             autoReturn = true
         } = options;
+        this._subscribed = false;
         this._throwErrors = throwErrors;
         this._throwWarnings = throwWarnings;
         this._variables = variables;
@@ -53,11 +54,11 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
             throwWarnings
         );
         this.refs = refs;
-        this._cancelSubscription = null;
         this._panelUrlWatchCallbackBinded = this._panelUrlWatchCallback.bind(this);
         this._watchForLanguageChangeCallbackBinded = this._watchForLanguageChangeCallback.bind(this);
     }
 
+    private _subscribed: boolean;
     private _throwErrors!: boolean;
     private _throwWarnings!: boolean;
     private _variables!: Vars;
@@ -67,7 +68,7 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
     private _subscriptions!: SubscriptionsMap;
     private _scopped!: Scopped;
 
-    private _cancelSubscription: CancelSubscription | null;
+    private _cancelSubscription?: CancelSubscription;
     private _panelUrlWatchCallbackBinded: () => void;
     private _watchForLanguageChangeCallbackBinded: () => void;
 
@@ -115,34 +116,34 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
         }
     }
 
-    private _watchForEntitiesChange(): Promise<HomeAssistantJavaScriptTemplatesRenderer> {
-        if (this._cancelSubscription) {
+    private async _watchForEntitiesChange(): Promise<HomeAssistantJavaScriptTemplatesRenderer> {
+        if (this._subscribed) {
             throw new Error('You cannot call init method consecutively, call stop first');
         }
-        return new Promise((resolve) => {
-            window.hassConnection
-                .then((hassConnection: HassConnection): void => {
-                    hassConnection.conn.subscribeMessage<SubscriberEvent>(
-                        (event) => this._entityWatchCallback(event),
-                        {
-                            type: EVENT.SUBSCRIBE_EVENTS,
-                            event_type: EVENT.STATE_CHANGE_EVENT
-                        }
-                    )
-                    .then((cancelSubscription: CancelSubscription) => {
-                        this._cancelSubscription = cancelSubscription;
-                        resolve(this);
-                    });
-                });	
-        });
+        this._subscribed = true;
+        try {
+            const hassConnection = await window.hassConnection;
+            const cancelSubscription = await hassConnection.conn.subscribeMessage<SubscriberEvent>(
+                (event) => this._entityWatchCallback(event),
+                {
+                    type: EVENT.SUBSCRIBE_EVENTS,
+                    event_type: EVENT.STATE_CHANGE_EVENT
+                }
+            );
+            this._cancelSubscription = cancelSubscription;
+            return this;
+        } catch (error: unknown) {
+            this._subscribed = false;
+            throw error;
+        }
 	}
 
     private _stopWatchForEntitiesChange() {
-        if (!this._cancelSubscription) {
-            throw new Error('You cannot call stop method without init being fully executed, call init first or wait for its promise to be resolved');
+        if (!this._subscribed) {
+            throw new Error('You cannot call stop method without init being called');
         }
-        this._cancelSubscription();
-        this._cancelSubscription = null;
+        this._subscribed = false;
+        this._cancelSubscription!();
     }
 
 	private _entityWatchCallback(event: SubscriberEvent) {        
@@ -157,9 +158,10 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
     private _storeTracked(
         template: string,
         renderingFunction: RenderingFunction,
+        entities: string[],
         extras: Extras
     ): void {
-        this._scopped.tracked.forEach((id: string): void => {
+        entities.forEach((id: string): void => {
             const mapEntry: [RenderingFunction, Extras] = [
                 renderingFunction,
                 extras
@@ -221,11 +223,12 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
         this._stopWatchForEntitiesChange();
     }
 
-    public renderTemplate(
+    public parseTemplate(
         template: string,
         extras: Extras = {}
-    ): any {
+    ): ParsedTemplate {
         try {
+            this._scopped.cleanTracked();
             const {
                 variables: extraVariables = {},
                 refs: extraRefs = {}
@@ -281,7 +284,7 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
                 `${STRICT_MODE} ${functionBody}`
             );
 
-            return templateFunction(
+            const result = templateFunction(
                 this._scopped.hass,
                 this._scopped.states,
                 this._scopped.state_translated.bind(this._scopped),
@@ -324,6 +327,11 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
                 ...Array.from(variables.values()),
             );
 
+            return {
+                result,
+                entities: [...this._scopped.tracked]
+            };
+
         } catch (error) {
             if (this._throwErrors) {
                 throw error;
@@ -331,10 +339,21 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
                 if (this._throwWarnings) {
                     console.warn(error);
                 }
-                return undefined;
+                return {
+                    result: undefined,
+                    entities: []
+                };
             }
         }
 
+    }
+
+    public renderTemplate(
+        template: string,
+        extras: Extras = {}
+    ): ParsedTemplate {
+        const { result } = this.parseTemplate(template, extras);
+        return result;
     }
 
     public trackTemplate(
@@ -342,11 +361,11 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
         renderingFunction: RenderingFunction,
         extras: Extras = {}
     ): () => void {
-        this._scopped.cleanTracked();
-        const result = this.renderTemplate(template, extras);
+        const { result, entities } = this.parseTemplate(template, extras);
         this._storeTracked(
             template,
             renderingFunction,
+            entities,
             extras
         );
         renderingFunction(result);
@@ -359,19 +378,6 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
         } else if(this._subscriptions.has(entityId)) {
             this._subscriptions.delete(entityId);
         }   
-    }
-
-    public parseTemplate(
-        template: string,
-        extras: Extras = {}
-    ): ParsedTemplate {
-        this._scopped.cleanTracked();
-        const result = this.renderTemplate(template, extras);
-        const entities = [ ...this._scopped.tracked ];
-        return {
-            result,
-            entities
-        };
     }
 
     public get variables(): Vars {
@@ -400,8 +406,8 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
         );
     }
 
-    public get initialized(): boolean {
-        return this._cancelSubscription !== null;
+    public get subscribed(): boolean {
+        return this._subscribed;
     }
 
 }

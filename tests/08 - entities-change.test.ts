@@ -87,10 +87,10 @@ describe('promise instance', () => {
         });
 
         it('should call the rendering function when HA location-changed event is fired if init has been called before', async () => {
-            expect(renderer.initialized).toBeFalsy();
+            expect(renderer.subscribed).toBeFalsy();
             renderer.init();
             await new Promise(process.nextTick);
-            expect(renderer.initialized).toBeTruthy();
+            expect(renderer.subscribed).toBeTruthy();
             window.location.pathname = '/path/test';
             window.dispatchEvent(
                 new CustomEvent(EVENT.LOCATION_CHANGED)
@@ -99,17 +99,17 @@ describe('promise instance', () => {
         });
 
         it('should stop calling the rendering function when HA location-changed event is fired if stopWtach has been called before', async () => {
-            expect(renderer.initialized).toBeFalsy();
+            expect(renderer.subscribed).toBeFalsy();
             renderer.init();
             await new Promise(process.nextTick);
-            expect(renderer.initialized).toBeTruthy();
+            expect(renderer.subscribed).toBeTruthy();
             window.location.pathname = '/path/test';
             window.dispatchEvent(
                 new CustomEvent(EVENT.LOCATION_CHANGED)
             );
             expect(renderingFunction).toHaveBeenNthCalledWith(2, 'yes');
             renderer.stop();
-            expect(renderer.initialized).toBeFalsy();
+            expect(renderer.subscribed).toBeFalsy();
             window.dispatchEvent(
                 new CustomEvent(EVENT.LOCATION_CHANGED)
             );
@@ -122,25 +122,25 @@ describe('promise instance', () => {
         });
 
         it('should call the rendering function when popstate event is fired if init has been called before', async () => {
-            expect(renderer.initialized).toBeFalsy();
+            expect(renderer.subscribed).toBeFalsy();
             renderer.init();
             await new Promise(process.nextTick);
-            expect(renderer.initialized).toBeTruthy();
+            expect(renderer.subscribed).toBeTruthy();
             window.location.pathname = '/path/test';
             window.dispatchEvent(new Event(EVENT.POPSTATE));
             expect(renderingFunction).toHaveBeenNthCalledWith(2, 'yes');
         });
 
         it('should stop calling the rendering function when popstate event is fired if stopWtach has been called before', async () => {
-            expect(renderer.initialized).toBeFalsy();
+            expect(renderer.subscribed).toBeFalsy();
             renderer.init();
             await new Promise(process.nextTick);
-            expect(renderer.initialized).toBeTruthy();
+            expect(renderer.subscribed).toBeTruthy();
             window.location.pathname = '/path/test';
             window.dispatchEvent(new Event(EVENT.POPSTATE));
             expect(renderingFunction).toHaveBeenNthCalledWith(2, 'yes');
             renderer.stop();
-            expect(renderer.initialized).toBeFalsy();
+            expect(renderer.subscribed).toBeFalsy();
             window.dispatchEvent(
                 new CustomEvent(EVENT.LOCATION_CHANGED)
             );
@@ -172,25 +172,25 @@ describe('promise instance', () => {
         });
 
         it ('should call the rendering function when the event translations-updated is triggered if init has been called before', async () => {
-            expect(renderer.initialized).toBeFalsy();
+            expect(renderer.subscribed).toBeFalsy();
             renderer.init();
             await new Promise(process.nextTick);
-            expect(renderer.initialized).toBeTruthy();
+            expect(renderer.subscribed).toBeTruthy();
             hassClone.language = 'es';
             window.dispatchEvent(new Event(EVENT.TRANSLATIONS_UPDATED));
             expect(renderingFunction).toHaveBeenNthCalledWith(2, 'sí');
         });
 
         it('should stop calling the rendering function when the event translations-updated is triggered if stopWtach has been called before', async () => {
-            expect(renderer.initialized).toBeFalsy();
+            expect(renderer.subscribed).toBeFalsy();
             renderer.init();
             await new Promise(process.nextTick);
-            expect(renderer.initialized).toBeTruthy();
+            expect(renderer.subscribed).toBeTruthy();
             hassClone.language = 'es';
             window.dispatchEvent(new Event(EVENT.TRANSLATIONS_UPDATED));
             expect(renderingFunction).toHaveBeenNthCalledWith(2, 'sí');
             renderer.stop();
-            expect(renderer.initialized).toBeFalsy();
+            expect(renderer.subscribed).toBeFalsy();
             window.dispatchEvent(new Event(EVENT.TRANSLATIONS_UPDATED));
             expect(renderingFunction).not.toHaveBeenCalledTimes(3);
         });
@@ -215,10 +215,10 @@ describe('promise instance', () => {
         });
 
         it ('should call the rendering function when the entity changes if init has been called before', async () => {
-            expect(renderer.initialized).toBeFalsy();
+            expect(renderer.subscribed).toBeFalsy();
             renderer.init();
             await new Promise(process.nextTick);
-            expect(renderer.initialized).toBeTruthy();
+            expect(renderer.subscribed).toBeTruthy();
             hassClone.states['light.woonkamer_lamp'].state = 'on';
             window.dispatchEvent(
                 getSubscribeCustomEvent('light.woonkamer_lamp')
@@ -228,17 +228,17 @@ describe('promise instance', () => {
         });
 
         it('should stop calling the rendering function when an entity changes if stopWtach has been called before', async () => {
-            expect(renderer.initialized).toBeFalsy();
+            expect(renderer.subscribed).toBeFalsy();
             renderer.init();
             await new Promise(process.nextTick);
-            expect(renderer.initialized).toBeTruthy();
+            expect(renderer.subscribed).toBeTruthy();
             hassClone.states['light.woonkamer_lamp'].state = 'on';
             window.dispatchEvent(
                 getSubscribeCustomEvent('light.woonkamer_lamp')
             );
             expect(renderingFunction).toHaveBeenNthCalledWith(2, 'on');
             renderer.stop();
-            expect(renderer.initialized).toBeFalsy();
+            expect(renderer.subscribed).toBeFalsy();
             window.dispatchEvent(
                 getSubscribeCustomEvent('light.woonkamer_lamp')
             );
