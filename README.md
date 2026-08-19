@@ -128,11 +128,17 @@ This property gets and sets the global refs variables that will be available in 
 
 #### init
 
-Initializes the subscriptions for changes. If this method is not called, calls to [trackTemplate](#tracktemplate) will execute the `renderingFunction` only when it is called and not during subscription changes. This method returns a promise that will be resolved returning the same renderer when all the subscriptions have been created correctly.
+Initializes the subscriptions for changes. If this method is not called, calls to [trackTemplate](#tracktemplate) will execute the `renderingFunction` only when it is called and not during URL, language or entities changes. This method returns a promise that will be resolved returning the same renderer when all the subscriptions have been created correctly.
+
+>[!NOTE]
+>This method cannot be called consecutively. Once called, the `stop` method must be called first before calling it again. If you call this method consecutively, you will receive an error.
 
 #### stop
 
 Stops the subscriptions for changes. If this method is called, any tracking set with [trackTemplate](#tracktemplate) will stop executing its `renderingFunction` when there are subscription changes.
+
+>[!NOTE]
+>This method cannot be called if the `init` method has not been called first. Trying to call this method without calling the `init` method will throw an error.
 
 #### parseTemplate
 
