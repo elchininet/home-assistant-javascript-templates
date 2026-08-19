@@ -351,7 +351,7 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
     public renderTemplate(
         template: string,
         extras: Extras = {}
-    ): ParsedTemplate {
+    ): any {
         const { result } = this.parseTemplate(template, extras);
         return result;
     }
