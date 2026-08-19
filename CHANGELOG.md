@@ -6,7 +6,7 @@
 - Add an `init` public method
 - Add a `stop` public method
 - Add a `parseTemplate` public method
-- Add an `initialized` public property
+- Add an `subscribed` public property
 
 ## [7.1.0] - 2026-05-16
 

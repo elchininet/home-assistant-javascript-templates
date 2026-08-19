@@ -112,9 +112,9 @@ This class is only exported as a type in the package, you cannot import it direc
 
 ### Properties
 
-#### initialized (only getter)
+#### subscribed (only getter)
 
-Returns if the renderer has been initialized (the `init` method has been called and the `stop` method has not been called after that).
+Returns if the renderer has been subscribed (the `init` method has been called and the `stop` method has not been called after that).
 
 #### variables
 
@@ -128,28 +128,11 @@ This property gets and sets the global refs variables that will be available in 
 
 #### init
 
-Initializes the subscriptions for changes. If this method is not called, calls to [trackTemplate](#tracktemplate) will execute the `renderingFunction` only when it is called and not during the changes. This method returns a promise that will be resolved returning the same renderer when all the subscriptions have been created correctly. Until this promise is not resolved you should not call [stop](#stop) or you will get an error.
+Initializes the subscriptions for changes. If this method is not called, calls to [trackTemplate](#tracktemplate) will execute the `renderingFunction` only when it is called and not during subscription changes. This method returns a promise that will be resolved returning the same renderer when all the subscriptions have been created correctly.
 
 #### stop
 
-Stops the subscriptions for changes. If this method is called, any tracking set with [trackTemplate](#tracktemplate) will stop executing its `renderingFunction` when there are changes.
-
-#### renderTemplate
-
-```typescript
-renderTemplate(
-    template: string,
-    extras?: {
-        variables?: Record<string, unknown>,
-        refs?: Record<string, unknown>,
-    }
-): any
-```
-
-This method renders a `JavaScript` template and return its result. It needs a string as a parameter. Inside this string you can use [several objects and methods](#objects-and-methods-available-in-the-templates). It returns whatever the `JavaScript` code returns, because of that it is typed as `any`.
-
->[!NOTE]
->This method accepts an optional second parameter with an object. In this object it is possible to send a `variables` object, containing extra variables that will be appended to [the global variables](#variables) and a `refs` object, containing extra [refs variables](#refs-variables). The extra `refs` variables will be appended to the global ones, making them available even in templates that were declared before the call to this method. You need to be aware, that if a ref variable already exists, sending it again in this method will override it.
+Stops the subscriptions for changes. If this method is called, any tracking set with [trackTemplate](#tracktemplate) will stop executing its `renderingFunction` when there are subscription changes.
 
 #### parseTemplate
 
@@ -163,7 +146,24 @@ parseTemplate(
 ): { result: any, entities: string[] }
 ```
 
-This method parses a `JavaScript` template and return an object containing its result (the same result returned by [renderTemplate](#rendertemplate)) and the entities that were tracked. It needs a string as a parameter. Inside this string you can use [several objects and methods](#objects-and-methods-available-in-the-templates).
+This method parses a `JavaScript` template and return an object containing its result and the entities that were tracked. It needs a string as a parameter. Inside this string you can use [several objects and methods](#objects-and-methods-available-in-the-templates). It returns whatever the `JavaScript` code returns, because of that it is typed as `any`.
+
+>[!NOTE]
+>This method accepts an optional second parameter with an object. In this object it is possible to send a `variables` object, containing extra variables that will be appended to [the global variables](#variables) and a `refs` object, containing extra [refs variables](#refs-variables). The extra `refs` variables will be appended to the global ones, making them available even in templates that were declared before the call to this method. You need to be aware, that if a ref variable already exists, sending it again in this method will override it.
+
+#### renderTemplate
+
+```typescript
+renderTemplate(
+    template: string,
+    extras?: {
+        variables?: Record<string, unknown>,
+        refs?: Record<string, unknown>,
+    }
+): any
+```
+
+This method will return only the result of the [parseTemplate](#parsetemplate) method.
 
 >[!NOTE]
 >This method accepts an optional second parameter with an object. In this object it is possible to send a `variables` object, containing extra variables that will be appended to [the global variables](#variables) and a `refs` object, containing extra [refs variables](#refs-variables). The extra `refs` variables will be appended to the global ones, making them available even in templates that were declared before the call to this method. You need to be aware, that if a ref variable already exists, sending it again in this method will override it.
