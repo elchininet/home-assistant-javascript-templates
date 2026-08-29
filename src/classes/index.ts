@@ -4,12 +4,11 @@ import {
     Extras,
     HomeAssistant,
     Hass,
-    HassConnection,
     Options,
     ParsedTemplate,
     RenderingFunction,
     RenderingFunctionsMap,
-    SubscriberEvent,
+    SubscribeEntityEvent,
     Scopped,
     SubscriptionsMap,
     Vars
@@ -72,18 +71,22 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
     private _panelUrlWatchCallbackBinded: () => void;
     private _watchForLanguageChangeCallbackBinded: () => void;
 
-    private _executeRenderingFunctions(id: string): void {
-        this._subscriptions
-            .get(id)!
-            .forEach((functions: Map<RenderingFunction, Vars>, template: string): void => {
-                functions.forEach((extras: Extras, renderingFunction: RenderingFunction) => {
-                    this.trackTemplate(
-                        template,
-                        renderingFunction,
-                        extras
-                    );
-                });
+    private _executeRenderingFunctions(renderingFunctionsMap: RenderingFunctionsMap): void {
+        renderingFunctionsMap.forEach((functions: Map<RenderingFunction, Vars>, template: string): void => {
+            functions.forEach((extras: Extras, renderingFunction: RenderingFunction) => {
+                this.trackTemplate(
+                    template,
+                    renderingFunction,
+                    extras
+                );
             });
+        });
+    }
+
+    private _executeRenderingFunctionsByEntityId(id: string): void {
+        this._executeRenderingFunctions(
+            this._subscriptions.get(id)!
+        );
     }
 
     private _watchForPanelUrlChange() {
@@ -98,7 +101,7 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
 
     private _panelUrlWatchCallback() {
         if (this._subscriptions.has(CLIENT_SIDE_ENTITIES.PANEL_URL)) {
-            this._executeRenderingFunctions(CLIENT_SIDE_ENTITIES.PANEL_URL);
+            this._executeRenderingFunctionsByEntityId(CLIENT_SIDE_ENTITIES.PANEL_URL);
         }
     }
 
@@ -112,7 +115,7 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
 
     private _watchForLanguageChangeCallback() {
         if (this._subscriptions.has(CLIENT_SIDE_ENTITIES.LANG)) {
-            this._executeRenderingFunctions(CLIENT_SIDE_ENTITIES.LANG);
+            this._executeRenderingFunctionsByEntityId(CLIENT_SIDE_ENTITIES.LANG);
         }
     }
 
@@ -123,11 +126,10 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
         this._subscribed = true;
         try {
             const hassConnection = await window.hassConnection;
-            const cancelSubscription = await hassConnection.conn.subscribeMessage<SubscriberEvent>(
+            const cancelSubscription = await hassConnection.conn.subscribeMessage<SubscribeEntityEvent>(
                 (event) => this._entityWatchCallback(event),
                 {
-                    type: EVENT.SUBSCRIBE_EVENTS,
-                    event_type: EVENT.STATE_CHANGE_EVENT
+                    type: EVENT.SUBSCRIBE_ENTITIES
                 }
             );
             this._cancelSubscription = cancelSubscription;
@@ -146,12 +148,13 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
         this._cancelSubscription!();
     }
 
-	private _entityWatchCallback(event: SubscriberEvent) {        
-		if (this._subscriptions.size) {
-			const id = event.data.entity_id;
-            if (this._subscriptions.has(id)) {
-                this._executeRenderingFunctions(id);
-            }
+	private _entityWatchCallback(event: SubscribeEntityEvent) {        
+		if (this._subscriptions.size && event.c) {
+            for (const id in event.c) {
+                if (this._subscriptions.has(id)) {
+                    this._executeRenderingFunctionsByEntityId(id);
+                }
+            }            
 		}
 	}
 
