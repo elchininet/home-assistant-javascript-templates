@@ -2,18 +2,18 @@ import {
     HomeAssistantJavaScriptTemplates,
     HomeAssistantJavaScriptTemplatesRenderer
 } from '../src/classes';
-import { SubscriberEvent, HomeAssistant } from '../src/types';
+import { SubscribeEntityEvent, HomeAssistant } from '../src/types';
 import { EVENT } from '../src/constants';
 import { HASS } from './constants';
 
-const CUSTOM_EVENT = 'subscribe_events';
+const CUSTOM_EVENT = 'subscribe_entities';
 const getSubscribeCustomEvent = (id: string) => {
     return new CustomEvent(
         CUSTOM_EVENT,
         {
             detail: {
-                data: {
-                    entity_id: id
+                c: {
+                    [id]: {}
                 }
             }
         }
@@ -27,7 +27,7 @@ describe('promise instance', () => {
     let renderer: HomeAssistantJavaScriptTemplatesRenderer;
 
     beforeEach(async () => {
-        subscribeMessage = jest.fn((callback: (event: SubscriberEvent) => void, __config: Record<string, string>) => {
+        subscribeMessage = jest.fn((callback: (event: SubscribeEntityEvent) => void, __config: Record<string, string>) => {
             const subscribeCallback = (event: Event): void => {
                 callback((event as CustomEvent).detail);
             };

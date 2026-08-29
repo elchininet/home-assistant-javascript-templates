@@ -69,8 +69,7 @@ describe('promise instance', () => {
             expect(subscribeMessage).toHaveBeenCalledWith(
                 expect.any(Function),
                 {
-                    type: EVENT.SUBSCRIBE_EVENTS,
-                    event_type: EVENT.STATE_CHANGE_EVENT
+                    type: EVENT.SUBSCRIBE_ENTITIES
                 }
             );
         });
@@ -85,9 +84,11 @@ describe('promise instance', () => {
         it('should throw an error if init is called without calling stop first', async () => {
             renderer.init();
             await new Promise(process.nextTick);
+            expect(subscribeMessage).toHaveBeenCalledTimes(1);
             await expect(
                 renderer.init()
             ).rejects.toThrow('You cannot call init method consecutively, call stop first');
+            expect(subscribeMessage).not.toHaveBeenCalledTimes(2);
         });
 
         it('should not throw an error if init is called after calling stop', async () => {
@@ -95,7 +96,7 @@ describe('promise instance', () => {
             await new Promise(process.nextTick);
             renderer.stop();
             await new Promise(process.nextTick);
-            expect(cancelSubscription).toHaveBeenCalled();
+            expect(cancelSubscription).toHaveBeenCalledTimes(1);
             renderer.init();
         });
 
