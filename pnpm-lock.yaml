@@ -15,8 +15,8 @@ importers:
   .:
     dependencies:
       get-promisable-result:
-        specifier: ^2.0.0
-        version: 2.0.0
+        specifier: ^2.1.0
+        version: 2.1.0
     devDependencies:
       '@rollup/plugin-terser':
         specifier: ^1.0.0
@@ -1186,8 +1186,8 @@ packages:
     resolution: {integrity: sha512-pjzuKtY64GYfWizNAJ0fr9VqttZkNiK2iS430LtIHzjBEr6bX8Am2zm4sW4Ro5wjWW5cAlRL1qAMTcXbjNAO2Q==}
     engines: {node: '>=8.0.0'}
 
-  get-promisable-result@2.0.0:
-    resolution: {integrity: sha512-DdA168VtnVn9A87CUsjPR8phpfYZRbKPA1wpzxMdZek6RZXxpphCUVgn0mqD4JJlHkLKChQd4y3bkFOEOZwcIA==}
+  get-promisable-result@2.1.0:
+    resolution: {integrity: sha512-r5wklp/XnLxMhjCZxD7/5Jo6drLivLTRqNPC7+r+4FsW4ovOPvgZwednygqKoWUgts1RRHNU9OUorVR2wl9XLQ==}
 
   get-stream@6.0.1:
     resolution: {integrity: sha512-ts6Wi+2j3jQjqi70w5AlN8DFnkSwC+MqmxEzdEALB2qXZYV3X/b1CTfgPLGJNMeAWxdPfU8FO1ms3NUfaHCPYg==}
@@ -3127,7 +3127,7 @@ snapshots:
 
   get-package-type@0.1.0: {}
 
-  get-promisable-result@2.0.0: {}
+  get-promisable-result@2.1.0: {}
 
   get-stream@6.0.1: {}
 

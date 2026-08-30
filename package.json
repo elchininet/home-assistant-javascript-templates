@@ -50,7 +50,7 @@
     "@rollup/plugin-typescript": "^12.3.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.4.0",
-    "get-promisable-result": "^1.0.2",
+    "get-promisable-result": "^2.1.0",
     "jest": "^30.5.0",
     "jest-environment-jsdom": "^30.5.0",
     "jest-location-mock": "^4.0.1",
@@ -62,10 +62,10 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "get-promisable-result": "^2.0.0"
+    "get-promisable-result": "^2.1.0"
   },
   "peerDependencies": {
-    "get-promisable-result": "^2.0.0"
+    "get-promisable-result": "^2.1.0"
   },
   "packageManager": "pnpm@11.15.0"
 }
