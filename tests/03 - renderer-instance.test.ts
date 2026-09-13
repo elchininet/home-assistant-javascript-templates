@@ -64,13 +64,11 @@ describe('promise instance', () => {
         });
 
         it('hassConnection.conn.subscribeMessage should be called after init is called', async () => {
-            renderer.init();
-            await new Promise(process.nextTick);
+            await renderer.init();
             expect(subscribeMessage).toHaveBeenCalledWith(
                 expect.any(Function),
                 {
-                    type: EVENT.SUBSCRIBE_EVENTS,
-                    event_type: EVENT.STATE_CHANGE_EVENT
+                    type: EVENT.SUBSCRIBE_ENTITIES
                 }
             );
         });
@@ -83,20 +81,26 @@ describe('promise instance', () => {
         });
 
         it('should throw an error if init is called without calling stop first', async () => {
-            renderer.init();
-            await new Promise(process.nextTick);
+            await renderer.init();
+            expect(subscribeMessage).toHaveBeenCalledTimes(1);
             await expect(
                 renderer.init()
-            ).rejects.toThrow('You cannot call init method consecutively, call stop first');
+            ).rejects.toThrow('You cannot call init method consecutively or call it if you used the autoInit option, call stop first');
+            expect(subscribeMessage).not.toHaveBeenCalledTimes(2);
         });
 
         it('should not throw an error if init is called after calling stop', async () => {
-            renderer.init();
-            await new Promise(process.nextTick);
+            await renderer.init();
             renderer.stop();
-            await new Promise(process.nextTick);
-            expect(cancelSubscription).toHaveBeenCalled();
-            renderer.init();
+            expect(cancelSubscription).toHaveBeenCalledTimes(1);
+            await renderer.init();
+            expect(subscribeMessage).toHaveBeenNthCalledWith(
+                2,
+                expect.any(Function),
+                {
+                    type: EVENT.SUBSCRIBE_ENTITIES
+                }
+            );
         });
 
         it('parseTemplate should return the correct shape', async () => {
