@@ -20,8 +20,7 @@ describe('ref and unref without errors', () => {
             }
         });
         renderer = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
-        renderer.init();
-        await new Promise(process.nextTick);
+        await renderer.init();
         consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
     });
 
