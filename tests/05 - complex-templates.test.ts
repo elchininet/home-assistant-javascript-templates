@@ -15,8 +15,7 @@ describe('Complex templates tests', () => {
             }
         });
         const renderer = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
-        renderer.init();
-        await new Promise(process.nextTick);
+        await renderer.init();
 
         expect(
             renderer.renderTemplate(`
