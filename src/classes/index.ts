@@ -33,7 +33,8 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
             variables = {},
             refs = {},
             refsVariableName = DEFAULT_REFS_VARIABLE_NAME,
-            autoReturn = true
+            autoReturn = true,
+            autoInit = false
         } = options;
         this._subscribed = false;
         this._throwErrors = throwErrors;
@@ -55,6 +56,9 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
         this.refs = refs;
         this._panelUrlWatchCallbackBinded = this._panelUrlWatchCallback.bind(this);
         this._watchForLanguageChangeCallbackBinded = this._watchForLanguageChangeCallback.bind(this);
+        if (autoInit) {
+            this.init();
+        }
     }
 
     private _subscribed: boolean;
@@ -121,7 +125,7 @@ export class HomeAssistantJavaScriptTemplatesRenderer {
 
     private async _watchForEntitiesChange(): Promise<HomeAssistantJavaScriptTemplatesRenderer> {
         if (this._subscribed) {
-            throw new Error('You cannot call init method consecutively, call stop first');
+            throw new Error('You cannot call init method consecutively or call it if you used the autoInit option, call stop first');
         }
         this._subscribed = true;
         try {

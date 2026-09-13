@@ -7,6 +7,7 @@ export interface Options {
     refs?: Vars;
     refsVariableName?: string;
     autoReturn?: boolean;
+    autoInit?: boolean;
 }
 
 export type RenderingFunction = (result?: any) => void;
