@@ -98,7 +98,8 @@ new HomeAssistantJavaScriptTemplates(
 | `variables`        | yes           | `{}`    | An object holding custom global variables to be used inside all the templates. The values could be of any type |
 | `refs`             | yes           | `{}`    | An object holding custom global refs variables to be used inside all the templates. The values could be of any type. Consult the [refs variables](#refs-variables) section for more info |
 | `refsVariableName` | yes           | `refs`  | The name in the template of the object holding the `refs` variables. Consult the [refs variables](#refs-variables) section for more info |
-| `autoReturn`       | yes           | true    | Indicates if the library should add a `return` statement at the beginning of a template code if no `return` statements are contained in the code|
+| `autoReturn`       | yes           | true    | Indicates if the library should add a `return` statement at the beginning of a template code if no `return` statements are contained in the code |
+| `autoInit`         | yes           | false   | Indicates if the library should start [the init method](#init) automatically after instantiation |
 
 ### Methods
 
@@ -131,14 +132,14 @@ This property gets and sets the global refs variables that will be available in 
 Initializes the subscriptions for changes. If this method is not called, calls to [trackTemplate](#tracktemplate) will execute the `renderingFunction` only when it is called and not during URL, language or entities changes. This method returns a promise that will be resolved returning the same renderer when all the subscriptions have been created correctly.
 
 >[!NOTE]
->This method cannot be called consecutively. Once called, the `stop` method must be called first before calling it again. If you call this method consecutively, you will receive an error.
+>This method cannot be called consecutively or called if you set the `autoInit` option in `true`. The `stop` method must be called first. If you call this method consecutively or you call it with the `autoInit` option in `true`, and you don't call the `stop` method first, you will receive an error.
 
 #### stop
 
 Stops the subscriptions for changes. If this method is called, any tracking set with [trackTemplate](#tracktemplate) will stop executing its `renderingFunction` when there are subscription changes.
 
 >[!NOTE]
->This method cannot be called if the `init` method has not been called first. Trying to call this method without calling the `init` method will throw an error.
+>This method cannot be called if the `init` method has not been called first. Trying to call this method without calling the `init` method will throw an error. There is an exception to this rule: if you set the `autoInit` option in `true`, the `init` method is called automatically, so you can call the `stop` method in that case.
 
 #### parseTemplate
 

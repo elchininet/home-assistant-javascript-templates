@@ -1,4 +1,7 @@
-import { HomeAssistantJavaScriptTemplates, HomeAssistantJavaScriptTemplatesRenderer } from '../src/classes';
+import {
+    HomeAssistantJavaScriptTemplates,
+    HomeAssistantJavaScriptTemplatesRenderer
+} from '../src/classes';
 import { HOME_ASSISTANT_ELEMENT } from './constants';
 
 describe('Function tests', () => {

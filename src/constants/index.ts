@@ -20,8 +20,7 @@ export enum EVENT {
     LOCATION_CHANGED = 'location-changed',
     TRANSLATIONS_UPDATED = 'translations-updated',
     POPSTATE = 'popstate',
-    SUBSCRIBE_EVENTS = 'subscribe_events',
-    STATE_CHANGE_EVENT = 'state_changed'
+    SUBSCRIBE_ENTITIES = 'subscribe_entities'
 }
 
 export const STRICT_MODE = '"use strict";';
