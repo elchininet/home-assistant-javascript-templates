@@ -7,6 +7,7 @@ export interface Options {
     refs?: Vars;
     refsVariableName?: string;
     autoReturn?: boolean;
+    autoInit?: boolean;
 }
 
 export type RenderingFunction = (result?: any) => void;
@@ -86,28 +87,21 @@ export type SubscriptionsMap = Map<
     RenderingFunctionsMap
 >;
 
-export type SubscriberEvent = {
-    event_type: string;
-    data: {
-        entity_id: string;
-        old_state?: {
-            state: string;
-        };
-        new_state: {
-            state: string;
-        };
-    }
+export type SubscribeEntityEvent = {
+    c?: Record<string, unknown>;
 };
 
 export type CancelSubscription = () => Promise<void>;
 
+export interface HassWebSocketConnection {
+    subscribeMessage: <T>(
+        callback: (response: T) => void,
+        options: Vars
+    ) => Promise<CancelSubscription>;
+}
+
 export interface HassConnection {
-    conn: {
-        subscribeMessage: <T>(
-            callback: (response: T) => void,
-            options: Vars
-        ) => Promise<CancelSubscription>;
-    }
+    conn: HassWebSocketConnection;
 }
 
 declare global {
@@ -120,7 +114,7 @@ export type Ref = {
     value: unknown;
 };
 
-export type EntityWatchCallback = (event: SubscriberEvent) => void;
+export type EntityWatchCallback = (event: SubscribeEntityEvent) => void;
 export type CleanTracked = (refId: string) => void;
 
 export interface Extras {
