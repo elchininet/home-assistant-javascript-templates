@@ -1,5 +1,10 @@
 # Changelog
 
+## [8.1.0] - 2026-09-13
+
+- Migrate from WebSocket subscribe_events/state_changed to subscribe_entities
+- Added a `autoInit` option
+
 ## [8.0.0] - 2026-08-18
 
 - The subscriptions for panel URL changes, language changes or entity changes are not created on instantiation. The `init` method should be called first.

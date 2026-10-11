@@ -2,18 +2,18 @@ import {
     HomeAssistantJavaScriptTemplates,
     HomeAssistantJavaScriptTemplatesRenderer
 } from '../src/classes';
-import { SubscriberEvent, HomeAssistant } from '../src/types';
+import { SubscribeEntityEvent, HomeAssistant } from '../src/types';
 import { EVENT } from '../src/constants';
 import { HASS } from './constants';
 
-const CUSTOM_EVENT = 'subscribe_events';
+const CUSTOM_EVENT = 'subscribe_entities';
 const getSubscribeCustomEvent = (id: string) => {
     return new CustomEvent(
         CUSTOM_EVENT,
         {
             detail: {
-                data: {
-                    entity_id: id
+                c: {
+                    [id]: {}
                 }
             }
         }
@@ -27,7 +27,7 @@ describe('promise instance', () => {
     let renderer: HomeAssistantJavaScriptTemplatesRenderer;
 
     beforeEach(async () => {
-        subscribeMessage = jest.fn((callback: (event: SubscriberEvent) => void, __config: Record<string, string>) => {
+        subscribeMessage = jest.fn((callback: (event: SubscribeEntityEvent) => void, __config: Record<string, string>) => {
             const subscribeCallback = (event: Event): void => {
                 callback((event as CustomEvent).detail);
             };
@@ -88,8 +88,7 @@ describe('promise instance', () => {
 
         it('should call the rendering function when HA location-changed event is fired if init has been called before', async () => {
             expect(renderer.subscribed).toBeFalsy();
-            renderer.init();
-            await new Promise(process.nextTick);
+            await renderer.init();
             expect(renderer.subscribed).toBeTruthy();
             window.location.pathname = '/path/test';
             window.dispatchEvent(
@@ -100,8 +99,7 @@ describe('promise instance', () => {
 
         it('should stop calling the rendering function when HA location-changed event is fired if stopWtach has been called before', async () => {
             expect(renderer.subscribed).toBeFalsy();
-            renderer.init();
-            await new Promise(process.nextTick);
+            await renderer.init();
             expect(renderer.subscribed).toBeTruthy();
             window.location.pathname = '/path/test';
             window.dispatchEvent(
@@ -123,8 +121,7 @@ describe('promise instance', () => {
 
         it('should call the rendering function when popstate event is fired if init has been called before', async () => {
             expect(renderer.subscribed).toBeFalsy();
-            renderer.init();
-            await new Promise(process.nextTick);
+            await renderer.init();
             expect(renderer.subscribed).toBeTruthy();
             window.location.pathname = '/path/test';
             window.dispatchEvent(new Event(EVENT.POPSTATE));
@@ -133,8 +130,7 @@ describe('promise instance', () => {
 
         it('should stop calling the rendering function when popstate event is fired if stopWtach has been called before', async () => {
             expect(renderer.subscribed).toBeFalsy();
-            renderer.init();
-            await new Promise(process.nextTick);
+            await renderer.init();
             expect(renderer.subscribed).toBeTruthy();
             window.location.pathname = '/path/test';
             window.dispatchEvent(new Event(EVENT.POPSTATE));
@@ -173,8 +169,7 @@ describe('promise instance', () => {
 
         it ('should call the rendering function when the event translations-updated is triggered if init has been called before', async () => {
             expect(renderer.subscribed).toBeFalsy();
-            renderer.init();
-            await new Promise(process.nextTick);
+            await renderer.init();
             expect(renderer.subscribed).toBeTruthy();
             hassClone.language = 'es';
             window.dispatchEvent(new Event(EVENT.TRANSLATIONS_UPDATED));
@@ -183,8 +178,7 @@ describe('promise instance', () => {
 
         it('should stop calling the rendering function when the event translations-updated is triggered if stopWtach has been called before', async () => {
             expect(renderer.subscribed).toBeFalsy();
-            renderer.init();
-            await new Promise(process.nextTick);
+            await renderer.init();
             expect(renderer.subscribed).toBeTruthy();
             hassClone.language = 'es';
             window.dispatchEvent(new Event(EVENT.TRANSLATIONS_UPDATED));
@@ -216,8 +210,7 @@ describe('promise instance', () => {
 
         it ('should call the rendering function when the entity changes if init has been called before', async () => {
             expect(renderer.subscribed).toBeFalsy();
-            renderer.init();
-            await new Promise(process.nextTick);
+            await renderer.init();
             expect(renderer.subscribed).toBeTruthy();
             hassClone.states['light.woonkamer_lamp'].state = 'on';
             window.dispatchEvent(
@@ -229,8 +222,7 @@ describe('promise instance', () => {
 
         it('should stop calling the rendering function when an entity changes if stopWtach has been called before', async () => {
             expect(renderer.subscribed).toBeFalsy();
-            renderer.init();
-            await new Promise(process.nextTick);
+            await renderer.init();
             expect(renderer.subscribed).toBeTruthy();
             hassClone.states['light.woonkamer_lamp'].state = 'on';
             window.dispatchEvent(
@@ -250,8 +242,7 @@ describe('promise instance', () => {
     describe('entity changes and rendering functions', () => {
 
         beforeEach(async () => {
-            renderer.init();
-            await new Promise(process.nextTick);
+            await renderer.init();
         });
 
         it('tracking the same template with multiple functions should call all of them', async () => {
