@@ -18,8 +18,7 @@ import {
     ENTITY_REGEXP,
     STATE_VALUES,
     ATTRIBUTES,
-    CLIENT_SIDE_ENTITIES,
-    EVENT
+    CLIENT_SIDE_ENTITIES
 } from '@constants';
 
 const objectFromEntries = <T = unknown>(entries: [string, T][]): Record<string, T> => {
@@ -412,18 +411,10 @@ export function createScoppedFunctions(
                     },
                     set(target, property: string, value: unknown): boolean {
                         if (property === refValue) {
-                            const oldValue = target[refValue];
                             target[refValue] = value;
                             entityWatchCallback({
-                                event_type: EVENT.STATE_CHANGE_EVENT,
-                                data: {
-                                    entity_id: entityId,
-                                    old_state: {
-                                        state: JSON.stringify(oldValue)
-                                    },
-                                    new_state: {
-                                        state: JSON.stringify(value)
-                                    }
+                                c: {
+                                    [entityId]: {}
                                 }
                             });
                             return true;
