@@ -1,6 +1,6 @@
 # Changelog
 
-## [8.1.0] - 2026-09-13
+## [8.1.0] - 2026-11-08
 
 - Migrate from WebSocket subscribe_events/state_changed to subscribe_entities
 - Added a `autoInit` option
