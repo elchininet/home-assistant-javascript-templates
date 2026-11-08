@@ -31,7 +31,6 @@ describe('Custom variables', () => {
             }
         });        
         renderer = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT, { variables }).getRenderer();
-        await renderer.init();
     });
 
     it('strig variable should be retrieved correctly', () => {

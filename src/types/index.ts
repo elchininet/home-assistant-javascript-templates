@@ -7,8 +7,9 @@ export interface Options {
     refs?: Vars;
     refsVariableName?: string;
     autoReturn?: boolean;
-    autoInit?: boolean;
 }
+
+export type SubscriberCallback = (event: SubscribeEntityEvent) => void;
 
 export type RenderingFunction = (result?: any) => void;
 
