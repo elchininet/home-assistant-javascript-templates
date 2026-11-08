@@ -39,10 +39,8 @@ const haJsTemplates = new HomeAssistantJavaScriptTemplates(
 );
 
 haJsTemplates.getRenderer()
-    then(async (renderer) => {
+    then((renderer) => {
         renderer.renderTemplate('... template string ...');
-        // Call init to start the subscriptions for changes
-        await renderer.init();
         renderer.trackTemplate('... template string ...', () => {
             // execute this function every time that en entity used in the template changes
         });
@@ -59,10 +57,8 @@ const haJsTemplates = new HomeAssistantJavaScriptTemplates(
 );
 
 haJsTemplates.getRenderer()
-    then(async (renderer) => {
+    then((renderer) => {
         renderer.renderTemplate('... template string ...');
-        // Call init to start the subscriptions for changes
-        await renderer.init();
         renderer.trackTemplate('... template string ...', () => {
             // execute this function every time that en entity used in the template changes
         });
@@ -99,7 +95,6 @@ new HomeAssistantJavaScriptTemplates(
 | `refs`             | yes           | `{}`    | An object holding custom global refs variables to be used inside all the templates. The values could be of any type. Consult the [refs variables](#refs-variables) section for more info |
 | `refsVariableName` | yes           | `refs`  | The name in the template of the object holding the `refs` variables. Consult the [refs variables](#refs-variables) section for more info |
 | `autoReturn`       | yes           | true    | Indicates if the library should add a `return` statement at the beginning of a template code if no `return` statements are contained in the code |
-| `autoInit`         | yes           | false   | Indicates if the library should start [the init method](#init) automatically after instantiation |
 
 ### Methods
 
@@ -113,10 +108,6 @@ This class is only exported as a type in the package, you cannot import it direc
 
 ### Properties
 
-#### subscribed (only getter)
-
-Returns if the renderer has been subscribed (the `init` method has been called and the `stop` method has not been called after that).
-
 #### variables
 
 This property gets and sets the global variables that will be available in all the templates.
@@ -126,20 +117,6 @@ This property gets and sets the global variables that will be available in all t
 This property gets and sets the global refs variables that will be available in all the templates. If you assign a new `refs`, the previous `refs` variables and the template trackings that were using them will be cleaned. Consult the [refs variables](#refs-variables) section for more info.
 
 ### Methods
-
-#### init
-
-Initializes the subscriptions for changes. If this method is not called, calls to [trackTemplate](#tracktemplate) will execute the `renderingFunction` only when it is called and not during URL, language or entities changes. This method returns a promise that will be resolved returning the same renderer when all the subscriptions have been created correctly.
-
->[!NOTE]
->This method cannot be called consecutively or called if you set the `autoInit` option in `true`. The `stop` method must be called first. If you call this method consecutively or you call it with the `autoInit` option in `true`, and you don't call the `stop` method first, you will receive an error.
-
-#### stop
-
-Stops the subscriptions for changes. If this method is called, any tracking set with [trackTemplate](#tracktemplate) will stop executing its `renderingFunction` when there are subscription changes.
-
->[!NOTE]
->This method cannot be called if the `init` method has not been called first. Trying to call this method without calling the `init` method will throw an error. There is an exception to this rule: if you set the `autoInit` option in `true`, the `init` method is called automatically, so you can call the `stop` method in that case.
 
 #### parseTemplate
 
@@ -188,9 +165,9 @@ trackTemplate(
 ): () => void
 ```
 
-This method registers a template tracking. It executes the `renderingFunction` sent to the method with the result of the rendered `template`. If the [init](#init) method was called before, it will execute the `renderingFunction` with an updated result of the rendered `template` every time that the `panel_url`, the `lang` or the entities used in the template update. You can use [several objects and methods](#objects-and-methods-available-in-the-templates) inside the `template` string.
+This method registers a template tracking. It executes the `renderingFunction` sent to the method with the result of the rendered `template`. It will execute the `renderingFunction` with an updated result of the rendered `template` every time that the `panel_url`, the `lang` or the entities used in the template update. You can use [several objects and methods](#objects-and-methods-available-in-the-templates) inside the `template` string.
 
-If some entity was not reached in the template code because it was inside a condition that never met, then it will not be tracked, so if its state changes it will not trigger the `renderingFunction` again even if `init` was called before. Only those entities that were called during the rendering using [states](#states), [state_translated](#state_translated), [is_state](#is_state), [state_attr](#state_attr), [state_attr_translated](#state_attr_translated), [is_state_attr](#is_state_attr), [has_value](#has_value) [entities](#entities), [entity_prop](#entity_prop), [is_entity_prop](#is_entity_prop) or [device_id](#device_id), [device_attr](#device_attr), [is_device_attr](#is_device_attr), [device_id](#device_id), [device_name](#device_name), [area_id](#area_id), and [area_name](#area_name) will be included.
+If some entity was not reached in the template code because it was inside a condition that never met, then it will not be tracked, so if its state changes it will not trigger the `renderingFunction` again. Only those entities that were called during the rendering using [states](#states), [state_translated](#state_translated), [is_state](#is_state), [state_attr](#state_attr), [state_attr_translated](#state_attr_translated), [is_state_attr](#is_state_attr), [has_value](#has_value) [entities](#entities), [entity_prop](#entity_prop), [is_entity_prop](#is_entity_prop) or [device_id](#device_id), [device_attr](#device_attr), [is_device_attr](#is_device_attr), [device_id](#device_id), [device_name](#device_name), [area_id](#area_id), and [area_name](#area_name) will be included.
 
 This method will return a function. When this function is executed, the tracking of that template/rendering function is removed and subsecuent changes in the entities of the template will not call the `renderingFunction`.
 
@@ -203,10 +180,10 @@ This method will return a function. When this function is executed, the tracking
 cleanTracked(entityId?: string): void
 ```
 
-This method will clean the template tracking for a specific entity or will clean all the template trackings if no entity id is specified. It will not stop the subscriptions, so the watchers for the subscriptions will still be running. Call [stop](#stop) to stop the subscriptions.
+This method will clean the template tracking for a specific entity or will clean all the template trackings if no entity id is specified.
 
 >[!NOTE]
->With this method, it is possible to clean `refs` variables. To do so, you just need to send as the name of the entity the value of `refsVariableName` (by default `refs`) and the name of the variable separated by a dot, e.g `refs.my_variable`.
+>With this method, it is possible to clean `refs` variables. To do so, you just need to send as the name of the entity `ref.the_name_of_the_variable`. Take into account that you need to use `ref` as the domain regardless of the value of the option `refsVariableName`.
 
 ### Objects and methods available in the templates
 
@@ -533,9 +510,7 @@ const haJsTemplates = new HomeAssistantJavaScriptTemplates(
 );
 
 haJsTemplates.getRenderer()
-    .then(async (renderer) => {
-        // Start the subscriptions
-        await renderer.init();
+    .then((renderer) => {
         const element = document.querySelector('#my-element');
         const untrack = renderer.trackTemplate(
             `
@@ -551,9 +526,6 @@ haJsTemplates.getRenderer()
 
         // Later if one wants to untrack the template
         untrack();
-
-        // Later if one wants to stop the subscriptions
-        renderer.stop();
 
     });
 
@@ -585,9 +557,6 @@ haJsTemplates.getRenderer()
         // Render the initial value
         const result = renderer.renderTemplate('refs.MY_VARIABLE');
         console.log(result); // REACTIVE
-
-        // Start the subscriptions
-        await renderer.init();
         
         // Track changes in a template with a reactive variable
         const untrack = renderer.trackTemplate(
