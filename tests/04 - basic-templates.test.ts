@@ -21,7 +21,6 @@ describe('Basic templates tests', () => {
         });
         consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
         renderer = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
-        await renderer.init();
     });
 
     afterEach(() => {

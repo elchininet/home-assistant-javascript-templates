@@ -2,44 +2,61 @@ import {
     HomeAssistantJavaScriptTemplates,
     HomeAssistantJavaScriptTemplatesRenderer
 } from '../src/classes';
-import { HOME_ASSISTANT_ELEMENT } from './constants';
-import { EVENT } from '../src/constants';
+import { Hass, HomeAssistant } from '../src/types';
+import { HASS, HOME_ASSISTANT_ELEMENT } from './constants';
+import { EVENT, NAMESPACE } from '../src/constants';
+import { waitForDelay } from './utilities';
 
 describe('promise instance', () => {
 
     describe('Home Assistant hassConnection errors', () => {
 
-        it('if hassConnection fails, subscribed should be set to false', async () => {
-            window.hassConnection = Promise.reject('hassConnection error');
-            const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
-            const renderer = await compiler.getRenderer();
-            await expect(
-                renderer.init()
-            ).rejects.toMatch('hassConnection error');
-            expect(renderer.subscribed).toBeFalsy();
+        let consoleErrorMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>;
+
+        beforeEach(() => {
+            consoleErrorMock = jest.spyOn(console, 'error').mockImplementation();
         });
 
-        it('if subscribeMessage fails, subscribed should be set to false', async () => {
+        afterEach(() => {
+            consoleErrorMock.mockRestore();
+        });
+
+        it('if hassConnection fails, trackTemplate should throw a console error but it should execute the rendering function', async () => {
+            const errorMessage = 'hassConnection error';
+            window.hassConnection = Promise.reject(errorMessage);
+            const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
+            const renderer = await compiler.getRenderer();
+            const renderingFunction = jest.fn();
+            renderer.trackTemplate('is_state("light.woonkamer_lamp", "on")', renderingFunction);
+            await waitForDelay();
+            expect(renderingFunction).toHaveBeenNthCalledWith(1, false);
+            expect(consoleErrorMock).toHaveBeenNthCalledWith(1, `${NAMESPACE}: ${errorMessage}`);
+        });
+
+        it('if subscribeMessage fails, trackTemplate should throw a console error but it should execute the rendering function', async () => {
+            const errorMessage = 'subscribeMessage error';
             window.hassConnection = Promise.resolve({
                 conn: {
-                    subscribeMessage: jest.fn(() => Promise.reject('subscribeMessage error'))
+                    subscribeMessage: jest.fn(() => Promise.reject(errorMessage))
                 }
             });
             const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
             const renderer = await compiler.getRenderer();
-            await expect(
-                renderer.init()
-            ).rejects.toMatch('subscribeMessage error');
-            expect(renderer.subscribed).toBeFalsy();
+            const renderingFunction = jest.fn();
+            renderer.trackTemplate('is_state("light.woonkamer_lamp", "on")', renderingFunction);
+            await waitForDelay();
+            expect(renderingFunction).toHaveBeenNthCalledWith(1, false);
+            expect(consoleErrorMock).toHaveBeenNthCalledWith(1, `${NAMESPACE}: ${errorMessage}`);
         });
 
     });
 
-    describe('Home Assistant hassConnection success', () => {
+    describe('Home Assistant hassConnection and subscribeMessage success', () => {
 
         let renderer: HomeAssistantJavaScriptTemplatesRenderer;
         let cancelSubscription: jest.Mock;
         let subscribeMessage: jest.Mock;
+        let hassClone: Hass;
 
         beforeEach(async () => {
             cancelSubscription = jest.fn();
@@ -49,58 +66,11 @@ describe('promise instance', () => {
                     subscribeMessage
                 }
             });
-            const compiler = new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT);
+            hassClone = JSON.parse(JSON.stringify(HASS));
+            const compiler = new HomeAssistantJavaScriptTemplates({
+                hass: hassClone
+            } as HomeAssistant);
             renderer = await compiler.getRenderer();
-        });
-
-        it('init method should return a promise that resolves to the same renderer', async () => {
-            const instance = await renderer.init();
-            expect(renderer).toBe(instance);
-        });
-
-        it('hassConnection.conn.subscribeMessage should not be called if init is not called', async () => {
-            await new Promise(process.nextTick);
-            expect(subscribeMessage).not.toHaveBeenCalled();
-        });
-
-        it('hassConnection.conn.subscribeMessage should be called after init is called', async () => {
-            await renderer.init();
-            expect(subscribeMessage).toHaveBeenCalledWith(
-                expect.any(Function),
-                {
-                    type: EVENT.SUBSCRIBE_ENTITIES
-                }
-            );
-        });
-
-        it('should throw an error if stop is called without calling init first', async () => {
-            expect(
-                () => renderer.stop()
-            ).toThrow('You cannot call stop method without init being called');
-            expect(cancelSubscription).not.toHaveBeenCalled();
-        });
-
-        it('should throw an error if init is called without calling stop first', async () => {
-            await renderer.init();
-            expect(subscribeMessage).toHaveBeenCalledTimes(1);
-            await expect(
-                renderer.init()
-            ).rejects.toThrow('You cannot call init method consecutively or call it if you used the autoInit option, call stop first');
-            expect(subscribeMessage).not.toHaveBeenCalledTimes(2);
-        });
-
-        it('should not throw an error if init is called after calling stop', async () => {
-            await renderer.init();
-            renderer.stop();
-            expect(cancelSubscription).toHaveBeenCalledTimes(1);
-            await renderer.init();
-            expect(subscribeMessage).toHaveBeenNthCalledWith(
-                2,
-                expect.any(Function),
-                {
-                    type: EVENT.SUBSCRIBE_ENTITIES
-                }
-            );
         });
 
         it('parseTemplate should return the correct shape', async () => {
@@ -125,6 +95,171 @@ describe('promise instance', () => {
                 result: 'on / dea1c4475b8dc901b7b33c7eac09896d',
                 entities: ['binary_sensor.koffiezetapparaat_aan', 'sensor.slaapkamer_temperatuur']
             });
+        });
+
+        it('trackTemplate called multiple times should create a debounced subscription with all the entities tracked', async () => {
+            const renderingFunction1 = jest.fn();
+            const renderingFunction2 = jest.fn();
+            renderer.trackTemplate('is_state("light.woonkamer_lamp", "on")', renderingFunction1);
+            renderer.trackTemplate('is_state("binary_sensor.koffiezetapparaat_verbonden", "on")', renderingFunction2);
+            expect(renderingFunction1).toHaveBeenNthCalledWith(1, false);
+            expect(renderingFunction2).toHaveBeenNthCalledWith(1, true);
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenNthCalledWith(
+                1,
+                expect.any(Function),
+                {
+                    type: EVENT.SUBSCRIBE_ENTITIES,
+                    entity_ids: ['light.woonkamer_lamp', 'binary_sensor.koffiezetapparaat_verbonden']
+                }
+            );
+            expect(subscribeMessage).not.toHaveBeenCalledTimes(2);
+            expect(cancelSubscription).not.toHaveBeenCalled();
+        });
+
+        it('trackTemplate should cancel the previous subscription before creating a new one', async () => {
+            const renderingFunction1 = jest.fn();
+            const renderingFunction2 = jest.fn();
+            renderer.trackTemplate('is_state("light.woonkamer_lamp", "on")', renderingFunction1);
+            expect(renderingFunction1).toHaveBeenNthCalledWith(1, false);
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenNthCalledWith(
+                1,
+                expect.any(Function),
+                {
+                    type: EVENT.SUBSCRIBE_ENTITIES,
+                    entity_ids: ['light.woonkamer_lamp']
+                }
+            );
+            expect(cancelSubscription).not.toHaveBeenCalled();
+            renderer.trackTemplate('is_state("binary_sensor.koffiezetapparaat_verbonden", "on")', renderingFunction2);
+            expect(renderingFunction2).toHaveBeenNthCalledWith(1, true);
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenNthCalledWith(
+                2,
+                expect.any(Function),
+                {
+                    type: EVENT.SUBSCRIBE_ENTITIES,
+                    entity_ids: ['light.woonkamer_lamp', 'binary_sensor.koffiezetapparaat_verbonden']
+                }
+            );
+            expect(cancelSubscription).toHaveBeenCalledTimes(1);
+        });
+
+        it('trackTemplate should not create any subscription if cleanTracked is called with the tracked entity immediately', async () => {
+            const renderingFunction = jest.fn();
+            renderer.trackTemplate('is_state("light.woonkamer_lamp", "on")', renderingFunction);
+            renderer.cleanTracked('light.woonkamer_lamp');
+            expect(renderingFunction).toHaveBeenNthCalledWith(1, false);
+            await waitForDelay();
+            expect(subscribeMessage).not.toHaveBeenCalled();
+        });
+
+        it('trackTemplate should not create any subscription if cleanTracked is called without entities immediately', async () => {
+            const renderingFunction = jest.fn();
+            renderer.trackTemplate('is_state("light.woonkamer_lamp", "on")', renderingFunction);
+            renderer.cleanTracked();
+            expect(renderingFunction).toHaveBeenNthCalledWith(1, false);
+            await waitForDelay();
+            expect(subscribeMessage).not.toHaveBeenCalled();
+        });
+
+        it('trackTemplate should not create any subscription if its cleaning function is called immediately', async () => {
+            const renderingFunction = jest.fn();
+            const clean = renderer.trackTemplate('is_state("light.woonkamer_lamp", "on")', renderingFunction);
+            clean();
+            expect(renderingFunction).toHaveBeenNthCalledWith(1, false);
+            await waitForDelay();
+            expect(subscribeMessage).not.toHaveBeenCalled();
+        });
+
+        it('cleanTracked with an entity id should create a new subscription excluding the cleaned entity id', async () => {
+            const renderingFunction1 = jest.fn();
+            const renderingFunction2 = jest.fn();
+            renderer.trackTemplate('is_state("light.woonkamer_lamp", "on")', renderingFunction1);
+            renderer.trackTemplate('is_state("binary_sensor.koffiezetapparaat_verbonden", "on")', renderingFunction2);
+            expect(renderingFunction1).toHaveBeenNthCalledWith(1, false);
+            expect(renderingFunction2).toHaveBeenNthCalledWith(1, true);
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenNthCalledWith(
+                1,
+                expect.any(Function),
+                {
+                    type: EVENT.SUBSCRIBE_ENTITIES,
+                    entity_ids: ['light.woonkamer_lamp', 'binary_sensor.koffiezetapparaat_verbonden']
+                }
+            );
+            expect(cancelSubscription).not.toHaveBeenCalled();
+            renderer.cleanTracked('binary_sensor.koffiezetapparaat_verbonden');
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenNthCalledWith(
+                2,
+                expect.any(Function),
+                {
+                    type: EVENT.SUBSCRIBE_ENTITIES,
+                    entity_ids: ['light.woonkamer_lamp']
+                }
+            );
+            expect(cancelSubscription).toHaveBeenCalled();
+        });
+
+        it('cleanTracked without an entity id should not create a new subscription and clean the previous one', async () => {
+            const renderingFunction1 = jest.fn();
+            const renderingFunction2 = jest.fn();
+            renderer.trackTemplate('is_state("light.woonkamer_lamp", "on")', renderingFunction1);
+            renderer.trackTemplate('is_state("binary_sensor.koffiezetapparaat_verbonden", "on")', renderingFunction2);
+            expect(renderingFunction1).toHaveBeenNthCalledWith(1, false);
+            expect(renderingFunction2).toHaveBeenNthCalledWith(1, true);
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenNthCalledWith(
+                1,
+                expect.any(Function),
+                {
+                    type: EVENT.SUBSCRIBE_ENTITIES,
+                    entity_ids: ['light.woonkamer_lamp', 'binary_sensor.koffiezetapparaat_verbonden']
+                }
+            );
+            expect(cancelSubscription).not.toHaveBeenCalled();
+            renderer.cleanTracked();
+            await waitForDelay();
+            expect(subscribeMessage).not.toHaveBeenCalledTimes(2);
+            expect(cancelSubscription).toHaveBeenCalled();
+        });
+
+        it('tracking templates with client side variables should not create any subscription', async () => {
+            const renderingFunction1 = jest.fn();
+            const renderingFunction2 = jest.fn();
+            renderer.trackTemplate('lang === "en"', renderingFunction1);
+            renderer.trackTemplate('panel_url === "/lovelace"', renderingFunction2);
+            expect(renderingFunction1).toHaveBeenNthCalledWith(1, true);
+            expect(renderingFunction2).toHaveBeenNthCalledWith(1, false);
+            await waitForDelay();
+            expect(subscribeMessage).not.toHaveBeenCalled();
+        });
+
+        it('tracking templates with refs should not create any subscription', async () => {
+            const renderingFunction1 = jest.fn();
+            const renderingFunction2 = jest.fn();
+            renderer.trackTemplate(
+                `
+                    const name = ref('name');
+                    return name.value;
+                `,
+                renderingFunction1
+            );
+            expect(renderingFunction1).toHaveBeenNthCalledWith(1, undefined);
+            renderer.trackTemplate(
+                `
+                    const name = ref('name');
+                    name.value = 'Boss';
+                    return true;
+                `,
+                renderingFunction2
+            );
+            expect(renderingFunction2).toHaveBeenNthCalledWith(1, true);
+            expect(renderingFunction1).toHaveBeenNthCalledWith(2, 'Boss');
+            await waitForDelay();
+            expect(subscribeMessage).not.toHaveBeenCalled();
         });
 
     });

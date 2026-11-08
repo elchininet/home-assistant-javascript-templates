@@ -20,7 +20,6 @@ describe('ref and unref without errors', () => {
             }
         });
         renderer = await new HomeAssistantJavaScriptTemplates(HOME_ASSISTANT_ELEMENT).getRenderer();
-        await renderer.init();
         consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
     });
 
@@ -987,6 +986,64 @@ describe('ref variables with custom name', () => {
             expect(
                 renderer.renderTemplate('vars.MY_FUNCTION("2")')
             ).toBe('2_HALF');
+        });
+
+    });
+
+    describe('trackTemplate with refs variables', () => {
+
+        it('changing the value of a ref variable in a template should rerender all templates using it', () => {
+
+            const renderingFunction1 = jest.fn();
+            const renderingFunction2 = jest.fn();
+
+            renderer.trackTemplate('vars.MY_NUMBER', renderingFunction1);
+
+            expect(renderingFunction1).toHaveBeenNthCalledWith(1, 100);
+            
+            renderer.trackTemplate(
+                `
+                    const multiplier = 2;
+                    vars.MY_NUMBER *= multiplier;
+                    return multiplier;
+                `,
+                renderingFunction2
+            );
+
+            expect(renderingFunction1).toHaveBeenNthCalledWith(2, 200);
+            expect(renderingFunction2).toHaveBeenNthCalledWith(1, 2);
+
+        });
+
+        it('changing the value of a ref variable through the class property should rerender all templates using it', () => {
+
+            const renderingFunction1 = jest.fn();
+            const renderingFunction2 = jest.fn();
+
+            renderer.trackTemplate(
+                `
+                    if (vars.MY_STRING === 'CUSTOM_VALUE') {
+                        return 'yes';
+                    }
+                    return 'no';
+                `,
+                renderingFunction1
+            );
+
+            renderer.trackTemplate(
+                'return vars.MY_NUMBER * 2',
+                renderingFunction2
+            );
+
+            expect(renderingFunction1).toHaveBeenNthCalledWith(1, 'yes');
+            expect(renderingFunction2).toHaveBeenNthCalledWith(1, 200);
+
+            renderer.refs.MY_STRING = 'CUSTOM_VALUE_CHANGED';
+            renderer.refs.MY_NUMBER = 200;
+
+            expect(renderingFunction1).toHaveBeenNthCalledWith(2, 'no');
+            expect(renderingFunction2).toHaveBeenNthCalledWith(2, 400);
+
         });
 
     });

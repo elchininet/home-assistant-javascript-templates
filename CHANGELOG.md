@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.0.0] - 2026-11-08
+
+- Subscribe to WebSocket `subscribe_entities` event filtering the entities used in the templates
+- Removed `autoInit` option
+- Removed `init` method
+- Removed `stop` method
+
 ## [8.1.0] - 2026-11-08
 
 - Migrate from WebSocket subscribe_events/state_changed to subscribe_entities
