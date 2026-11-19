@@ -28,6 +28,7 @@ export class HomeAssistantJavaScriptTemplatesSubscriber {
     private _cancelWebSocketSubscription?: CancelSubscription;
     private _updateSubscriptionsTimeoutTimer: number | undefined = undefined;
     private _updateSubscriptionsTimeoutDelay = 1;
+    private _updateWebSocketPending = false;
 
     private _panelUrlCallbackBinded: () => void;
     private _langCallbackBinded: () => void;
@@ -75,8 +76,11 @@ export class HomeAssistantJavaScriptTemplatesSubscriber {
         );
     }
 
-    private _isSomeEntityNotSubscribed(entities: string[]): boolean {
-        return entities.some((entity: string): boolean => !this.isEntitySuscribed(entity));
+    private _isSomeEntityNotSubscribed(entities: string[], homeAssistant: boolean): boolean {
+        return entities.some((entity: string): boolean => (
+            ENTITY_REGEXP.test(entity) === homeAssistant &&
+            !this.isEntitySuscribed(entity)
+        ));
     }
 
     private _panelUrlCallback(): void {
@@ -111,7 +115,8 @@ export class HomeAssistantJavaScriptTemplatesSubscriber {
         this._cancelWebSocketSubscription = cancelWebSocketSubscription;
     }
 
-    private _updateSubscriptions(): void {
+    private _updateSubscriptions(updateWebSocket = true): void {
+        this._updateWebSocketPending ||= updateWebSocket;
         clearTimeout(this._updateSubscriptionsTimeoutTimer);
         this._updateSubscriptionsTimeoutTimer = window.setTimeout(
             () => {
@@ -128,7 +133,10 @@ export class HomeAssistantJavaScriptTemplatesSubscriber {
                 } else {
                     window.removeEventListener(EVENT.TRANSLATIONS_UPDATED, this._langCallbackBinded);
                 }
-                this._updateWebSocketSubscription(entityIds.homeAssistant);
+                if (this._updateWebSocketPending) {
+                    this._updateWebSocketPending = false;
+                    this._updateWebSocketSubscription(entityIds.homeAssistant);
+                }
             },
             this._updateSubscriptionsTimeoutDelay
         );
@@ -155,7 +163,8 @@ export class HomeAssistantJavaScriptTemplatesSubscriber {
         entities: string[],
         extras: Extras
     ) {
-        const shouldUpdateSubscription = this._isSomeEntityNotSubscribed(entities);
+        const shouldUpdateWebSocket = this._isSomeEntityNotSubscribed(entities, true);
+        const shouldUpdateListeners = this._isSomeEntityNotSubscribed(entities, false);
         entities.forEach((id: string): void => {
             const mapEntry: [RenderingFunction, Extras] = [
                 renderingFunction,
@@ -182,15 +191,15 @@ export class HomeAssistantJavaScriptTemplatesSubscriber {
                 );
             }
         });
-        if (shouldUpdateSubscription) {
-            this._updateSubscriptions();
+        if (shouldUpdateWebSocket || shouldUpdateListeners) {
+            this._updateSubscriptions(shouldUpdateWebSocket);
         }
     }
 
     public deleteSubscription(id: string): void {
         if (this.isEntitySuscribed(id)) {
             this._subscriptions.delete(id);
-            this._updateSubscriptions();
+            this._updateSubscriptions(ENTITY_REGEXP.test(id));
         }
     }
 
@@ -221,7 +230,9 @@ export class HomeAssistantJavaScriptTemplatesSubscriber {
             }
         });
         if (subscriptionsDeleted.size > 0) {
-            this._updateSubscriptions();
+            this._updateSubscriptions(
+                [...subscriptionsDeleted].some((id: string): boolean => ENTITY_REGEXP.test(id))
+            );
         }
     }
 

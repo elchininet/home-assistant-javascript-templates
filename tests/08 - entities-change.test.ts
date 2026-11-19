@@ -130,6 +130,32 @@ describe('promise instance', () => {
 
     });
 
+    describe('tracking templates with only client-side variables', () => {
+
+        it('should not resubscribe to the entities when a template with lang or panel_url is tracked or untracked', async () => {
+            renderer.trackTemplate('states("light.woonkamer_lamp")', jest.fn());
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenCalledTimes(1);
+            const untrackLang = renderer.trackTemplate('return lang', jest.fn());
+            const untrackPanelUrl = renderer.trackTemplate('return panel_url', jest.fn());
+            await waitForDelay();
+            untrackLang();
+            untrackPanelUrl();
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenCalledTimes(1);
+            expect(cancelSubscription).not.toHaveBeenCalled();
+        });
+
+        it('should subscribe to the entities when a template with an entity and a template with lang are tracked together', async () => {
+            renderer.trackTemplate('states("light.woonkamer_lamp")', jest.fn());
+            renderer.trackTemplate('return lang', jest.fn());
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenCalledTimes(1);
+            expect(subscribeMessage.mock.calls[0][1].entity_ids).toEqual(['light.woonkamer_lamp']);
+        });
+
+    });
+
     describe('tracking a template when an entity changes', () => {
 
         let renderingFunction: jest.Mock;
