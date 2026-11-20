@@ -511,32 +511,45 @@ describe('promise instance', () => {
             const renderingFunction1 = jest.fn();
             const renderingFunction2 = jest.fn();
             renderer.trackTemplate('is_state("light.woonkamer_lamp", "on")', renderingFunction1);
-            renderer.trackTemplate('is_state("binary_sensor.koffiezetapparaat_verbonden", "on")', renderingFunction2);
             await waitForDelay();
             expect(renderingFunction1).toHaveBeenNthCalledWith(1, false);
-            expect(renderingFunction2).toHaveBeenNthCalledWith(1, true);
             expect(subscribeMessage).toHaveBeenNthCalledWith(
                 1,
-                expect.any(Function),
-                {
-                    type: EVENT.SUBSCRIBE_ENTITIES,
-                    entity_ids: ['light.woonkamer_lamp', 'binary_sensor.koffiezetapparaat_verbonden']
-                }
-            );
-            expect(cancelSubscription).not.toHaveBeenCalled();
-            hassClone.states['light.woonkamer_lamp'].state = 'on';
-            hassClone.states['binary_sensor.koffiezetapparaat_verbonden'].state = 'off';
-            renderer.cleanTracked('binary_sensor.koffiezetapparaat_verbonden');
-            await waitForDelay();
-            expect(cancelSubscription).toHaveBeenCalledTimes(1);
-            expect(subscribeMessage).toHaveBeenNthCalledWith(
-                2,
                 expect.any(Function),
                 {
                     type: EVENT.SUBSCRIBE_ENTITIES,
                     entity_ids: ['light.woonkamer_lamp']
                 }
             );
+            expect(subscribeMessage).toHaveBeenCalledTimes(1);
+            expect(cancelSubscription).not.toHaveBeenCalled();
+            renderer.trackTemplate('is_state("binary_sensor.koffiezetapparaat_verbonden", "on")', renderingFunction2);
+            await waitForDelay();
+            expect(renderingFunction2).toHaveBeenNthCalledWith(1, true);
+            expect(subscribeMessage).toHaveBeenNthCalledWith(
+                2,
+                expect.any(Function),
+                {
+                    type: EVENT.SUBSCRIBE_ENTITIES,
+                    entity_ids: ['light.woonkamer_lamp', 'binary_sensor.koffiezetapparaat_verbonden']
+                }
+            );
+            expect(subscribeMessage).toHaveBeenCalledTimes(2);
+            expect(cancelSubscription).toHaveBeenCalledTimes(1);
+            renderer.cleanTracked('binary_sensor.koffiezetapparaat_verbonden');
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenNthCalledWith(
+                3,
+                expect.any(Function),
+                {
+                    type: EVENT.SUBSCRIBE_ENTITIES,
+                    entity_ids: ['light.woonkamer_lamp']
+                }
+            );
+            expect(subscribeMessage).toHaveBeenCalledTimes(3);
+            expect(cancelSubscription).toHaveBeenCalledTimes(2);
+            hassClone.states['light.woonkamer_lamp'].state = 'on';
+            hassClone.states['binary_sensor.koffiezetapparaat_verbonden'].state = 'off';
             window.dispatchEvent(
                 getSubscribeCustomEvent('light.woonkamer_lamp')
             );
@@ -545,8 +558,8 @@ describe('promise instance', () => {
             );
             expect(renderingFunction1).toHaveBeenNthCalledWith(2, true);
             expect(renderingFunction2).not.toHaveBeenNthCalledWith(2, false);
-            expect(subscribeMessage).toHaveBeenCalledTimes(2);
-            expect(cancelSubscription).toHaveBeenCalledTimes(1);
+            expect(subscribeMessage).toHaveBeenCalledTimes(3);
+            expect(cancelSubscription).toHaveBeenCalledTimes(2);
         });
 
         it('if cleanTracked is executed sending a non-tracked entity id it should not clean any tracked entity', async () => {
@@ -565,13 +578,14 @@ describe('promise instance', () => {
                     entity_ids: ['light.woonkamer_lamp', 'binary_sensor.koffiezetapparaat_verbonden']
                 }
             );
+            expect(subscribeMessage).toHaveBeenCalledTimes(1);
+            expect(cancelSubscription).not.toHaveBeenCalled();
+            renderer.cleanTracked('light.eetkamer_lampje');
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenCalledTimes(1);
             expect(cancelSubscription).not.toHaveBeenCalled();
             hassClone.states['light.woonkamer_lamp'].state = 'on';
             hassClone.states['binary_sensor.koffiezetapparaat_verbonden'].state = 'off';
-            renderer.cleanTracked('light.eetkamer_lampje');
-            await waitForDelay();
-            expect(cancelSubscription).not.toHaveBeenCalled();
-            expect(subscribeMessage).toHaveBeenCalledTimes(1);
             window.dispatchEvent(
                 getSubscribeCustomEvent('light.woonkamer_lamp')
             );
@@ -580,8 +594,8 @@ describe('promise instance', () => {
             );
             expect(renderingFunction1).toHaveBeenNthCalledWith(2, true);
             expect(renderingFunction2).toHaveBeenNthCalledWith(2, false);
-            expect(cancelSubscription).not.toHaveBeenCalled();
             expect(subscribeMessage).toHaveBeenCalledTimes(1);
+            expect(cancelSubscription).not.toHaveBeenCalled();
         });
 
     });

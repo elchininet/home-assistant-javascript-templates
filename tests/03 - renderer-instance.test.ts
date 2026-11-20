@@ -117,7 +117,7 @@ describe('promise instance', () => {
             expect(cancelSubscription).not.toHaveBeenCalled();
         });
 
-        it('trackTemplate should cancel the previous subscription before creating a new one', async () => {
+        it('trackTemplate should cancel the previous subscription and create a new one', async () => {
             const renderingFunction1 = jest.fn();
             const renderingFunction2 = jest.fn();
             renderer.trackTemplate('is_state("light.woonkamer_lamp", "on")', renderingFunction1);
@@ -173,6 +173,82 @@ describe('promise instance', () => {
             expect(subscribeMessage).not.toHaveBeenCalled();
         });
 
+        it('trackTemplate with the same tracked entities should not create a new subscription', async () => {
+            const renderingFunction1 = jest.fn();
+            const renderingFunction2 = jest.fn();
+            renderer.trackTemplate('is_state("light.woonkamer_lamp", "on")', renderingFunction1);
+            await waitForDelay();
+            expect(renderingFunction1).toHaveBeenNthCalledWith(1, false);
+            expect(subscribeMessage).toHaveBeenNthCalledWith(
+                1,
+                expect.any(Function),
+                {
+                    type: EVENT.SUBSCRIBE_ENTITIES,
+                    entity_ids: ['light.woonkamer_lamp']
+                }
+            );
+            renderer.trackTemplate('states("light.woonkamer_lamp")', renderingFunction2);
+            await waitForDelay();
+            expect(renderingFunction2).toHaveBeenNthCalledWith(1, 'off');
+            expect(subscribeMessage).not.toHaveBeenCalledTimes(2);
+            expect(cancelSubscription).not.toHaveBeenCalled();
+        });
+
+        it('trackTemplate with a template containing home assistant entities and client side entities should subscribe only the home assistant entity', async () => {
+    
+            renderer.trackTemplate(
+                `
+                    const isOn = is_state("light.woonkamer_lamp", "on");
+                    if (lang === "es") {
+                        return isOn ? 'Encendido' : 'Apagado';
+                    } else {
+                        return isOn ? 'On' : 'Off';
+                    }
+                `,
+                jest.fn()
+            );
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenNthCalledWith(
+                1,
+                expect.any(Function),
+                {
+                    type: EVENT.SUBSCRIBE_ENTITIES,
+                    entity_ids: ['light.woonkamer_lamp']
+                }
+            );
+            expect(cancelSubscription).not.toHaveBeenCalled();
+            
+        });
+
+        it('should not resubscribe to the entities when a template with lang or panel_url is tracked or untracked', async () => {
+    
+            renderer.trackTemplate('states("light.woonkamer_lamp")', jest.fn());
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenNthCalledWith(
+                1,
+                expect.any(Function),
+                {
+                    type: EVENT.SUBSCRIBE_ENTITIES,
+                    entity_ids: ['light.woonkamer_lamp']
+                }
+            );
+
+            const untrackLang = renderer.trackTemplate('return lang', jest.fn());
+            const untrackPanelUrl = renderer.trackTemplate('return panel_url', jest.fn());
+            await waitForDelay();
+
+            untrackLang();
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenCalledTimes(1);
+            expect(cancelSubscription).not.toHaveBeenCalled();
+
+            untrackPanelUrl();
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenCalledTimes(1);
+            expect(cancelSubscription).not.toHaveBeenCalled();
+            
+        });
+
         it('cleanTracked with an entity id should create a new subscription excluding the cleaned entity id', async () => {
             const renderingFunction1 = jest.fn();
             const renderingFunction2 = jest.fn();
@@ -200,10 +276,35 @@ describe('promise instance', () => {
                     entity_ids: ['light.woonkamer_lamp']
                 }
             );
-            expect(cancelSubscription).toHaveBeenCalled();
+            expect(cancelSubscription).toHaveBeenCalledTimes(1);
         });
 
-        it('cleanTracked without an entity id should not create a new subscription and clean the previous one', async () => {
+        it('cleanTracked with a client side entity should not unsubscribe or create a new subscription', async () => {
+            renderer.trackTemplate('states("light.woonkamer_lamp")', jest.fn());
+            renderer.trackTemplate('return lang', jest.fn());
+            renderer.trackTemplate('return panel_url', jest.fn());
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenNthCalledWith(
+                1,
+                expect.any(Function),
+                {
+                    type: EVENT.SUBSCRIBE_ENTITIES,
+                    entity_ids: ['light.woonkamer_lamp']
+                }
+            );
+
+            renderer.cleanTracked('lang');
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenCalledTimes(1);
+            expect(cancelSubscription).not.toHaveBeenCalled();
+            
+            renderer.cleanTracked('panel_url');
+            await waitForDelay();
+            expect(subscribeMessage).toHaveBeenCalledTimes(1);
+            expect(cancelSubscription).not.toHaveBeenCalled();
+        });
+
+        it('cleanTracked without an entity id should clean the subscription and not create a new one', async () => {
             const renderingFunction1 = jest.fn();
             const renderingFunction2 = jest.fn();
             renderer.trackTemplate('is_state("light.woonkamer_lamp", "on")', renderingFunction1);
@@ -223,7 +324,7 @@ describe('promise instance', () => {
             renderer.cleanTracked();
             await waitForDelay();
             expect(subscribeMessage).not.toHaveBeenCalledTimes(2);
-            expect(cancelSubscription).toHaveBeenCalled();
+            expect(cancelSubscription).toHaveBeenCalledTimes(1);
         });
 
         it('tracking templates with client side variables should not create any subscription', async () => {
