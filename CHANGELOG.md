@@ -1,5 +1,9 @@
 # Changelog
 
+## [9.0.0] - 2026-11-22
+
+- Fix CommonJS import
+
 ## [9.0.0] - 2026-11-21
 
 - Subscribe to WebSocket `subscribe_entities` event filtering the entities used in the templates

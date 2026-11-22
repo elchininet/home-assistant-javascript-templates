@@ -1,8 +1,9 @@
 allowBuilds:
   '@parcel/watcher': false
   unrs-resolver: false
+minimumReleaseAgeExclude:
+  - get-promisable-result@2.1.1
 overrides:
-  
   baseline-browser-mapping@>=2.0.0 <2.11.0: ^2.11.0
   brace-expansion@<1.1.18: ^1.1.18
   brace-expansion@>=2.0.0 <2.1.7: ^2.1.7
