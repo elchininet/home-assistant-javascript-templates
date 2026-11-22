@@ -1,6 +1,6 @@
 # Changelog
 
-## [9.0.0] - 2026-11-22
+## [9.0.1] - 2026-11-22
 
 - Fix CommonJS import
 
